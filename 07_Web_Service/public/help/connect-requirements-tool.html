@@ -121,6 +121,7 @@
   <tr><td>Validation method, Validation conclusion</td><td>Optional</td><td>The system-level validation checks (ARP4754A).</td></tr>
   <tr><td>Assumption, Safety related, DAL, Source</td><td>Optional</td><td>Assumptions recorded, safety requirements without a DAL, an invalid DAL, and system requirements with no identified source.</td></tr>
   <tr><td>Title, Heading</td><td>Optional</td><td>A heading row is recognised as a heading and not reviewed as a requirement.</td></tr>
+  <tr><td>Item</td><td>Optional</td><td>The software or hardware item each requirement belongs to, when one module covers several. ISAF puts each requirement in that item’s documents. Without this column every row takes the Item set on the file card. An item that is not in your program is reported as an error rather than dropped, because its requirements would otherwise reach no document.</td></tr>
 </table>
 <h3>Column names</h3>
 <p>Name them however your process names them. ISAF suggests the mapping and you correct it on the card before running the review; the choice is remembered for the next file with the same columns. Names it recognises on its own include:</p>
@@ -130,6 +131,7 @@
   <li><b>Traces to:</b> Traces To, Trace To, Parent, Parent ID, Parent Requirement, Satisfies, Derived From, Upstream</li>
   <li><b>Verification:</b> Verification, Verification Method, Test Method, VM</li>
   <li><b>Others:</b> Derived, Rationale, Justification, Validation Method, Validation Status, Assumption, Safety, Safety Related, DAL, FDAL, IDAL, Source, Origin, Title, Name, Heading</li>
+  <li><b>Item:</b> Item, LRU, Unit, Software Item, Hardware Item, Subsystem, Component, Equipment, Allocated To, Allocation, Applies To, Assigned To, Module</li>
 </ul>
 <h3>One file per level</h3>
 <p>Each file you add is given a <b>level</b>: system requirements, software high-level, software low-level, hardware requirements or verification cases. The level decides which standard the findings cite (DO-178C, DO-254, ARP4754A / ARP4761A) and how the trace is built between files, so export one level per file. If one file holds several levels, add a column saying which, and map it as the optional object type.</p>

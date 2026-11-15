@@ -1,4 +1,4 @@
-ISAF v5.3.38 — INSTALLATION
+ISAF v5.3.39 — INSTALLATION
 ============================
 The full ZIP is the Admin application. Extract it into its own folder and launch START.command (macOS) or START.bat (Windows). Use Make_Customer_Edition.command/.bat only when preparing a separate Customer package. Recipient-specific Demo packages are created from the Admin app.
 

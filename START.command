@@ -20,13 +20,13 @@ if grep -Eq '"edition"[[:space:]]*:[[:space:]]*"demo"' "$DIR/EDITION.json" 2>/de
     printf '\033]0;Demo ISAF\007'
     echo ""
     echo "  +------------------------------------------+"
-    echo "  |  Demo ISAF v5.3.38                      |"
+    echo "  |  Demo ISAF v5.3.39                      |"
     echo "  |  SOI 1 Demonstration App                |"
     echo "  +------------------------------------------+"
 else
     echo ""
     echo "  +-------------------------------------------------------------+"
-    echo "  |  ISAF (Integrated Standards Assurance Framework) v5.3.38    |"
+    echo "  |  ISAF (Integrated Standards Assurance Framework) v5.3.39    |"
     echo "  |  Certification Document Generation Engine                   |"
     echo "  +-------------------------------------------------------------+"
 fi

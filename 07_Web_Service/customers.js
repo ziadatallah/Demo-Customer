@@ -160,6 +160,17 @@ export class CustomerRegister {
     record.program_types = expandProgramTypes(record.program_types || []);
     if ((record.program_types || []).includes("Aircraft")) record.do160_in_scope = "Yes"; // Aircraft programs always include DO-160
     if (!record.company) throw Object.assign(new Error("Enter the customer company name."), { status: 400 });
+    // A create is any save of the "new" placeholder, and before v5.3.39 each one appended a record
+    // and burned a licence id. A second click on Save, or a retry while the first request was still
+    // in flight, produced two customers with consecutive licence ids and no way to tell them apart.
+    // Refusing a second customer of the same name closes that for every caller, not just the one
+    // button; two genuinely separate records need names that tell them apart anyway.
+    if (!existing) {
+      const clash = customers.find(c => (c.company || "").trim().toLowerCase() === record.company.trim().toLowerCase());
+      if (clash) throw Object.assign(new Error(
+        `${clash.company} already exists (${clash.license_id}). If this is a second, separate customer, give it a name that distinguishes it, such as "${record.company} (EU)".`
+      ), { status: 409 });
+    }
     if (!record.license_id) record.license_id = this.nextLicenseId(customers);
     record.updatedAt = new Date().toISOString();
     const next = existing ? customers.map(c => (c.id === id ? record : c)) : [...customers, record];

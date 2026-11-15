@@ -562,7 +562,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 <div id="appChrome" class="app-chrome">
 <header id="mainHeader">
   <h1 id="headerTitle">ISAF (Integrated Standards Assurance Framework) — &lt;Company&gt;</h1>
-  <span class="version" id="appVersion">v5.3.38</span>
+  <span class="version" id="appVersion">v5.3.39</span>
 </header>
 
 <!-- Top bar (all editions): File, Help and the user menu. Stays usable while the app is locked. -->
@@ -1405,7 +1405,15 @@ function lockLicensedFields(){
 }
 function watchLicensedFields(){
   let queued = false;
-  new MutationObserver(() => { if (queued) return; queued = true; requestAnimationFrame(() => { queued = false; lockLicensedFields(); }); }).observe(document.body, { childList: true, subtree: true });
+  // `applying` keeps the observer from being woken by the edits lockLicensedFields itself makes:
+  // the same shape that froze Chrome through applyAircraftDo160Rule.
+  let applying = false;
+  const lockObserver = new MutationObserver(() => {
+    if (queued || applying) return;
+    queued = true;
+    requestAnimationFrame(() => { queued = false; applying = true; try { lockLicensedFields(); } finally { lockObserver.takeRecords(); applying = false; } });
+  });
+  lockObserver.observe(document.body, { childList: true, subtree: true });
   lockLicensedFields();
 }
 // Every Aircraft program includes DO-160 (owner decision, v5.3.26): DO-160 In Scope is Yes and read-only
@@ -1414,7 +1422,15 @@ function watchLicensedFields(){
 function applyLicensedProgramTypes(){
   if(!licensedProgramTypes.length)return;
   document.querySelectorAll('select[aria-label="New program boundary"], select[data-path="program.type"]').forEach(sel=>{
-    for(const o of sel.options){if(!o.value)continue;const ok=licensedProgramTypes.includes(String(o.value).toUpperCase());o.disabled=!ok;if(!ok)o.textContent=o.textContent.replace(/ \(not licensed\)$/,'')+' (not licensed)';}
+    for(const o of sel.options){
+      if(!o.value)continue;
+      const ok=licensedProgramTypes.includes(String(o.value).toUpperCase());
+      if(o.disabled!==!ok)o.disabled=!ok;
+      // Assigning textContent replaces the text node even when the string is identical, and that
+      // mutation wakes the observer below, which calls this again. Only write a real change.
+      const base=o.textContent.replace(/ \(not licensed\)$/,''),text=ok?base:base+' (not licensed)';
+      if(o.textContent!==text)o.textContent=text;
+    }
     if(sel.getAttribute('aria-label')==='New program boundary'&&!licensedProgramTypes.includes(String(sel.value).toUpperCase())){sel.value=licensedProgramTypes[licensedProgramTypes.length-1];sel.dispatchEvent(new Event('change'));}
   });
 }
@@ -1446,7 +1462,15 @@ function applyAircraftDo160Rule(){
     }else if(el.dataset.aircraftRule){el.disabled=false;el.title='';delete el.dataset.aircraftRule;}
   });
 }
-{let queued=false;new MutationObserver(()=>{if(queued)return;queued=true;requestAnimationFrame(()=>{queued=false;applyAircraftDo160Rule();});}).observe(document.documentElement,{childList:true,subtree:true});
+{let queued=false,applying=false;
+ const observer=new MutationObserver(()=>{
+  // The rule edits options and fields, so without this guard its own edits wake the observer that
+  // called it and the page loops at frame rate until the tab dies.
+  if(queued||applying)return;
+  queued=true;
+  requestAnimationFrame(()=>{queued=false;applying=true;try{applyAircraftDo160Rule();}finally{observer.takeRecords();applying=false;}});
+ });
+ observer.observe(document.documentElement,{childList:true,subtree:true});
  document.addEventListener('change',e=>{if(e.target?.dataset?.path==='program.type')setTimeout(()=>{applyAircraftDo160Rule();if(!$('panel-config').classList.contains('hidden'))renderConfigTabs();},0);});}
 // Builds run in the background: the build request returns 202 {jobId} and the browser checks the job every
 // few seconds (hosting proxies close requests after about 100 seconds). Stop build cancels the job.

@@ -199,10 +199,10 @@ const buildJobs = createBuildJobStore(repository, {
   organizationId: process.env.ISAF_ORGANIZATION_ID,
 });
 const connectors=createConnectorService({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository")});
-const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"5.3.38",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
+const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"5.3.39",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
 
 app.get("/api/session",requireAuth,(req,res)=>res.json({
-  edition:appEdition(), version:"5.3.38", authentication:authentication.mode,
+  edition:appEdition(), version:"5.3.39", authentication:authentication.mode,
   user:{id:req.auth.id||null,subject:req.auth.subject,displayName:req.auth.displayName,email:req.auth.email||null,role:req.auth.role},
   organizationId:req.auth.organizationId||process.env.ISAF_ORGANIZATION_ID||null,
   capabilities:{teamAdministration:authentication.mode==="oidc"&&hasPermission(req.auth.role,"organization.manage"),durableBuilds:!!repository?.metadata?.withTenant,integrationAdministration:hasPermission(req.auth.role,"integration.manage"),hosted:HOSTED_SERVICE},
@@ -353,7 +353,7 @@ app.post("/api/jobs", requireAuth, authorize("build.run"), requireUpToDate, uplo
     const job=await buildJobs.submit({
       organizationId:req.auth.organizationId||null,programId,requestedBy:req.auth.id||null,
       actor:requestActor(req,req.body.actor),phase:String(req.body.phase||"all").toLowerCase(),
-      engineVersion:"5.3.38",filename:req.file.originalname,
+      engineVersion:"5.3.39",filename:req.file.originalname,
       // The imported requirements are resolved here rather than in the worker: a Postgres-backed
       // repository has no program folder to read a link from, and the job must build with the
       // requirements as they were when it was submitted. They are part of the idempotency key
@@ -901,7 +901,7 @@ app.get("/api/health", (_req, res) => {
   // pdfAvailable lets the Build tab say LibreOffice is missing BEFORE a build rather than after
   // one: the conversion runs on the exported folder, so without this the user waits out a full
   // build (1312 documents on an aircraft program) to be told the box they ticked could not run.
-  res.json({ status: "ok", version: "5.3.38", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
+  res.json({ status: "ok", version: "5.3.39", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
 });
 
 app.get("/api/demo-register", requireAuth, authorize("demo.manage"), async(_req,res)=>{
@@ -1324,8 +1324,12 @@ app.post("/api/import/review",requireAuth,authorize("build.run"),express.json({l
   try{
     const files=Array.isArray(req.body?.files)?req.body.files:[];
     if(!files.length)return res.status(400).json({error:"Add at least one requirements file."});
-    const sets=files.map(f=>({level:REQUIREMENT_LEVELS[f.level]?f.level:"hlr",name:String(f.name||""),relations:Array.isArray(f.relations)?f.relations:[],requirements:normalizeRequirements(Array.isArray(f.objects)?f.objects:[],f.mapping||{},REQUIREMENT_LEVELS[f.level]?f.level:"hlr",String(f.name||"")).map(r=>({...r,item:String(f.item||"").trim()}))}));
-    const result=reviewRequirements(sets,req.body?.options||{});
+    // The item comes from the row when an Item column is mapped (one DOORS module can carry several
+    // software and hardware items), and from the file card otherwise. The card is the fallback for
+    // rows that leave the column empty, not an override.
+    const sets=files.map(f=>({level:REQUIREMENT_LEVELS[f.level]?f.level:"hlr",name:String(f.name||""),relations:Array.isArray(f.relations)?f.relations:[],requirements:normalizeRequirements(Array.isArray(f.objects)?f.objects:[],f.mapping||{},REQUIREMENT_LEVELS[f.level]?f.level:"hlr",String(f.name||"")).map(r=>({...r,item:(String(r.item||"").trim()||String(f.item||"").trim())}))}));
+    const knownItems=Array.isArray(req.body?.items)?req.body.items.map(String):[];
+    const result=reviewRequirements(sets,{...(req.body?.options||{}),knownItems});
     res.json({...result,meta:{program:String(req.body?.program||""),sources:files.map(f=>String(f.name||"")),generated:new Date().toISOString().replace("T"," ").slice(0,16)+" UTC",version:editionManifest().version||""}});
   }catch(error){res.status(400).json({error:error.message});}
 });
@@ -1369,7 +1373,7 @@ app.post("/api/import/report",requireAuth,authorize("build.run"),express.json({l
 // not kept. format=zip returns the updated documents and Import_Report.txt as a ZIP; otherwise JSON with the
 // updated documents (base64) for the browser to write into the working folder.
 const importDocsUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:25*1024*1024,files:300,fieldSize:100*1024*1024}});
-// Editing documents that were already generated is an Admin capability (owner, v5.3.38). In a
+// Editing documents that were already generated is an Admin capability (owner, v5.3.39). In a
 // Customer or Demo app the imported requirements reach documents one way only: a build writes them
 // in. The UI does not render the block there, and the route refuses it, so hiding it is a fact
 // rather than an appearance.

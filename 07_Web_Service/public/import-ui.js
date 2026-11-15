@@ -16,6 +16,10 @@
     ['parents', 'Traces to (parent IDs)', false], ['derived', 'Derived (yes/no)', false], ['rationale', 'Rationale', false], ['verification', 'Verification method', false],
     ['validation', 'Validation method (system, derived hardware)', false], ['validationStatus', 'Validation conclusion / status', false], ['assumption', 'Assumption (yes/no)', false], ['safety', 'Safety-related (yes/no or FHA/PSSA ref.)', false], ['dal', 'DAL (A–E)', false], ['origin', 'Source of requirement (system)', false],
     ['typeAttr', 'Object type (optional filter)', false],
+    // v5.3.39: a real DOORS module usually carries the requirements of several software and
+    // hardware items. Mapping a column gives each row its own item; the Item box on the card above
+    // is the fallback for rows that leave it empty.
+    ['item', 'Item each row belongs to', false],
   ];
   const GUESS = {
     // A DOORS "IE" export carries the visible identifier as IE PUID and has no ReqIF.ForeignID
@@ -39,6 +43,7 @@
     // requirements from headings (Capability, Function), while (ReqIF object type) holds the
     // same type name on every row and gets auto-dropped as useless.
     typeAttr: [/^ie object type$/i, /^\(reqif object type\)$/i, /^(object type|type|category|kind)$/i],
+    item: [/^(item|lru|unit|software item|hardware item|subsystem|component|equipment)$/i, /^(allocated to|allocation|applies to|assigned to|owner|module)$/i, /\b(lru|subsystem|allocat)\w*/i],
   };
   const word = w => new RegExp(`(^|[^a-z])(${w})(?=[^a-z]|$)`, 'i');
   // Decide "is this a test specification?" first. Checking the requirement patterns first put
@@ -442,15 +447,23 @@
   function renderFiles() {
     const levels = defaults?.levels || {};
     $('impFiles').innerHTML = files.map(f => {
-      const opts = ['<option value="">— not used —</option>', ...f.attributes.map(a => `<option value="${esc(a.name)}">${esc(a.name)}${a.filled ? '' : ' (empty)'}</option>`)].join('');
+      // Each option carries one real value from that column. Without it the lists are 24 names with
+      // nothing to tell them apart, and the only way to find the right column is to open the file.
+      const sample = a => {
+        if (!a.filled) return ' (empty)';
+        const v = (a.samples || []).map(x => String(x).replace(/\s+/g, ' ').trim()).find(Boolean);
+        return v ? ` — ${v.length > 30 ? v.slice(0, 30) + '…' : v}` : '';
+      };
+      const opts = ['<option value="">— not used —</option>', ...f.attributes.map(a => `<option value="${esc(a.name)}">${esc(a.name)}${esc(sample(a))}</option>`)].join('');
       const tv = typeValues(f);
       return `<div class="imp-card" data-uid="${f.uid}"><div class="imp-head"><div><b>${esc(f.name)}</b> <span class="hint">${esc(f.format.toUpperCase())} · ${f.objects.length} rows${f.relations.length ? ` · ${f.relations.length} links` : ''}${f.specifications.length > 1 ? ` · ${f.specifications.length} specifications` : ''}${f.deleted ? ` · <span class="imp-deleted">${f.deleted} deleted in DOORS, not imported</span>` : ''}</span></div>
-        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">${f.specLevels ? '' : `<label title="The software or hardware item these requirements belong to; they go into that item's documents. Leave empty when they apply to all items.">Item <input data-f="item" list="impItemList" placeholder="All items" value="${esc(f.item || '')}" style="width:10rem;"></label>`}${f.specLevels ? '' : `<label>Level <select data-f="level">${Object.entries(levels).map(([k, v]) => `<option value="${k}" ${f.level === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>`}<button type="button" class="secondary" data-f="remove">Remove</button></div></div>
+        <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">${f.specLevels ? '' : `<label title="The software or hardware item these requirements belong to; they go into that item's documents. Used for rows whose Item column is empty, or for every row when no Item column is mapped. Leave empty when they apply to all items.">Item <input data-f="item" list="impItemList" placeholder="All items" value="${esc(f.item || '')}" style="width:10rem;"></label>`}${f.specLevels ? '' : `<label>Level <select data-f="level">${Object.entries(levels).map(([k, v]) => `<option value="${k}" ${f.level === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>`}<button type="button" class="secondary" data-f="remove">Remove</button></div></div>
         ${f.specLevels ? '' : `<p class="hint imp-level-help"><b>Level</b> is where these requirements sit in the certification hierarchy, and it decides which trace checks run: high-level requirements (DO-178C 5.1) are expected to trace up to system requirements, low-level requirements (DO-178C 5.2) to high-level ones, hardware requirements (DO-254) to system requirements, and verification cases to whatever they verify. Labelling a file as the wrong level changes every trace finding. <b>Item</b> is the LRU, software item or hardware item whose documents these belong in; leave it empty when they apply to every item.</p>`}
         ${f.specLevels ? `<div class="imp-map"><span class="hint" style="grid-column:1/-1;">This file holds several specifications, so each one gets its own level and item instead of one setting for the whole file. <b>Level</b> decides which trace checks run against that specification: high-level requirements (DO-178C 5.1) are expected to trace up to system requirements, low-level requirements (DO-178C 5.2) to high-level ones, hardware requirements (DO-254) to system requirements, and verification cases to whatever they verify. <b>Item</b> is the LRU, software item or hardware item whose documents those requirements belong in. Set a specification to “not imported” to leave it out.</span>
           <span class="hint imp-example" style="grid-column:1/-1;">${specExample(f, levels)}</span>
           ${Object.entries(f.specLevels).map(([sp, lv]) => `<div class="imp-spec"><div class="imp-spec-name">${esc(sp)} <span class="hint">${f.objects.filter(o => o['(Specification)'] === sp).length} requirements</span></div><label>Level <select data-spec="${esc(sp)}">${Object.entries(levels).map(([k, v]) => `<option value="${k}" ${lv === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}<option value="" ${lv === '' ? 'selected' : ''}>— not imported —</option></select></label><label>Item <input data-spec-item="${esc(sp)}" list="impItemList" placeholder="All items" value="${esc(f.specItems?.[sp] || '')}" title="The software or hardware item of this specification; its requirements go into that item's documents."></label></div>`).join('')}</div>` : ''}
-        <div class="imp-map">${FIELDS.map(([k, label, req]) => `<label>${esc(label)}${req ? ' *' : ''}<select data-map="${k}">${opts}</select></label>`).join('')}
+        <div class="imp-map"><span class="hint" style="grid-column:1/-1;">Each box asks <b>which column of your file</b> holds that field, so every list shows the same ${f.attributes.length} columns with one of their values beside each. ISAF fills in the names it recognises; leave a field on <i>not used</i> when your file has no column for it. Only ID and Requirement text are required.</span>
+        ${FIELDS.map(([k, label, req]) => `<label>${esc(label)}${req ? ' *' : ''}<select data-map="${k}">${opts}</select></label>`).join('')}
         ${tv.length ? `<label>Keep only these object types<select data-map="typeValues" multiple size="${Math.min(5, tv.length)}">${tv.map(v => `<option value="${esc(v)}" ${(f.mapping.typeValues || []).includes(v) ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>` : ''}</div>
         ${(u => u.length ? `<div class="imp-unrecognized"><b>Columns ISAF did not recognise.</b> <span class="hint">They feed no check and no document. If one belongs in a field above, pick it there; otherwise tell MX Aero what it is, so a future version can map it automatically.</span><ul>${u.map(c => `<li><code>${esc(c.name)}</code> <span class="hint">${c.filled} of ${f.objects.length} filled${c.samples.length ? ` — e.g. ${c.samples.map(s => `“${esc(s.length > 42 ? s.slice(0, 42) + '…' : s)}”`).join(', ')}` : ''}</span></li>`).join('')}</ul></div>` : '')(unrecognizedColumns(f))}
         <p class="hint" data-f="preview"></p></div>`;
@@ -489,7 +502,7 @@
     try {
       result = await api('/api/import/review', { method: 'POST', body: JSON.stringify({ files: files.flatMap(f => f.specLevels
         ? Object.entries(f.specLevels).filter(([, lv]) => lv).map(([sp, lv]) => ({ name: `${f.name} / ${sp}`, level: lv, item: f.specItems?.[sp] || '', mapping: f.mapping, objects: f.objects.filter(o => o['(Specification)'] === sp), relations: f.relations }))
-        : [{ name: f.name, level: f.level, item: f.item, mapping: f.mapping, objects: f.objects, relations: f.relations }]), options: readOptions(), program: (typeof configData !== 'undefined' && configData?.program?.name) || '' }) });
+        : [{ name: f.name, level: f.level, item: f.item, mapping: f.mapping, objects: f.objects, relations: f.relations }]), options: readOptions(), items: programItems().map(i => i.id), program: (typeof configData !== 'undefined' && configData?.program?.name) || '' }) });
       $('impStatus').textContent = `Review complete: ${result.totals.requirements} requirements.`;
     } catch (e) { $('impStatus').textContent = e.message; result = null; }
     finally { busy = false; $('impRun').disabled = !files.length; $('impRun').textContent = 'Run review'; renderResults(); }

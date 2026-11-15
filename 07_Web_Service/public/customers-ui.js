@@ -189,10 +189,17 @@
    body.appendChild(tr);
   });
  }
+ let saving=false;
  async function save(){
-  if(!draft)return;
+  // The button stays on screen while the request is in flight, and saving the "new" placeholder
+  // creates a customer, so a second click used to create a second one. One save at a time.
+  if(!draft||saving)return;
+  saving=true;
+  const button=$('customerSave'),label=button.textContent;
+  button.disabled=true;button.textContent='Saving\u2026';
   try{const {customer,warning}=await api('/api/admin/customers/'+encodeURIComponent(draft.id),{method:'PUT',body:JSON.stringify(draft)});status('Saved '+customer.company+' ('+customer.license_id+').'+(warning||''),!!warning);await load(customer);}
   catch(e){status(e.message,true);}
+  finally{saving=false;button.disabled=false;button.textContent=label;}
  }
  async function remove(){
   if(!selected||selected.id==='new'||!confirm('Delete '+selected.company+' from the customer register? This cannot be undone.'))return;

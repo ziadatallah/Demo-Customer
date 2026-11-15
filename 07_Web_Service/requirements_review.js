@@ -97,7 +97,10 @@ export function normalize(objects = [], mapping = {}, level = "hlr", sourceName 
     if (!text && !get(mapping.id)) continue;
     out.push({
       // The key links an object to the relations of its source: the ReqIF identifier, or the Jama document key.
-      key: o["(ReqIF identifier)"] || o["(Document key)"] || "", id: get(mapping.id), text, title: get(mapping.title), level, source: sourceName,
+      // item: v5.3.39. One DOORS module can hold the requirements of several software and hardware
+      // items, so the item is a column like any other. The caller supplies its own default for rows
+      // that leave it empty (the Item box on the file card).
+      key: o["(ReqIF identifier)"] || o["(Document key)"] || "", id: get(mapping.id), text, title: get(mapping.title), level, source: sourceName, item: get(mapping.item),
       parents: splitIds(get(mapping.parents)), derived: truthy(get(mapping.derived)), rationale: get(mapping.rationale), verification: get(mapping.verification),
       validation: get(mapping.validation), validationStatus: get(mapping.validationStatus), assumption: get(mapping.assumption), safety: get(mapping.safety), dal: get(mapping.dal), origin: get(mapping.origin),
       mapped: ["validation", "validationStatus", "assumption", "safety", "dal", "origin", "parents"].filter(k => mapping[k]),
@@ -124,6 +127,18 @@ export function review(sets = [], options = {}) {
     if (!r.id) { add(r, "Error", "Missing ID", "The requirement has no identifier."); continue; }
     if (byId.has(r.id)) add(r, "Error", "Duplicate ID", `The identifier ${r.id} is used more than once.`);
     else byId.set(r.id, r);
+  }
+  // An item named in the file that this program does not have would send its requirements to a
+  // document that is never generated, so they would vanish without a word. knownItems is the
+  // program's software, hardware and system item ids; an empty list switches the check off.
+  const known = new Set((options.knownItems || []).map(x => String(x).trim()).filter(Boolean));
+  if (known.size) {
+    const unknown = new Map();
+    for (const r of all) { const i = String(r.item || '').trim(); if (i && !known.has(i)) unknown.set(i, (unknown.get(i) || 0) + 1); }
+    for (const r of all) {
+      const i = String(r.item || '').trim();
+      if (i && !known.has(i)) add(r, "Error", "Item not in this program", `Item "${i}" is not a software, hardware or system item of this program (${unknown.get(i)} requirement${unknown.get(i) === 1 ? '' : 's'}). Its requirements reach no document. Correct the item column, or map it to one of: ${[...known].slice(0, 8).join(', ')}${known.size > 8 ? '…' : ''}.`);
+    }
   }
   // Links from ReqIF relations: the item at the lower level traces to the item at the higher level.
   for (const s of sets) for (const link of s.relations || []) {
