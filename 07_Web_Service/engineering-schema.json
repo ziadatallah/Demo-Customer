@@ -1,0 +1,243 @@
+{
+  "dev_environment": {
+    "sheet": "11. Dev Environment",
+    "fields": [
+      {
+        "key": "primary_language",
+        "label": "Primary Language",
+        "help": "Program-wide software language baseline; confirm each software item language separately.",
+        "column": "C",
+        "row": 5
+      },
+      {
+        "key": "compiler_name",
+        "label": "Compiler Name",
+        "help": "Compiler used for the development baseline.",
+        "column": "C",
+        "row": 6
+      },
+      {
+        "key": "compiler_version",
+        "label": "Compiler Version",
+        "help": "Controlled compiler version.",
+        "column": "C",
+        "row": 7
+      },
+      {
+        "key": "compiler_flags",
+        "label": "Compiler Flags",
+        "help": "Compiler switches and optimization settings used for reproducible builds.",
+        "column": "C",
+        "row": 8
+      },
+      {
+        "key": "linker_name",
+        "label": "Linker Name",
+        "help": "Linker and its controlled version.",
+        "column": "C",
+        "row": 9
+      },
+      {
+        "key": "static_analysis_tool",
+        "label": "Static Analysis Tool",
+        "help": "Static analysis tool and version.",
+        "column": "C",
+        "row": 10
+      },
+      {
+        "key": "static_analysis_ruleset",
+        "label": "Static Analysis Ruleset",
+        "help": "Ruleset explicitly adopted by the program; no MISRA assumption is made.",
+        "column": "C",
+        "row": 11
+      },
+      {
+        "key": "coverage_tool",
+        "label": "Coverage Tool",
+        "help": "Tool and version used to measure structural coverage.",
+        "column": "C",
+        "row": 12
+      },
+      {
+        "key": "requirements_tool",
+        "label": "Requirements Tool",
+        "help": "Requirements management tool and version.",
+        "column": "C",
+        "row": 13
+      },
+      {
+        "key": "requirements_tool_type",
+        "label": "Requirements Tool Type",
+        "help": "Which kind of requirements management the program uses. DOORS Next or DOORS 9.x keeps the DOORS module, attribute and traceability section in the requirements standards; Other keeps the Word / other-tool outlines and tagging. Leave blank to keep both alternatives. Record the exact tool name and version in Requirements Tool.",
+        "column": "C",
+        "row": 21,
+        "options": [
+          "DOORS Next",
+          "DOORS 9.x (classic)",
+          "Other (Word or another tool)"
+        ]
+      },
+      {
+        "key": "cm_tool",
+        "label": "Configuration Management Tool",
+        "help": "Configuration management tool and repository baseline.",
+        "column": "C",
+        "row": 14
+      },
+      {
+        "key": "test_framework",
+        "label": "Test Framework",
+        "help": "Test framework and version.",
+        "column": "C",
+        "row": 15
+      },
+      {
+        "key": "target_processor",
+        "label": "Target Processor",
+        "help": "Target processor used by the development environment.",
+        "column": "C",
+        "row": 16
+      },
+      {
+        "key": "rtos_name",
+        "label": "RTOS / Operating System",
+        "help": "Operating system or explicit bare-metal arrangement.",
+        "column": "C",
+        "row": 17
+      },
+      {
+        "key": "ide",
+        "label": "IDE",
+        "help": "Integrated development environment and version.",
+        "column": "C",
+        "row": 18
+      },
+      {
+        "key": "hil_platform",
+        "label": "HIL Platform",
+        "help": "Hardware-in-the-loop test platform and configuration.",
+        "column": "C",
+        "row": 19
+      },
+      {
+        "key": "build_system",
+        "label": "Build System",
+        "help": "Build automation tool and version.",
+        "column": "C",
+        "row": 20
+      }
+    ]
+  },
+  "environmental_baseline": {
+    "sheet": "13. Environmental_Baseline",
+    "fields": [
+      {
+        "key": "hw_id",
+        "column": "A",
+        "label": "Hardware Item ID",
+        "help": "Reference the ID of the hardware item being qualified."
+      },
+      {
+        "key": "section",
+        "column": "B",
+        "label": "DO-160 Section",
+        "help": "DO-160 section number, 4 through 26. Review applicability with the qualification lead."
+      },
+      {
+        "key": "section_title",
+        "column": "C",
+        "label": "Section Title",
+        "help": "Name of the environmental section."
+      },
+      {
+        "key": "tested",
+        "column": "D",
+        "label": "Tested",
+        "help": "Yes means testing has been performed; it does not imply successful qualification. Use TBD when unknown."
+      },
+      {
+        "key": "category",
+        "column": "E",
+        "label": "Qualification Category",
+        "help": "Category claimed by the qualification evidence, not a guessed installation requirement."
+      },
+      {
+        "key": "severity",
+        "column": "F",
+        "label": "Test Severity",
+        "help": "Test level or severity established by the evidence."
+      },
+      {
+        "key": "restriction_notes",
+        "column": "G",
+        "label": "Restrictions",
+        "help": "Limitations, exceptions, exclusions or conditions of the evidence."
+      },
+      {
+        "key": "qualification_ref",
+        "column": "H",
+        "label": "Qualification Evidence Reference",
+        "help": "Controlled test report or qualification record supporting this row."
+      }
+    ]
+  },
+  "environmental_flow_down": {
+    "sheet": "14. Environmental_FlowDown",
+    "fields": [
+      {
+        "key": "hw_id",
+        "column": "A",
+        "label": "Hardware Item ID",
+        "help": "Reference the hardware item receiving this requirement."
+      },
+      {
+        "key": "section",
+        "column": "B",
+        "label": "DO-160 Section",
+        "help": "Applicable DO-160 section number, 4 through 26."
+      },
+      {
+        "key": "demanded_category",
+        "column": "C",
+        "label": "Required Category",
+        "help": "Category required by the installation or customer specification."
+      },
+      {
+        "key": "demanded_severity",
+        "column": "D",
+        "label": "Required Severity",
+        "help": "Required test level or severity from the flow-down source."
+      },
+      {
+        "key": "source_spec",
+        "column": "E",
+        "label": "Source Specification",
+        "help": "Specification number and revision imposing this requirement."
+      },
+      {
+        "key": "flow_down_doc_ref",
+        "column": "F",
+        "label": "Flow Down Reference",
+        "help": "Controlled reference allocating the requirement to this item."
+      },
+      {
+        "key": "disposition",
+        "column": "G",
+        "label": "Disposition",
+        "help": "Program disposition of the requirement versus available qualification evidence."
+      },
+      {
+        "key": "disposition_comments",
+        "column": "H",
+        "label": "Disposition Rationale",
+        "help": "Explain the evidence comparison and any action needed."
+      },
+      {
+        "key": "notes",
+        "column": "I",
+        "label": "Notes",
+        "help": "Additional qualification assumptions or references."
+      }
+    ]
+  }
+}

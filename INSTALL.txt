@@ -1,0 +1,69 @@
+ISAF v5.3.38 — INSTALLATION
+============================
+The full ZIP is the Admin application. Extract it into its own folder and launch START.command (macOS) or START.bat (Windows). Use Make_Customer_Edition.command/.bat only when preparing a separate Customer package. Recipient-specific Demo packages are created from the Admin app.
+
+Demo first run on macOS: the Demo START.command is unsigned and may trigger Gatekeeper. For a trusted Demo ZIP, Control-click START.command and choose Open; if necessary, use System Settings > Privacy & Security > Open Anyway. Windows uses START.bat.
+
+ISAF — Installation Instructions
+=================================
+
+
+HOSTED CUSTOMER INSTALLATION
+----------------------------
+The hosted v5 topology uses separate web and worker services, PostgreSQL, S3-compatible object storage, OIDC, and customer-managed secrets. Follow 00_Docs/CUSTOMER_HOSTED_DEPLOYMENT.md. Do not enable the PostgreSQL/cloud backend until its live qualification record matches the exact database, bucket, prefix, and organization.
+
+PREREQUISITE: Node.js v18 or newer
+------------------------------------
+Download from: https://nodejs.org  (choose the LTS installer)
+
+To verify Node.js is installed, open a terminal and run:
+  node --version
+
+You should see something like: v20.x.x
+
+
+MAC — FIRST RUN
+---------------
+1. Unzip ISAF_Customer_Edition_vX.X.X.zip
+2. Move the extracted folder anywhere you like (e.g. ~/Documents/)
+3. Double-click START.command
+   - If macOS says "cannot be opened because it is from an unidentified developer":
+     Right-click START.command → Open → Open
+4. A terminal window opens and your browser launches at http://localhost:3000
+5. To stop the server, close the terminal window
+
+
+WINDOWS — FIRST RUN
+--------------------
+1. Unzip ISAF_Customer_Edition_vX.X.X.zip
+2. Move the extracted folder anywhere you like (e.g. C:\Users\You\Documents\)
+3. Double-click START.bat
+4. A command window opens and your browser launches at http://localhost:3000
+5. To stop the server, close the command window
+
+
+TROUBLESHOOTING
+---------------
+"node: command not found" or "node is not recognized"
+  → Node.js is not installed. Download from https://nodejs.org
+
+Browser does not open automatically
+  → Open your browser manually and go to http://localhost:3000
+
+Port 3000 already in use
+  → Another application is using port 3000. Close it, then try again.
+
+For further assistance, contact your ISAF representative.
+
+
+Release 4.0.3 — 2026-09-08
+Customer configuration name fix
+- Bundle the web workbook reader alongside the engine so customer uploads and demos work without the stripped engine source folder.
+- Use the bundled parser when present; keep the original parser for development.
+- Prevent the workbook reader CLI from emitting duplicate JSON when bundled.
+- Refresh the customer name on selection, use the full customer name if the short name is blank, and ignore outdated responses after switching or reset.
+- Preserve the selected customer name if edition detection finishes late; show a message when parsing fails.
+- Stop customer packaging when required bundles fail. Correct Mac customer-builder success/failure reporting.
+Validation: all five demo configurations produce identical data through source and bundled parsers with src removed; focused header state tests pass. Full LRU generation is checked separately in the release verification record.
+
+Customer verification: create a fresh customer edition using Make_Customer_Edition, launch it, select a configuration, and verify the customer name. Switch configurations and reset to verify the name follows the selection. This release does not include a separate customer ZIP.

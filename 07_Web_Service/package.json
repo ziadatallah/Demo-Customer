@@ -1,0 +1,24 @@
+{
+  "name": "isaf-web-service",
+  "version": "5.3.38",
+  "description": "ISAF Document Generation Web Service",
+  "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "ISAF_API_KEY=dev node server.js",
+    "db:migrate": "node persistence/migrate.js",
+    "repo:migrate": "node persistence/migrate_repository_cli.js",
+    "storage:qualify": "node persistence/qualify_live_cli.js",
+    "worker": "node durable/worker_cli.js",
+    "backup:create": "node deployment/backup_cli.js create",
+    "backup:verify": "node deployment/backup_cli.js verify",
+    "backup:restore": "node deployment/backup_cli.js restore"
+  },
+  "dependencies": {
+    "archiver": "^6.0.0",
+    "express": "^4.18.0",
+    "multer": "^1.4.5-lts.1",
+    "pg": "^8.13.1"
+  }
+}

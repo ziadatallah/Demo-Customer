@@ -1,0 +1,16 @@
+{
+  "integrations": [
+    {
+      "id": "requirements-primary",
+      "enabled": false,
+      "type": "doors_next",
+      "baseUrl": "https://requirements.example.com",
+      "secretRef": "env:ISAF_REQUIREMENTS_TOKEN",
+      "configuration": {
+        "authMode": "bearer",
+        "transferPath": "/configured/by/customer",
+        "mapping": {"title": "title", "documentNumber": "documentNumber", "revision": "revision"}
+      }
+    }
+  ]
+}

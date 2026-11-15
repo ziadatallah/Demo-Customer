@@ -1,0 +1,8 @@
+ID,Title,Requirement Text,Traces To,Derived,Rationale,Verification Method,Safety Related,DAL,Source
+VC-SYS-1,Output voltage,The LRU shall hold the output at 28 V +/-1 V over the full load range.,,No,,Test,Yes,C,Customer specification 4.2
+VC-SYS-2,Inrush current,The LRU shall limit inrush current to 10 A.,,Yes,Derived from the PSSA to protect the upstream bus.,Analysis,Yes,C,PSSA
+VC-SYS-3,Shutdown on overcurrent,The LRU shall shut down within 5 ms of an output current above 12 A.,,No,,Test,Yes,C,Customer specification 4.7
+VC-SWR-1,Voltage loop,The software shall close the voltage control loop every 2 ms.,VC-SYS-1,No,,Test,No,C,
+VC-SWR-2,Overcurrent fault,The software shall declare an overcurrent fault within 1 ms of the measured current exceeding 12 A.,VC-SYS-3,No,,Test,Yes,C,
+VC-SWR-3,Power-on built-in test,The software shall complete the power-on built-in test before enabling the output.,VC-SYS-3,Yes,Needed to detect a failed current sensor before the output is live.,Test,Yes,C,
+VC-SWR-4,Housekeeping report,The software shall report output voltage and current on the maintenance bus once per second.,VC-SYS-1,No,,Inspection,No,C,

@@ -1,0 +1,349 @@
+{
+  "version": "2026-09-14.1",
+  "verifiedOn": "2026-09-14",
+  "description": "Starter checklist for FAA TSOA and aircraft TC/STC evidence planning. Exact TSO/MPS, project basis, applicant responsibilities and authority-agreed data determine the complete set. Guidance and orders do not replace regulations. Scope confirmation records a local review, not an FAA approval or authenticated signature.",
+  "supportedProfiles": [
+    "TSOA",
+    "TC",
+    "AMENDED_TC",
+    "STC",
+    "AMENDED_STC",
+    "SUPPLIER_TC",
+    "SUPPLIER_STC",
+    "TSOA_TC",
+    "TSOA_STC"
+  ],
+  "sources": {
+    "part21": {
+      "title": "14 CFR Part 21",
+      "url": "https://www.ecfr.gov/current/title-14/chapter-I/subchapter-C/part-21"
+    },
+    "subpartO": {
+      "title": "14 CFR Part 21 Subpart O \u2014 TSO authorizations",
+      "url": "https://www.ecfr.gov/current/title-14/chapter-I/subchapter-C/part-21/subpart-O"
+    },
+    "ac2146": {
+      "title": "FAA AC 21-46A \u2014 TSO program guidance",
+      "url": "https://www.faa.gov/documentLibrary/media/Advisory_Circular/AC_21-46A.pdf"
+    },
+    "order8150": {
+      "title": "FAA Order 8150.1D, Change 2 \u2014 TSO program",
+      "url": "https://www.faa.gov/documentLibrary/media/Order/FAA_Order_8150.1D_CHG_2.pdf"
+    },
+    "order8110": {
+      "title": "FAA Order 8110.4C, Change 7 \u2014 Type certification",
+      "url": "https://www.faa.gov/documentLibrary/media/Order/Order_8110.4C_CHG_7.pdf"
+    },
+    "8110-3": {
+      "title": "FAA Form 8110-3 \u2014 Determination of compliance",
+      "url": "https://www.faa.gov/forms/index.cfm/go/document.information/documentid/215187"
+    },
+    "8110-12": {
+      "title": "FAA Form 8110-12 \u2014 Application for TC, PC or STC",
+      "url": "https://www.faa.gov/forms/index.cfm/go/document.information/documentID/1043079"
+    },
+    "forms": {
+      "title": "FAA aircraft certification forms",
+      "url": "https://www.faa.gov/other_visit/aviation_industry/designees_delegations/resources/forms/aircraft"
+    }
+  },
+  "rows": [
+    {
+      "id": "basis",
+      "title": "Agreed basis, scope and complete compliance/data matrix",
+      "group": "Common",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "Program-specific scope review",
+      "help": "List the exact standards/revisions, TSO and incorporated MPS where applicable, every applicable requirement and required data item, means of compliance, responsible party and evidence. Add requirements missing from this starter checklist as project-specific rows.",
+      "sources": [
+        "part21",
+        "ac2146",
+        "order8110"
+      ]
+    },
+    {
+      "id": "coordination",
+      "title": "Authority / aircraft applicant coordination record",
+      "group": "Common",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "Certification plan and agreed responsibilities",
+      "help": "Record applicant, authority, designees, project references, proposed involvement, milestones, deliverables and agreed allocation of responsibilities. Supplier work location percentages inform discussion; they do not calculate FAA level of involvement.",
+      "sources": [
+        "order8150",
+        "order8110"
+      ]
+    },
+    {
+      "id": "configuration",
+      "title": "Identified product configuration and design data",
+      "group": "Common",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "Controlled configuration identification",
+      "help": "Identify article/system/software/hardware PNs, revisions, drawings, specifications and the configuration covered by compliance evidence. Account for variants and supplier inputs.",
+      "sources": [
+        "part21",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "safety",
+      "title": "Safety assessments and allocated assurance levels",
+      "group": "Common",
+      "condition": "review",
+      "kind": "applicant",
+      "reference": "Applicable certification basis and safety allocation",
+      "help": "Confirm required safety analyses, assumptions, installation interfaces, DAL allocations and limitations. Include supporting aircraft allocations for a supplier package.",
+      "sources": [
+        "order8110",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "software",
+      "title": "Software lifecycle evidence and accomplishment",
+      "group": "Common",
+      "condition": "software",
+      "kind": "applicant",
+      "reference": "Agreed software assurance basis",
+      "help": "Link the required plans, standards, lifecycle/verification data, configuration index, quality/CM records and accomplishment summary. The exact set depends on the approved basis, software level and scope.",
+      "sources": [
+        "order8110",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "hardware",
+      "title": "Hardware lifecycle evidence and accomplishment",
+      "group": "Common",
+      "condition": "hardware",
+      "kind": "applicant",
+      "reference": "Agreed hardware assurance basis",
+      "help": "Link applicable hardware plans, design/verification records, configuration index, quality/CM records and accomplishment summary. Confirm simple/complex hardware treatment and assurance level.",
+      "sources": [
+        "order8110",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "environment",
+      "title": "Environmental qualification and installation categories",
+      "group": "Common",
+      "condition": "environment",
+      "kind": "applicant",
+      "reference": "Applicable MPS and environmental qualification basis",
+      "help": "Link approved/reviewed requirements, procedures, test reports and qualification summary, covering the actual configuration, installation categories and limitations. DO-160 alone does not establish all product performance requirements.",
+      "sources": [
+        "ac2146",
+        "order8110"
+      ]
+    },
+    {
+      "id": "tools",
+      "title": "Tool qualification evidence",
+      "group": "Common",
+      "condition": "review",
+      "kind": "applicant",
+      "reference": "Accepted tool qualification basis",
+      "help": "Identify tools whose outputs require qualification and link the agreed qualification data. Document the rationale if no tools require qualification.",
+      "sources": [
+        "order8110"
+      ]
+    },
+    {
+      "id": "suppliers",
+      "title": "Supplier evidence, access and oversight arrangements",
+      "group": "Common",
+      "condition": "suppliers",
+      "kind": "applicant",
+      "reference": "Applicant responsibility for supplied work",
+      "help": "Identify sites, activities, flow-down requirements, evidence acceptance, data/site access and foreign-site coordination. Applicant responsibilities remain with the applicant.",
+      "sources": [
+        "subpartO",
+        "order8110"
+      ]
+    },
+    {
+      "id": "conformity",
+      "title": "Test-article conformity and inspection records",
+      "group": "Common",
+      "condition": "review",
+      "kind": "applicant",
+      "reference": "Agreed conformity plan; FAA Forms 8130-9 / 8100-1 as applicable",
+      "help": "Confirm which conformity requests, statements and inspection records apply. Applicant statements and authority/designee inspection findings have different issuers; link the actual completed records and record their acceptance in the review note.",
+      "sources": [
+        "forms",
+        "order8110"
+      ]
+    },
+    {
+      "id": "delegation",
+      "title": "Delegated compliance findings \u2014 FAA Form 8110-3",
+      "group": "Common",
+      "condition": "review",
+      "kind": "issued",
+      "reference": "FAA Form 8110-3 when delegated findings are used",
+      "help": "Import the actual record issued by an authorized designee, with its scope and limitations. ISAF does not issue, sign or authenticate this form. Other delegation arrangements may use different records; explain any not-applicable decision.",
+      "sources": [
+        "8110-3",
+        "order8110"
+      ]
+    },
+    {
+      "id": "tso-application",
+      "title": "TSO application, statement of conformance and TSO-specific data",
+      "group": "TSO authorization",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "14 CFR 21.603; exact TSO; AC 21-46A \u00a7\u00a73.1\u20133.5",
+      "help": "Identify the exact TSO/revision and provide the statement of conformance plus every data item required by that TSO. FAA Form 8110-12 is not a general TSO application. Add exact-TSO data requirements to this checklist.",
+      "sources": [
+        "subpartO",
+        "ac2146",
+        "order8150"
+      ]
+    },
+    {
+      "id": "tso-performance",
+      "title": "TSO / MPS performance compliance evidence",
+      "group": "TSO authorization",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "Exact TSO and incorporated minimum performance standards",
+      "help": "Link performance requirements, procedures, results and configuration applicability, including declared differences and limitations. The certification lead must verify all requirements of the exact TSO.",
+      "sources": [
+        "subpartO",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "tso-quality",
+      "title": "Organization, quality system and quality manual",
+      "group": "TSO authorization",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "14 CFR 21.605, 21.607, 21.608 and 21.137",
+      "help": "Identify organizational responsibilities, accountable management, design/production interfaces, quality-system procedures and the quality manual submitted for FAA approval. A process template alone is not evidence of an implemented quality system.",
+      "sources": [
+        "subpartO",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "tso-installation",
+      "title": "Installation instructions, limitations and maintenance data",
+      "group": "TSO authorization",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "AC 21-46A \u00a7\u00a73.8\u20133.9; applicable TSO",
+      "help": "Define installation assumptions, limitations, compatibility, required integration verification and maintenance information. A TSO authorization does not authorize installation on an aircraft.",
+      "sources": [
+        "ac2146"
+      ]
+    },
+    {
+      "id": "tso-marking",
+      "title": "Identification, marking and production arrangements",
+      "group": "TSO authorization",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "14 CFR 21.609, 21.610, 21.616; applicable Part 45 marking",
+      "help": "Record manufacturing sites, inspection arrangements, article identification/marking and required access to data. Confirm foreign production arrangements with FAA where applicable.",
+      "sources": [
+        "subpartO"
+      ]
+    },
+    {
+      "id": "tso-deviations",
+      "title": "Approved TSO deviations",
+      "group": "TSO authorization",
+      "condition": "review",
+      "kind": "issued",
+      "reference": "14 CFR 21.618",
+      "help": "If deviating from a TSO requirement, link the actual FAA approval and supporting equivalent-level-of-safety basis. Record a reasoned not-applicable decision if there are no deviations.",
+      "sources": [
+        "subpartO",
+        "order8150"
+      ]
+    },
+    {
+      "id": "tso-nontso",
+      "title": "Non-TSO functions and open problem dispositions",
+      "group": "TSO authorization",
+      "condition": "review",
+      "kind": "applicant",
+      "reference": "AC 21-46A \u00a7\u00a73.10 and 5.5",
+      "help": "Review non-TSO functions, their effects on the TSO function, and all open problem reports. Link accepted dispositions and limitations; explain exclusions.",
+      "sources": [
+        "ac2146"
+      ]
+    },
+    {
+      "id": "aircraft-allocation",
+      "title": "Aircraft integration requirements and delivery agreement",
+      "group": "Aircraft integration",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "Agreed aircraft TC/STC certification basis",
+      "help": "Identify aircraft applicant/integrator, basis, allocated requirements, compliance responsibilities and supplier deliverables. An article TSO approval does not replace installation compliance.",
+      "sources": [
+        "order8110",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "aircraft-application",
+      "title": "Aircraft certification application \u2014 FAA Form 8110-12",
+      "group": "Aircraft integration",
+      "condition": "applicant",
+      "kind": "applicant",
+      "reference": "FAA Form 8110-12; 14 CFR Part 21",
+      "help": "Required for the applicable aircraft applicant path as agreed with FAA. A supplier normally delivers evidence to the aircraft applicant; confirm who owns the application and explain exclusions.",
+      "sources": [
+        "8110-12",
+        "order8110"
+      ]
+    },
+    {
+      "id": "aircraft-verification",
+      "title": "Installation compliance and integration verification",
+      "group": "Aircraft integration",
+      "condition": "required",
+      "kind": "applicant",
+      "reference": "Aircraft certification plan and allocated requirements",
+      "help": "Link installation design, safety interfaces, integration verification, performance/environmental compatibility, and applicable test/flight evidence for your assigned scope.",
+      "sources": [
+        "order8110",
+        "ac2146"
+      ]
+    },
+    {
+      "id": "aircraft-instructions",
+      "title": "Aircraft operating / maintenance / continued-airworthiness data",
+      "group": "Aircraft integration",
+      "condition": "review",
+      "kind": "applicant",
+      "reference": "Applicable aircraft certification basis",
+      "help": "Confirm manuals, ICA and limitations for the installation, including the allocation between supplier and aircraft applicant.",
+      "sources": [
+        "part21",
+        "order8110"
+      ]
+    },
+    {
+      "id": "aircraft-tia",
+      "title": "Type inspection authorization / inspection reports",
+      "group": "Aircraft integration",
+      "condition": "review",
+      "kind": "issued",
+      "reference": "FAA TIA and applicable inspection reports",
+      "help": "Determine which authority authorizations and inspection records apply at the current submission stage. Import actual issued records; supplier delivery sets may exclude records retained by the aircraft applicant.",
+      "sources": [
+        "forms",
+        "order8110"
+      ]
+    }
+  ]
+}

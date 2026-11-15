@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connecting your requirements tool</title>
+<style>
+  body {font-family: -apple-system, "Segoe UI", Arial, sans-serif; max-width: 860px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color: #25364a; line-height: 1.55; background: #fff;}
+  h1 {color: #1f3a5f; font-size: 1.55rem; margin: 0 0 .3rem;}
+  h2 {color: #1f3a5f; font-size: 1.15rem; margin: 1.8rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid #dde3ea;}
+  h3 {font-size: 1rem; margin: 1.1rem 0 .3rem;}
+  code {background: #eef1f5; padding: .05rem .35rem; border-radius: 4px; font-size: .9em; word-break: break-all;}
+  ol, ul {padding-left: 1.4rem;} li {margin: .3rem 0;}
+  .note {background: #fff8e1; border: 1px solid #e3c766; border-radius: 8px; padding: .7rem .9rem; margin: .8rem 0;}
+  .muted {color: #5a6b7e; font-size: .9rem;}
+  table {border-collapse: collapse; width: 100%; margin: .5rem 0; font-size: .93rem;}
+  th, td {border: 1px solid #dde3ea; padding: .4rem .55rem; text-align: left; vertical-align: top;}
+  th {background: #1f3a5f; color: #fff;}
+  .flow {display: flex; gap: .5rem; align-items: stretch; flex-wrap: wrap; margin: .8rem 0;}
+  .flow div {flex: 1 1 10rem; border: 1px solid #c9d3df; border-radius: 8px; padding: .55rem .7rem; background: #f6f8fb; font-size: .92rem;}
+  .flow span {align-self: center; color: #5a6b7e;}
+  .print {float: right; font-size: .85rem; padding: .3rem .7rem; border: 1px solid #aeb9c7; border-radius: 6px; background: #fff; cursor: pointer;}
+  @media print {.print {display: none;}}
+</style>
+</head>
+<body>
+<button class="print" onclick="window.print()">Print</button>
+<h1>Connecting your requirements tool</h1>
+<p class="muted">Everything you and your tool administrator have to do so ISAF can read requirements straight out of your requirements tool, instead of exporting files by hand. Applies from ISAF v5.3.29.</p>
+
+<h2>What ISAF does, and what it never does</h2>
+<div class="flow">
+  <div><b>Your requirements tool</b><br>Jama Connect, Polarion, DOORS or another tool, on your own network or your own cloud tenancy.</div><span>→</span>
+  <div><b>Your ISAF app</b><br>Reads the requirements, reviews them, and puts them into your documents.</div><span>→</span>
+  <div><b>Your reviewer</b><br>Completes and signs the review. ISAF eases the manual work; it does not replace the review.</div>
+</div>
+<ul>
+  <li><b>It only reads.</b> ISAF never creates, changes or deletes anything in your requirements tool.</li>
+  <li><b>Your credentials stay with you.</b> They are entered into your own ISAF app and kept by that server. They are never sent to MX Aero, and once saved the app never shows them again.</li>
+  <li><b>Your requirements stay with you.</b> They are read into your app for the review and the documents. Nothing is sent to MX Aero.</li>
+  <li><b>You need your own licence</b> for the connected tool, and a user account that may read the project.</li>
+</ul>
+<div class="note"><b>Hosted ISAF sites:</b> if MX Aero hosts your ISAF site, anything you type into it sits on that hosted service, and its disk is temporary, so a saved connection is lost when the site restarts. For a connected requirements tool, use ISAF installed on your own server, and have your administrator set the credentials as environment variables (named under each tool below) rather than typing them into the page.</div>
+
+<h2>Which tools ISAF can connect to today</h2>
+<table>
+  <tr><th>Tool</th><th>How it works today</th><th>What you need</th></tr>
+  <tr><td><b>Jama Connect</b><br><span class="muted">Jama Software</span></td><td>Live connection, read-only.</td><td>An API client ID and secret, or a user name and password.</td></tr>
+  <tr><td><b>Polarion</b><br><span class="muted">Siemens</span></td><td>Live connection, read-only.</td><td>A personal access token.</td></tr>
+  <tr><td><b>IBM DOORS Next</b> and <b>DOORS 9.0</b></td><td>No live connection yet. Requirements come in as a <b>ReqIF</b> export, which DOORS produces natively; on your licence this is <b>DOORS ReqIF</b>.</td><td>Nothing to set up: export and add the file.</td></tr>
+  <tr><td><b>Anything else</b><br><span class="muted">codebeamer, Teamcenter, Excel-based processes</span></td><td>ReqIF, Excel or CSV export.</td><td>Nothing to set up, where the file import is on your licence: export and add the file.</td></tr>
+</table>
+<p class="muted">Your ISAF app shows only what is on your licence. If a tool below is missing from your Import tab, or the file import is, it is not enabled for your company: ask MX Aero to add it. With no requirements import on the licence there is no Import tab at all.</p>
+<p class="muted">A tool with no live connection is not a lesser route: ISAF reviews an exported file exactly as it reviews a live pull, and the same findings, checklist evidence and document updates come out. The live connection only saves the export step.</p>
+
+<h2>Polarion (Siemens)</h2>
+<h3>What to ask your Polarion administrator for</h3>
+<ol>
+  <li><b>The REST address.</b> Your Polarion site followed by <code>/polarion/rest/v1</code>, for example <code>https://polarion.yourcompany.com/polarion/rest/v1</code>. Typing just the site address also works; ISAF adds the rest.</li>
+  <li><b>That the REST API is switched on</b> for your site and reachable from the server ISAF runs on. A Polarion inside the company network can only be reached by an ISAF installed inside that network.</li>
+  <li><b>A user account that may read the project</b> you want to import.</li>
+</ol>
+<h3>What you do</h3>
+<ol>
+  <li>In Polarion, open <b>My Account → Personal Access Tokens</b> and create a token. Copy it at once: Polarion shows it once. Note its expiry date — tokens expire and must be renewed, and the import stops working when one does.</li>
+  <li>In ISAF, open the <b>Import</b> tab → <b>Read requirements straight from Polarion</b> → <b>Polarion connection settings</b>. Enter a name, the REST address and the token, then <b>Save connection</b>.</li>
+  <li><b>Test connection.</b> ISAF reports how many projects the token can see.</li>
+  <li><b>Load projects</b>, choose the project, and tick the <b>work item types</b> that hold requirements or test cases. ISAF finds the types by reading a sample of the project, with how many of each it saw.</li>
+  <li>Optionally add an <b>extra search</b> in Polarion's own syntax, for example <code>status:approved AND severity:must_have</code>, to read only part of a type.</li>
+  <li><b>Read requirements.</b> Each work item type becomes a card. Check the level and the columns, then run the review as usual.</li>
+</ol>
+<h3>What ISAF reads</h3>
+<ul>
+  <li>Work items of the chosen types, with their fields and custom fields as columns, and rich text turned into plain text.</li>
+  <li>The work item ID (<code>VC-12</code>) as the requirement ID, and the outline number as the position in the specification.</li>
+  <li>The links between work items, with their role, as the trace links. Links to another project and links Polarion marks suspect are kept and marked.</li>
+</ul>
+<p>Set as environment variables instead of typing them in: <code>ISAF_POLARION_URL</code> and <code>ISAF_POLARION_TOKEN</code>.</p>
+
+<h2>Jama Connect (Jama Software)</h2>
+<h3>What to ask your Jama administrator for</h3>
+<ol>
+  <li><b>The REST address.</b> Jama Cloud uses <code>https://yourcompany.jamacloud.com/rest/v1</code>. A Jama you host yourself often uses <code>https://yourhost/contour/rest/v1</code>.</li>
+  <li><b>An API client</b>, if your Jama licence allows it (API access is a licensed feature in some Jama plans), and <b>that the API client's user may read the project</b>.</li>
+</ol>
+<h3>What you do</h3>
+<ol>
+  <li>In Jama, open your <b>user profile → Set API Credentials</b> and create a client. Copy the <b>client ID</b> and the <b>client secret</b> at once: Jama shows the secret once.</li>
+  <li>In ISAF, open the <b>Import</b> tab → <b>Read requirements straight from Jama Connect</b> → <b>Jama Connect connection settings</b>. Enter a name, the address and the client ID and secret, then <b>Save connection</b>.</li>
+  <li><b>Test connection</b>, then <b>Load projects</b>, choose the project, and tick the <b>item types</b> that hold requirements or verification cases. Folders and sets can be left out.</li>
+  <li><b>Read requirements</b>, check the level and columns on each card, and run the review.</li>
+</ol>
+<p>A user name and password work instead of an API client, but Jama refuses them on sites with single sign-on, so the API client is the reliable route.</p>
+<h3>What ISAF reads</h3>
+<ul>
+  <li>Items of the chosen item types, with the Jama field labels as the columns, pick-list fields shown by their value ("Analysis", not a number), and rich text turned into plain text.</li>
+  <li>The document key (<code>VC-SYS-12</code>) as the requirement ID.</li>
+  <li>The relationships of the project, with their type name, as the trace links; suspect links are marked.</li>
+</ul>
+<p>Set as environment variables instead of typing them in: <code>ISAF_JAMA_URL</code>, <code>ISAF_JAMA_CLIENT_ID</code> and <code>ISAF_JAMA_CLIENT_SECRET</code> (or <code>ISAF_JAMA_USERNAME</code> and <code>ISAF_JAMA_PASSWORD</code>).</p>
+
+<h2>Preparing an Excel or CSV file</h2>
+<p>There is no ISAF template to fill in: ISAF reads the file you already have. <a href="requirements_example.csv" download>Download an example file</a> to see the shape, or compare it with your own export.</p>
+<h3>How the file is read</h3>
+<ul>
+  <li><b>Excel</b> (<code>.xlsx</code>, <code>.xlsm</code>): the sheet with the most rows is used. If your workbook has several sheets of requirements, export or save one sheet per import.</li>
+  <li><b>The header row</b> is found automatically: the first row with at least two filled cells. A title block, a logo or notes above the table are skipped.</li>
+  <li><b>CSV</b> (<code>.csv</code>, <code>.txt</code>): comma, semicolon and tab separated files are all read, as is the UTF-8 that Excel writes, so a European semicolon export needs no conversion.</li>
+  <li>Empty rows are ignored, two columns with the same name are numbered apart, and at most 50,000 rows are read from one file.</li>
+  <li>Merged cells, colours, filters and formulas are irrelevant: ISAF reads the values.</li>
+</ul>
+<h3>What the columns must contain</h3>
+<p>Two columns are needed. Everything else is optional and only adds checks, so start with what you have.</p>
+<table>
+  <tr><th>Column</th><th>Needed?</th><th>What it gives you</th></tr>
+  <tr><td><b>ID</b></td><td><b>Required</b></td><td>The identifier a reviewer and the documents use, for example VC-SYS-12.</td></tr>
+  <tr><td><b>Requirement text</b></td><td><b>Required</b></td><td>The requirement itself. Wording, ambiguous and open terms (TBD, TBC, TBR), units, tolerances and length are checked against it.</td></tr>
+  <tr><td>Traces to (parent IDs)</td><td>Optional</td><td>The trace: coverage per level, broken links, requirements not traced and parents not developed further. <b>Excel and CSV carry no links of their own</b>, so without this column there is no trace. Several parents in one cell, separated by a comma or a semicolon, are fine.</td></tr>
+  <tr><td>Derived, Rationale</td><td>Optional</td><td>A derived requirement without a rationale is reported; a derived system requirement is also checked for validation and safety review.</td></tr>
+  <tr><td>Verification method</td><td>Optional</td><td>Requirements with no verification method, and the test coverage per level.</td></tr>
+  <tr><td>Validation method, Validation conclusion</td><td>Optional</td><td>The system-level validation checks (ARP4754A).</td></tr>
+  <tr><td>Assumption, Safety related, DAL, Source</td><td>Optional</td><td>Assumptions recorded, safety requirements without a DAL, an invalid DAL, and system requirements with no identified source.</td></tr>
+  <tr><td>Title, Heading</td><td>Optional</td><td>A heading row is recognised as a heading and not reviewed as a requirement.</td></tr>
+</table>
+<h3>Column names</h3>
+<p>Name them however your process names them. ISAF suggests the mapping and you correct it on the card before running the review; the choice is remembered for the next file with the same columns. Names it recognises on its own include:</p>
+<ul>
+  <li><b>ID:</b> ID, Req ID, Requirement ID, Identifier, Key, Document Key, Absolute Number, Object Identifier</li>
+  <li><b>Requirement text:</b> Requirement Text, Object Text, Requirement, Statement, Text, Description</li>
+  <li><b>Traces to:</b> Traces To, Trace To, Parent, Parent ID, Parent Requirement, Satisfies, Derived From, Upstream</li>
+  <li><b>Verification:</b> Verification, Verification Method, Test Method, VM</li>
+  <li><b>Others:</b> Derived, Rationale, Justification, Validation Method, Validation Status, Assumption, Safety, Safety Related, DAL, FDAL, IDAL, Source, Origin, Title, Name, Heading</li>
+</ul>
+<h3>One file per level</h3>
+<p>Each file you add is given a <b>level</b>: system requirements, software high-level, software low-level, hardware requirements or verification cases. The level decides which standard the findings cite (DO-178C, DO-254, ARP4754A / ARP4761A) and how the trace is built between files, so export one level per file. If one file holds several levels, add a column saying which, and map it as the optional object type.</p>
+
+<h2>DOORS, DOORS Next and every other tool</h2>
+<p>There is no live connection to these yet. The route today is an export, and it loses nothing that matters to the review:</p>
+<ol>
+  <li><b>DOORS Next:</b> open the module or collection, then <b>Export → ReqIF</b>, which produces a <code>.reqif</code> or <code>.reqifz</code> file. <b>DOORS 9.x:</b> use the ReqIF export in the DOORS client, or export to Excel.</li>
+  <li>Keep the attributes you want ISAF to see in the export: the identifier, the requirement text, the trace or link column, and whatever you use for verification method, derived, rationale, safety and DAL.</li>
+  <li>In ISAF, <b>Import</b> tab → <b>Add requirements files…</b>, then set the level and check the columns on each card.</li>
+</ol>
+<p>ReqIF keeps the links between modules, so the trace is built from the export just as it is from a live connection. Excel and CSV have no links, so add a column of parent IDs and map it to <b>Traces to</b>.</p>
+<p class="muted">If you would like a live connection to DOORS Next or another tool, tell MX Aero which tool and version you use. Each tool is a separate piece of work, and it needs access to an instance of yours to build and test against.</p>
+
+<h2>When something does not work</h2>
+<table>
+  <tr><th>What you see</th><th>What it usually means</th></tr>
+  <tr><td>"refused the personal access token" (Polarion)</td><td>The token has expired or was revoked. Create a new one in My Account → Personal Access Tokens and save it again.</td></tr>
+  <tr><td>"refused the API client ID or secret" (Jama)</td><td>The client ID or secret is wrong, or the API client was removed. Create new credentials in the Jama user profile.</td></tr>
+  <tr><td>"single sign-on" mentioned in a Jama message</td><td>The site uses single sign-on, so a user name and password will never work. Use an API client ID and secret.</td></tr>
+  <tr><td>"accepted the token but the user may not read this project"</td><td>The account is fine but has no read access to that project. Ask your tool administrator for it.</td></tr>
+  <tr><td>"could not reach" the tool</td><td>The ISAF server cannot see the tool: usually a tool inside the company network and an ISAF outside it, a firewall, or a VPN that the ISAF server is not on.</td></tr>
+  <tr><td>The tool sees no project</td><td>The account can sign in but sees nothing. Ask for read access to the project.</td></tr>
+  <tr><td>The import takes several minutes</td><td>Normal for a large project: both tools limit how fast they answer, and ISAF waits rather than hammering them. Leave the tab open.</td></tr>
+  <tr><td>"Not every item was read"</td><td>The project is larger than one import (20,000 items). Narrow it with the extra search, or import one type at a time.</td></tr>
+  <tr><td>A column you need is missing</td><td>Tools only return a field that holds a value. If a field is empty everywhere it still appears in the column list and can be chosen by hand.</td></tr>
+  <tr><td>No trace links came through</td><td>In Polarion, check that work items really are linked rather than only sharing a document. In Jama, check that the relationships exist in the project. For file imports, map the <b>Traces to</b> column.</td></tr>
+</table>
+
+<h2>Before you connect: a short checklist</h2>
+<ul>
+  <li>Your own licence for the tool, and a user account that may read the project.</li>
+  <li>ISAF installed where it can reach the tool (same network, or a route to it).</li>
+  <li>Credentials created, and the person who will renew them when they expire.</li>
+  <li>Agreement on which item or work item types hold requirements, and which fields mean verification method, derived, rationale, safety and DAL.</li>
+  <li>A note in your plans (PSAC, SDP, PHAC or equivalent) of where the requirements come from and how they reach the documents, since the authority will ask.</li>
+</ul>
+<p class="muted">An import is an aid, not a review and not a qualified tool: the findings help the reviewer, who still performs, completes and signs the review.</p>
+</body>
+</html>

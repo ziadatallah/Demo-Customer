@@ -1,0 +1,3 @@
+// Shared named palette; keep aligned with src/data/brand_colors.js.
+const CONFIG_BASIC_COLORS = {"Navy": "1F3A5F", "Blue": "0000FF", "Light Blue": "A8C5E3", "Red": "FF0000", "Green": "008000", "Dark Green": "3A4A2F", "Light Green": "8FA37E", "Yellow": "FFFF00", "Orange": "FFA500", "Purple": "800080", "Teal": "008080", "Brown": "A52A2A", "Black": "000000", "Gray": "808080", "White": "FFFFFF"};
+function configColorName(value){const s=String(value||"").replace(/^#/,"").toUpperCase();return Object.keys(CONFIG_BASIC_COLORS).find(k=>CONFIG_BASIC_COLORS[k]===s||k.toUpperCase()===s)||String(value||"");}

@@ -1,0 +1,72 @@
+{
+  "edition": "customer",
+  "edition_label": "ISAF Customer Edition",
+  "regimes": [
+    "CIVIL",
+    "MILITARY_DOD",
+    "SPACE"
+  ],
+  "_comment": [
+    "EDITION MANIFEST (Model A: build-time editions).",
+    "",
+    "This file declares which certification regimes THIS package is",
+    "licensed to use. The engine reads it at build time and the regime",
+    "selector / validator respect it.",
+    "",
+    "Editions are produced by the packaging script (scripts/make_edition.py,",
+    "added post-wave-12.4) which sets `regimes` here AND strips the data/",
+    "template files for excluded regimes so they are physically absent.",
+    "",
+    "Edition values:",
+    "  full     \u2014 all regimes (CIVIL, MILITARY_DOD, SPACE). Internal/dev.",
+    "  civil    \u2014 CIVIL only. The FAA/EASA customer edition.",
+    "  defense  \u2014 CIVIL + MILITARY_DOD.",
+    "  (space editions TBD when SPACE is implemented)",
+    "",
+    "IMPORTANT: this manifest is a declaration, not the enforcement. Real",
+    "protection in Model A comes from the excluded regimes' data/template",
+    "files being ABSENT from the package, not merely from this list. A",
+    "regime listed here but missing its data files degrades to unavailable;",
+    "a regime present on disk but not listed here is refused by the engine.",
+    "Both conditions must hold for a regime to be usable."
+  ],
+  "version": "5.3.38",
+  "build_engine_version": "5.3.38",
+  "customer_name": "Demo Customer",
+  "license_id": "MXA-ISAF-2026-0007",
+  "starter_workbook": "04_Demos/Starter/inputs/ISAF_Demo_Customer_Starter_Configuration.xlsx",
+  "access_key_sha256": "d346ce95632a65fbd713930cb7c7a174da66c90fb58efb3a5bea51f1b19e28fe",
+  "licensed_program_types": [
+    "SYSTEM",
+    "LRU"
+  ],
+  "hosted_trial": true,
+  "licensed_values": {
+    "program.customer_name": "Demo Customer",
+    "program.company_name": "Demo Customer",
+    "intake.company_address": "123 main Street",
+    "program.target_authority_primary": "FAA",
+    "program.cert_regime": "CIVIL",
+    "program.cert_basis_type": "TSO",
+    "program.do160_in_scope": "Yes",
+    "program.do160_revision": "G"
+  },
+  "licensed_phases": [
+    "codr",
+    "srr",
+    "pdr",
+    "soi1",
+    "cdr",
+    "soi2",
+    "soi3",
+    "trr",
+    "soi4",
+    "tia"
+  ],
+  "tools": [
+    "doors_reqif",
+    "files",
+    "jama",
+    "polarion"
+  ]
+}

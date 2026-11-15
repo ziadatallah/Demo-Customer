@@ -1,0 +1,16 @@
+{
+  "name": "isaf-build-engine",
+  "version": "5.3.38",
+  "description": "ISAF Build Engine v3.4.0: workbook + templates -> certification document set. Adds template-driven document generation via docxtemplater.",
+  "main": "src/build.js",
+  "type": "module",
+  "bin": {
+    "isaf-build": "src/build.js"
+  },
+  "dependencies": {
+    "docx": "^8.5.0",
+    "docxtemplater": "^3.50.0",
+    "pizzip": "^3.1.6",
+    "@xmldom/xmldom": "0.9.10"
+  }
+}

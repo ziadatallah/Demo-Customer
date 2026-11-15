@@ -1,0 +1,182 @@
+{
+  "version": 1,
+  "fields": [
+    {
+      "key": "approval_path",
+      "label": "Approval Path",
+      "help": "Select the approval or support package your company is preparing. Program Type defines the product boundary; Approval Path defines the approval sought.",
+      "required": true,
+      "options": [
+        "TSOA",
+        "TC",
+        "AMENDED_TC",
+        "STC",
+        "AMENDED_STC",
+        "SUPPLIER_TC",
+        "SUPPLIER_STC",
+        "TSOA_TC",
+        "TSOA_STC",
+        "ETSO",
+        "LODA",
+        "PMA",
+        "MILITARY",
+        "OTHER"
+      ],
+      "optionLabels": {
+        "TSOA": "FAA TSO authorization",
+        "TC": "Aircraft type certificate (TC)",
+        "AMENDED_TC": "Amended TC",
+        "STC": "Supplemental type certificate (STC)",
+        "AMENDED_STC": "Amended STC",
+        "SUPPLIER_TC": "Supplier support to an aircraft TC applicant",
+        "SUPPLIER_STC": "Supplier support to an aircraft STC applicant",
+        "TSOA_TC": "TSO authorization plus TC installation support",
+        "TSOA_STC": "TSO authorization plus STC installation support",
+        "ETSO": "ETSO authorization",
+        "LODA": "FAA letter of TSO design approval (foreign applicant)",
+        "PMA": "Parts manufacturer approval (PMA)",
+        "MILITARY": "Military airworthiness approval",
+        "OTHER": "Other \u2014 describe in survey notes"
+      }
+    },
+    {
+      "key": "separate_cdp",
+      "label": "Separate Certification Data Plan",
+      "help": "Select Yes only when your company or the aircraft applicant requires a separate controlled plan for certification-data ownership, delivery, configuration and submission status. Select No when this information is managed in the Certification Plan, PSCP, compliance matrix or document register.",
+      "required": false,
+      "options": [
+        "Yes",
+        "No"
+      ]
+    },
+    {
+      "key": "installation_applicant",
+      "label": "Aircraft Applicant / Integrator",
+      "help": "Company responsible for the aircraft TC/STC or installation approval. Used to plan the interface and delivery responsibilities.",
+      "required": false
+    },
+    {
+      "key": "installation_basis",
+      "label": "Aircraft Certification Basis / Allocation Reference",
+      "help": "Record the aircraft certification basis and the document allocating requirements to your product. This intake record does not establish approval.",
+      "required": false
+    },
+    {
+      "key": "product_description",
+      "label": "Product Function And Boundary",
+      "help": "Describe what the product does, what is included and which installation responsibilities are outside your scope.",
+      "required": false
+    },
+    {
+      "key": "software_scope",
+      "label": "Software In Scope",
+      "help": "Whether airborne software lifecycle data are part of this program. Add every applicable software item in the next step.",
+      "required": true,
+      "options": [
+        "Yes",
+        "No"
+      ]
+    },
+    {
+      "key": "hardware_scope",
+      "label": "Hardware In Scope",
+      "help": "Whether airborne electronic hardware lifecycle data are part of this program. Add every applicable hardware item in the next step.",
+      "required": true,
+      "options": [
+        "Yes",
+        "No"
+      ]
+    },
+    {
+      "key": "supplier_scope",
+      "label": "External Suppliers In Scope",
+      "help": "Whether outside organizations supply development work, hardware, software or lifecycle evidence for this program.",
+      "required": true,
+      "options": [
+        "Yes",
+        "No"
+      ]
+    },
+    {
+      "key": "supplier_scope_basis",
+      "label": "Supplier Work Share Definition",
+      "help": "Describe whether percentages measure engineering hours, contract value or another quantity. Use the same stated basis when comparing suppliers.",
+      "required": false
+    },
+    {
+      "key": "oversight_plan",
+      "label": "Supplier Oversight And Authority Coordination",
+      "help": "Record proposed reviews, data access, foreign-site coordination and questions for the certification lead. ISAF does not calculate FAA level of involvement.",
+      "required": false
+    },
+    {
+      "key": "authority_project_reference",
+      "label": "Authority Project Reference",
+      "help": "Project identifier assigned by the authority, when available. Retained with the intake planning record.",
+      "required": false
+    },
+    {
+      "key": "production_quality_plan",
+      "label": "Production And Quality Arrangements",
+      "help": "Identify manufacturing sites, quality-system ownership and the applicable quality manual or planned evidence.",
+      "required": false
+    },
+    {
+      "key": "application_records_plan",
+      "label": "Application And Approval Records Plan",
+      "help": "Identify the application, conformance and delegated approval records agreed with the certification lead. Issued FAA/designee records must be obtained and imported through the program register.",
+      "required": false
+    },
+    {
+      "key": "survey_owner",
+      "label": "Intake Owner",
+      "help": "Person coordinating completion of the intake and unresolved inputs. This is not an app login or approval signature.",
+      "required": false
+    },
+    {
+      "key": "survey_notes",
+      "label": "Intake Notes",
+      "help": "Record assumptions, unresolved scope questions and references used in answering the survey.",
+      "required": false
+    },
+    {
+      "key": "cage_code",
+      "label": "CAGE Code",
+      "help": "Five-character Commercial and Government Entity code for the legal company, when assigned. A non-U.S. organization may use an NCAGE. Used in the company identity block on generated document covers; it is never part of a document PN.",
+      "required": false
+    },
+    {
+      "key": "company_address",
+      "label": "Company Address",
+      "help": "Legal or controlled program address to print with the company identity on generated document covers. Enter the address approved for certification correspondence and document issue.",
+      "required": false
+    }
+  ],
+  "suppliers": [
+    {
+      "key": "country",
+      "label": "Supplier Home Country",
+      "help": "Country where the supplier organization is based. Work locations may differ; record them separately."
+    },
+    {
+      "key": "work_countries",
+      "label": "Countries Where Work Is Performed",
+      "help": "List the actual development, verification, manufacturing and lower-tier work locations relevant to this supplier."
+    },
+    {
+      "key": "outside_us_percent",
+      "label": "Work Outside The US (%)",
+      "help": "Estimate the percentage of this supplier\u2019s scoped work performed outside the United States, from 0 to 100. State the measurement basis and source; this is not an FAA involvement score."
+    },
+    {
+      "key": "percentage_basis",
+      "label": "Percentage Basis And Source",
+      "help": "Explain whether the work share is based on engineering hours, value or another quantity, and record the source/date of the estimate."
+    },
+    {
+      "key": "oversight_notes",
+      "label": "Supplier Oversight Notes",
+      "help": "Record site access, evidence access, lower-tier suppliers and coordination needs for review by the certification lead."
+    }
+  ]
+}

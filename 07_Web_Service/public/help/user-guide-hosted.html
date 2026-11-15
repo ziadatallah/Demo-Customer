@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ISAF Web App Guide</title>
+<style>
+  :root{--navy:#1F3A5F;--text:#1E2A38;--muted:#5B6878;--border:#D5DDE6;--soft:#F4F7FA;--red:#B42318;--green:#1D6B3A;--amber:#8A5300;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#fff;color:var(--text);font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Helvetica,Arial,sans-serif}
+  header.guide-head{background:#1E7B3F;color:#fff;padding:1.4rem 1.5rem}
+  header.guide-head h1{margin:0;font-size:1.6rem;letter-spacing:-.01em}
+  header.guide-head p{margin:.3rem 0 0;opacity:.92}
+  .wrap{max-width:980px;margin:0 auto;padding:1.5rem 1.25rem 3rem}
+  .toolbar{display:flex;gap:.5rem;justify-content:flex-end;margin:-.5rem 0 1rem}
+  .toolbar button{font:inherit;font-size:.9rem;padding:.4rem .8rem;border:1px solid var(--border);background:#fff;border-radius:6px;cursor:pointer}
+  nav.toc{background:var(--soft);border:1px solid var(--border);border-radius:10px;padding:1rem 1.25rem;margin:0 0 2rem}
+  nav.toc h2{margin:0 0 .5rem;padding:0;border:0;font-size:1.05rem}
+  nav.toc ol{margin:0;padding-left:1.4rem;columns:2;column-gap:2rem}
+  nav.toc li{margin:0 0 .3rem;break-inside:avoid}
+  h2{font-size:1.4rem;color:var(--navy);margin:2.4rem 0 .6rem;padding-top:.6rem;border-top:2px solid var(--border)}
+  h3{font-size:1.1rem;color:var(--navy);margin:1.6rem 0 .4rem}
+  p{margin:.5rem 0}
+  ol.steps{counter-reset:step;list-style:none;padding:0;margin:.8rem 0}
+  ol.steps>li{counter-increment:step;position:relative;padding:.1rem 0 .1rem 2.6rem;margin:.55rem 0}
+  ol.steps>li::before{content:counter(step);position:absolute;left:0;top:.05rem;width:1.75rem;height:1.75rem;border-radius:50%;background:var(--navy);color:#fff;font-weight:700;font-size:.9rem;display:grid;place-items:center}
+  figure{margin:1rem 0 1.4rem;border:1px solid var(--border);border-radius:8px;overflow:hidden;background:#fff}
+  figure img{display:block;width:100%;height:auto}
+  figcaption{font-size:.86rem;color:var(--muted);padding:.5rem .8rem;background:var(--soft);border-top:1px solid var(--border)}
+  .ui{font-weight:650;white-space:nowrap}
+  kbd,code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:var(--soft);border:1px solid var(--border);border-radius:4px;padding:0 .3rem}
+  .note,.tip,.warn{border-left:4px solid var(--navy);background:var(--soft);padding:.6rem .9rem;border-radius:0 8px 8px 0;margin:.9rem 0}
+  .tip{border-color:var(--green);background:#F1F8F3}
+  .warn{border-color:var(--red);background:#FFF5F4}
+  .note b:first-child,.tip b:first-child,.warn b:first-child{display:block}
+  table{border-collapse:collapse;width:100%;margin:.8rem 0;font-size:.94rem}
+  th,td{border:1px solid var(--border);padding:.45rem .6rem;text-align:left;vertical-align:top}
+  th{background:var(--soft)}
+  .flow{display:flex;flex-wrap:wrap;gap:.4rem;align-items:center;margin:.8rem 0}
+  .flow span{background:var(--navy);color:#fff;border-radius:999px;padding:.25rem .8rem;font-size:.9rem;font-weight:600}
+  .flow i{color:var(--muted);font-style:normal}
+  footer{margin-top:3rem;padding-top:1rem;border-top:1px solid var(--border);color:var(--muted);font-size:.85rem}
+  @media (max-width:700px){nav.toc ol{columns:1}h2{font-size:1.25rem}}
+  @media print{.toolbar{display:none}header.guide-head{background:#fff;color:#000;border-bottom:3px solid #1E7B3F}h2{break-before:page;border-top:0}figure{break-inside:avoid}nav.toc{break-after:page}a{color:inherit;text-decoration:none}}
+</style>
+</head>
+<body>
+<header class="guide-head">
+  <h1>ISAF User Guide — Web (Hosted) App</h1>
+  <p>Integrated Standards Assurance Framework, version 5.3.38. Step-by-step instructions for the ISAF web app hosted by MX Aero: prepare your configuration and download your certification documents.</p>
+</header>
+<div class="wrap">
+<div class="toolbar"><button type="button" onclick="window.print()">Print or save as PDF</button></div>
+
+<nav class="toc" aria-label="Contents">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#overview">What the web app does</a></li>
+    <li><a href="#data">Your data in the web app</a></li>
+    <li><a href="#open">Open the app and enter your access key</a></li>
+    <li><a href="#screen">The screen at a glance</a></li>
+    <li><a href="#starter">Your starter configuration and licensed fields</a></li>
+    <li><a href="#intake">Program Intake, step by step</a></li>
+    <li><a href="#save">Save your configuration workbook</a></li>
+    <li><a href="#reopen">Open your workbook next time</a></li>
+    <li><a href="#config">Config Data: complete every section</a></li>
+    <li><a href="#checks">Fix problems before you build</a></li>
+    <li><a href="#build">Build and download your documents</a></li>
+    <li><a href="#pns">Document PNs</a></li>
+    <li><a href="#other">Roadmap and Administration</a></li>
+    <li><a href="#later">Changes and new versions</a></li>
+    <li><a href="#trouble">Troubleshooting</a></li>
+    <li><a href="#help">Getting help</a></li>
+  </ol>
+</nav>
+
+<h2 id="overview">1. What the web app does</h2>
+<p>ISAF generates the plans, standards, checklists, records and reports your program needs for certification (DO-178C, DO-254, ARP4754B and related standards) from one <b>configuration workbook</b>. You describe your program once; ISAF fills every document with your company, program, people, items, levels and dates, phase by phase.</p>
+<div class="flow"><span>Unlock</span><i>→</i><span>Program Intake</span><i>→</i><span>Config Data</span><i>→</i><span>Save workbook</span><i>→</i><span>Build</span><i>→</i><span>Download ZIP</span></div>
+<p>The web app runs in your browser at the address MX Aero gave you; there is nothing to install. It is licensed to your company: some values (company, program type, authority, certification basis and others) come from your licence and are locked, and only the program phases in your licence can be built.</p>
+<div class="note"><b>ISAF is not a qualified tool</b>ISAF is a document generation aid. It is not a qualified tool under DO-178C section 12.2.1 or DO-330, and no certification credit comes from using it. DO-178C requires a tool to be qualified only where its output is <i>not</i> verified; ISAF's output is verified, because you review and approve every document before it becomes life cycle data. That is what keeps ISAF outside the qualification requirement, so the review is not a formality. The cover of every document ISAF generates carries this notice, so a DER or an authority reviewing your data sees it too. ISAF does generate the DO-330 qualification documents (TQP, TOR, TVCP, TVR, TQAS) for <b>your own</b> tools; that is a different thing from ISAF being qualified.</div>
+
+<h2 id="data">2. Your data in the web app</h2>
+<div class="warn"><b>Nothing is kept on the server</b>The web app does not store your workbook or your documents. Save your configuration workbook to your computer whenever you stop working, and download every build. If you close the browser without saving, unsaved changes are lost.</div>
+<ul>
+  <li><b>Your workbook</b> is saved on your computer (section 7). Keep it with your program records; it is your program's master data.</li>
+  <li><b>Your documents</b> come as a ZIP file that you download after each build (section 11).</li>
+  <li><b>Do not enter export-controlled technical data</b> in the web app.</li>
+  <li><b>Document control</b> (check-out/check-in, release, baselines and the program document register) is available when ISAF is installed on your company network. Contact MX Aero if you need it.</li>
+</ul>
+
+<h2 id="open">3. Open the app and enter your access key</h2>
+<ol class="steps">
+  <li>Open the web address MX Aero gave you in Chrome, Edge, Safari or Firefox. If the site has not been used for a while, the first page can take up to a minute to appear.</li>
+  <li>The app is locked until you enter your company's access key. Type it in the <span class="ui">Access key</span> box and select <span class="ui">Unlock</span>.</li>
+  <li>When the key is accepted, the yellow box disappears and the app opens with your starter configuration loaded. A wrong key shows "That access key was not accepted. Check it and try again."; check the key with your ISAF administrator.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/01-access-key.jpg" alt="Access key box above the locked app"><figcaption>Figure 1. The app is greyed out until the access key is accepted. The File, Help and account menus in the top bar work even while it is locked.</figcaption></figure>
+<div class="tip"><b>The key is remembered in this browser tab</b>Reloading the page does not ask again. On a shared computer, choose <span class="ui">Logout…</span> in your account menu (your company name, top right) when you finish.</div>
+
+<h2 id="screen">4. The screen at a glance</h2>
+<ul>
+  <li><b>Banner</b> — your company name and the ISAF version.</li>
+  <li><b>Top bar</b> — the menus <span class="ui">File</span>, <span class="ui">Edit</span>, <span class="ui">Build</span>, <span class="ui">Documents</span>, <span class="ui">View</span>, <span class="ui">Tools</span> and <span class="ui">Help</span> (User Guide, About) on the left (see "Menus and keyboard shortcuts" below), and on the right your account menu, shown with your name (User Information, User Level, Change Password, Logout).</li>
+  <li><b>Main tabs</b> — <span class="ui">Program Intake</span>, <span class="ui">Config Data</span>, <span class="ui">Build</span>, <span class="ui">Import</span>, <span class="ui">Document PNs</span>, <span class="ui">Roadmap</span> and <span class="ui">Administration</span>. <span class="ui">Reset</span> (right) clears the loaded workbook from the app; it does not delete anything on your computer.</li>
+</ul>
+<figure><img src="img/user-guide-hosted/02-about.jpg" alt="About panel listing licence details"><figcaption>Figure 2. Help → About shows who the app is licensed to, the licence ID, the ISAF version, the edition, the licensed program types and phases, and where your data is kept.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/03-file-menu.jpg" alt="Top bar with the File, Edit, Build, Documents, View, Tools and Help menus, and the File menu open"><figcaption>Figure 3. The File menu. New Program Intake opens Program Intake ready for you to choose the program type; Load Configuration opens your saved configuration workbook, and Save Configuration saves your changes to a workbook. Exit asks for confirmation, then closes the window (if the browser keeps it open, you can close the tab yourself).</figcaption></figure>
+<figure><img src="img/user-guide-hosted/03b-account-menu.jpg" alt="Account menu open showing User Information, User Level, Change Password and Logout"><figcaption>Figure 4. The account menu, shown with your name (or your company name when your app uses a company key). User Information lists your name, company, the Intake Owner of the loaded configuration, your user level and how you sign in. Change Password arrives with individual user accounts; until then everyone is an Admin user. Logout asks for confirmation, then locks the app until the access key is entered again.</figcaption></figure>
+
+<h3 id="menus">Menus and keyboard shortcuts</h3>
+<p>The menus show only what applies to your app.</p>
+<table>
+  <tr><th>Menu</th><th>What it contains</th></tr>
+  <tr><td>File</td><td>New Program Intake, Load Configuration, Save Configuration, Reset and Exit.</td></tr>
+  <tr><td>Edit</td><td>Find in Configuration (searches Config Data), Go to Next Missing Field (repeat it to move through every missing field and blocking check) and Discard Unsaved Changes (loads your workbook again without your edits, after asking).</td></tr>
+  <tr><td>Build</td><td>Check Configuration, Build, Working Folder, Reuse Edited Documents and Download Last ZIP (the ZIP of your last build).</td></tr>
+  <tr><td>Documents</td><td>Import Requirements, Document PNs and Roadmap.</td></tr>
+  <tr><td>View</td><td>Build Window (shows or hides the dark build log on the Build tab), Larger Text, Smaller Text, Normal Text Size, and Go to Program Intake, Config Data, Build or Import. Your Build Window and text size choices are remembered in this browser.</td></tr>
+  <tr><td>Tools</td><td>Administration.</td></tr>
+</table>
+<p>Keyboard shortcuts (use <b>⌘</b> instead of <b>Ctrl</b> on a Mac): <b>Ctrl+O</b> Load Configuration, <b>Ctrl+S</b> Save Configuration, <b>Ctrl+B</b> Build, <b>F1</b> User Guide. In a menu, the arrow keys move between items and menus, and <b>Esc</b> closes it.</p>
+<p>Every field has a small <span class="ui">i</span> button: select it for an explanation of the field and what to enter. Required fields are marked with a red <span class="ui">*</span>.</p>
+
+<h2 id="starter">5. Your starter configuration and licensed fields</h2>
+<p>When the app opens, it loads a <b>starter configuration</b> prepared from your licence: company name and address, program type, primary authority, certification regime and basis, DO-160 scope and revision, and requirements tool type.</p>
+<ul>
+  <li>Licensed fields show <span class="ui">(licensed)</span> and are greyed out. They cannot be changed in the app, and editing them in Excel has no effect: the app restores them whenever it loads, saves or builds a workbook.</li>
+  <li>If a licensed value is wrong, contact MX Aero. MX Aero corrects your licence and updates the web app; your saved workbooks keep all your other entries.</li>
+  <li>Complete everything else, then save it as <b>your own workbook</b> (section 7). From then on, open your own workbook, not the starter.</li>
+</ul>
+
+<h2 id="intake">6. Program Intake, step by step</h2>
+<p>Program Intake guides you through the program-level questions in three steps. Required fields that are still empty are <b>outlined in red</b>; the red disappears as soon as you fill them. The line under the step tabs counts how many required fields are complete.</p>
+<h3>Step 1 — Program</h3>
+<ol class="steps">
+  <li>Select the <span class="ui">Program Intake</span> tab. The starter configuration is already open.</li>
+  <li>In <b>Company And Program</b>, enter the <span class="ui">Company Short Name</span>, <span class="ui">Program Name</span>, <span class="ui">Program Short Name</span>, the <span class="ui">Document Revision</span> and, optionally, CAGE code, document prefix, intake owner and a short product description.</li>
+  <li>In <b>Branding And Document Control</b>, choose brand colours, select <span class="ui">Choose ECCN</span> to set the export control marking, and enter the document retention period. The distribution statement starts as "© Copyright - All rights reserved"; change it if your company uses another. (Your logo is chosen on the Build tab; see section 11.)</li>
+  <li>Select <span class="ui">Continue</span>. Each step opens at the top of the page.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/04-intake-step1.jpg" alt="Program Intake step 1"><figcaption>Figure 5. Step 1 — Program. Company Name, Address and Program Type are licensed (grey). Empty required fields are outlined in red.</figcaption></figure>
+<h3>Step 2 — Approval &amp; Scope</h3>
+<ol class="steps">
+  <li>Choose the <span class="ui">Approval Path</span> (for example, FAA TSO authorization). Only paths that fit your program type and licence can be chosen; others are marked "(not for LRU programs)" or "(not in your licence)".</li>
+  <li>Complete the certification basis: <span class="ui">Certification Regulations / Basis</span>, <span class="ui">Applicable TSO / ETSO</span> (if no TSO applies, enter <code>Not applicable:</code> followed by the reason), any secondary authority and the authority project reference.</li>
+  <li>Answer the scope questions: software, hardware, external suppliers and DO-160 in scope; the aircraft and system FHA classifications and failure-condition counts; and whether CCA, ZSA, PRA and DO-254 Appendix B apply.</li>
+  <li>Enter your primary authority contact and any partnering arrangement, means-of-compliance issues or other issues, then select <span class="ui">Continue</span>.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/05-intake-step2.jpg" alt="Program Intake step 2"><figcaption>Figure 6. Step 2 — Approval &amp; Scope.</figcaption></figure>
+<h3>Step 3 — People &amp; Dates</h3>
+<ol class="steps">
+  <li>For each of the ten roles (Chief Engineer, Certification Lead, Program Manager, Systems, Safety, Software, Hardware, Process Assurance, Quality and Configuration Manager), enter a <b>name</b> and an <b>email</b>. One person may hold several roles: enter their name and email for each role.</li>
+  <li>Choose the <span class="ui">Independence Mechanism</span> (how process and quality assurance independence is achieved) and describe it.</li>
+  <li>Enter the target milestone dates, from CoDR to entry into service. If a milestone does not apply, enter <code>Not applicable:</code> and the reason.</li>
+  <li>Save your workbook now (section 7), then select <span class="ui">Continue to Config Data</span>.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/06-intake-step3.jpg" alt="Program Intake step 3"><figcaption>Figure 7. Step 3 — People &amp; Dates.</figcaption></figure>
+<div class="note"><b>Not sure yet? Use TBD</b>Select the <span class="ui">TBD</span> button under a field to mark it "to be determined". You can save and come back later. A <b>required</b> field must be resolved before building.</div>
+
+<h2 id="save">7. Save your configuration workbook</h2>
+<p>Your answers live only in the browser until you save them. Save every time you stop working.</p>
+<ol class="steps">
+  <li>Select <span class="ui">Save Configuration Workbook</span> (in Program Intake or Config Data).</li>
+  <li><b>Chrome or Edge:</b> a Save window opens; choose a folder and file name and select <span class="ui">Save</span>. <b>Safari or Firefox:</b> type a file name when asked and select <span class="ui">OK</span>; the workbook downloads to your Downloads folder (move it to your program folder).</li>
+  <li>The app confirms "Saved and loaded &lt;file name&gt;". The saved workbook is now the one used by <span class="ui">Build</span>, and the server copy is deleted.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/07-saved.jpg" alt="Saved and loaded message after saving"><figcaption>Figure 8. After saving, the app confirms the file name and how many TBD decisions remain.</figcaption></figure>
+<div class="tip"><b>Use a new file name for each important version</b>For example <code>PCU-450_Config_2026-11-05.xlsx</code>. Keep the workbooks with your program records and in your configuration management system.</div>
+
+<h2 id="reopen">8. Open your workbook next time</h2>
+<ol class="steps">
+  <li>Open the web app and enter your access key (section 3). The starter configuration loads first.</li>
+  <li>Select the <span class="ui">Build</span> tab and drag your saved <code>.xlsx</code> onto the box under "or use your own workbook" (or select the box and choose the file). <span class="ui">Load Existing Config</span> in Program Intake does the same.</li>
+  <li>The box turns green with a ✓ and the file name. Continue in Program Intake or Config Data.</li>
+</ol>
+<div class="note"><b>If the box turns red</b>The message says why the workbook could not be loaded. Check that you chose the <code>.xlsx</code> workbook saved by ISAF and open it again.</div>
+
+<h2 id="config">9. Config Data: complete every section</h2>
+<p>Config Data shows the whole configuration, grouped in tabs. Program Intake answers appear here too; change them in either place. Use <span class="ui">Search config item</span> to find any field, item, part number or value.</p>
+<figure><img src="img/user-guide-hosted/08-config-overview.jpg" alt="Config Data overview"><figcaption>Figure 9. Config Data. Sub-tabs turn red with a count when they contain something to fix.</figcaption></figure>
+<table>
+  <tr><th>Tab</th><th>What to enter</th></tr>
+  <tr><td>Program</td><td>Program identity, approval, scope, branding and milestone dates (shared with Program Intake).</td></tr>
+  <tr><td>Personnel</td><td>Name, email, title and signatory for each role, and how process and quality assurance independence is achieved.</td></tr>
+  <tr><td>Authority</td><td>Certification authority contacts and coordination details.</td></tr>
+  <tr><td>Safety</td><td>Safety assessment inputs (failure conditions, development assurance levels).</td></tr>
+  <tr><td>Systems / LRUs</td><td>The certifiable units in the program: systems or LRUs in an Aircraft or System program, LRUs in an LRU program. An LRU program may list two or more LRUs that are not part of a system; where more than one unit is listed, every software and hardware item must name its unit in Parent System.</td></tr>
+  <tr><td>Software Items / Hardware Items</td><td>One row per software or hardware item: ID, name, part number, level and related details. Select <span class="ui">+ Add row</span> to add an item.</td></tr>
+  <tr><td>Suppliers / Tools</td><td>Suppliers and the tools used, including tool qualification needs.</td></tr>
+  <tr><td>Development Environment</td><td>Requirements, configuration management, problem reporting and other tool types used in your process.</td></tr>
+  <tr><td>Environmental Evidence / Requirements</td><td>DO-160 categories you have qualified to, and the categories your customer requires (when DO-160 is in scope).</td></tr>
+</table>
+<figure><img src="img/user-guide-hosted/10-config-personnel.jpg" alt="Personnel tab"><figcaption>Figure 10. Personnel. The panel at the top of each tab lists what is missing on that tab.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/11-config-software.jpg" alt="Software Items tab"><figcaption>Figure 11. Software Items. When software is in scope but no item exists yet, the panel says so; select the message to jump to <span class="ui">+ Add row</span>.</figcaption></figure>
+
+<h2 id="checks">10. Fix problems before you build</h2>
+<p>ISAF checks your configuration with the same rules the build uses, while you work.</p>
+<ol class="steps">
+  <li>Look at the Config Data sub-tabs. A <b>red tab with a number</b> has problems that block the build; an <b>amber</b> tab has warnings only.</li>
+  <li>Open a red tab. The panel at the top lists each problem in plain words, with a hint where it helps.</li>
+  <li>Select a problem. ISAF takes you to the field, highlights it and puts the cursor in it. Fix it; the list updates within a second.</li>
+  <li>Repeat until no tab is red, then save the workbook (section 7).</li>
+</ol>
+<figure><img src="img/user-guide-hosted/09-config-program-checks.jpg" alt="Checks panel"><figcaption>Figure 12. The checks panel. Each line is a link to the field.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/12-config-go-to-field.jpg" alt="Highlighted field"><figcaption>Figure 13. After selecting a problem, the field is highlighted and ready for input.</figcaption></figure>
+<div class="note"><b>Warnings</b>Warnings (amber) do not stop the build. They point to something worth reviewing.</div>
+
+<h2 id="build">11. Build and download your documents</h2>
+<ol class="steps">
+  <li>Select the <span class="ui">Build</span> tab. The yellow notice reminds you that nothing is kept on the server.</li>
+  <li>Check that your saved workbook is shown in the green box (section 8).</li>
+  <li>Leave <span class="ui">Build source</span> on <span class="ui">Standard build</span>.</li>
+  <li>Under <span class="ui">Program phases</span>, tick the milestone(s) to build, for example <span class="ui">SOI 1</span>. Each phase generates the documents first needed at that gate. <span class="ui">All</span> selects every licensed phase. Phases outside your licence are greyed out.</li>
+  <li>Under <span class="ui">Program logo</span>, select <span class="ui">Choose File</span> and pick your company logo (SVG, PNG or JPEG) if you want it on the documents. The web app cannot read a logo path stored on your computer. The <span class="ui">Output folder</span> is not used: documents are delivered as a ZIP download.</li>
+  <li>Look under the <span class="ui">Build</span> button. "✓ Configuration checks passed" means you can build. If it lists problems, select a link to go to the field (section 10).</li>
+  <li>Select <span class="ui">Build</span>. A progress bar and timer show the build running; a one-phase build can take a few minutes. <span class="ui">Stop build</span> cancels it.</li>
+  <li>When the build finishes, the ZIP downloads automatically: one ZIP, with a folder for each phase you built. If it does not start, select <span class="ui">Download ZIP</span> (or <span class="ui">Download all phases (one ZIP)</span>); the phase buttons download a single phase. Unzip it on your computer: it contains the generated Word documents.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/13-build-tab.jpg" alt="Build tab with hosted trial notice"><figcaption>Figure 14. Build tab with the hosted notice and your saved workbook.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/14-build-blocked.jpg" alt="Problems listed under Build"><figcaption>Figure 15. When something must be fixed, the Build tab says so and the build does not start. Each tab name is a link.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/16-build-ready.jpg" alt="Ready to build"><figcaption>Figure 16. Ready to build: only licensed phases are available, the output is a ZIP download, and checks have passed.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/17-build-running.jpg" alt="Build running"><figcaption>Figure 17. Build running. Stop build appears only while a build runs.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/18-build-complete.jpg" alt="Build complete with Download ZIP"><figcaption>Figure 18. Build complete. The ZIP downloads automatically; finished builds stay on the site for up to 60 minutes and are cleared if the site restarts.</figcaption></figure>
+<div class="warn"><b>Keep the downloaded ZIP</b>Finished builds stay on the site for up to 60 minutes and are cleared when the site restarts (after an update, or after a period without use). If a download is no longer available, build again. Documents you edit after downloading stay on your computer; to update them after a configuration change, add them under Reuse edited documents (below).</div>
+
+<h3 id="reuse">Reuse your edited documents</h3>
+<p>Use this when you have edited downloaded documents in Word and then change the configuration, or when you start a new program from a previous program's documents.</p>
+<ol class="steps">
+  <li>On the <span class="ui">Build</span> tab, under <span class="ui">Reuse edited documents</span>, select <span class="ui">Choose files…</span> to pick Word documents, or <span class="ui">Choose folder…</span> to pick a whole folder, for example your unzipped last build. Only <code>.docx</code> files are used; select either button again to add more, or <span class="ui">Clear</span> to start over.</li>
+  <li>Build as usual. Your documents are sent with the build and matched to the documents it generates: by document number for the same program, or by document type and item for a new program.</li>
+  <li>In each matched document, the configuration values you did not change are updated: names, part numbers, people, dates and references to other documents. Your own text, tables and formatting are kept.</li>
+  <li>Where you changed a value and the configuration value has also changed, your text is kept and a Word comment by "ISAF refresh" marks it. Review it, update it if needed and delete the comment.</li>
+  <li>Download the ZIP. It contains the refreshed documents and <code>Refresh_Report.txt</code>, which lists each refreshed document, every flagged value and any file that was not used. As with every build, nothing is kept on the server.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/19-reuse-edited-documents.jpg" alt="Reuse edited documents with two Word documents selected"><figcaption>Figure 19. Reuse edited documents on the Build tab.</figcaption></figure>
+<div class="note"><b>Good to know</b>This works with documents generated by ISAF 5.3.26 or later. New content that has no place in your edited document, such as sections for a newly added item, is not inserted; the report lists it. Build without the documents to get the complete new document to compare.</div>
+
+<h3 id="working-folder">Work in a folder instead of ZIP files</h3>
+<p>In Chrome or Edge you can choose a folder on your computer for the program's documents. ISAF then reads your edited documents from it and saves each build into it, so you no longer download and unpack a ZIP after every build.</p>
+<ol class="steps">
+  <li>On the <span class="ui">Build</span> tab, under <span class="ui">Working folder</span>, select <span class="ui">Choose working folder…</span> (or <span class="ui">Build</span> → <span class="ui">Working Folder…</span>), pick or create a folder, and allow ISAF to view and save files there when the browser asks.</li>
+  <li>Keep <span class="ui">Read edited documents from this folder and save the build into it</span> selected and build as usual. The documents you edited in the folder are reused (see "Reuse your edited documents"), and the new documents are saved into the folder in one subfolder per phase (for example <code>SOI-2</code>).</li>
+  <li>Before ISAF replaces a file, it copies the previous version to <code>_ISAF_backup</code> in the folder, in a subfolder named with the date and time. A document saved under a new name (for example a new revision) moves the older file there too, so the folder holds one current file per document.</li>
+  <li>The browser remembers the folder. It may ask again for permission the next time you build. Select <span class="ui">Stop using this folder</span> to go back to ZIP downloads.</li>
+</ol>
+<div class="note"><b>Good to know</b>Close documents in Word before building or updating; a file that is open may not be replaced, and ISAF lists it. Other browsers (Safari, Firefox) cannot save into a folder; there ISAF keeps the ZIP download. The folder stays on your computer; nothing is kept on the server.</div>
+
+<h3 id="import">Import and review requirements</h3>
+<p>The <span class="ui">Import</span> tab checks your requirements before the human review. It eases the manual work of a requirements review; it is not a qualified tool, and the reviewer still performs, completes and signs the review.</p>
+<ol class="steps">
+  <li>Export your requirements from your requirements tool as <b>ReqIF</b> (<code>.reqif</code> or <code>.reqifz</code>, from DOORS, DOORS Next, Polarion, Jama and others), or keep them in <b>Excel</b> (<code>.xlsx</code>) or <b>CSV</b> (any layout: see <a href="connect-requirements-tool.html">Connecting your requirements tool</a> for the columns and an example file): system requirements, software high-level and low-level requirements, hardware requirements and verification cases (tests).</li>
+  <li>On the <span class="ui">Import</span> tab (or <span class="ui">Documents</span> → <span class="ui">Import Requirements…</span>), select <span class="ui">Add requirements files…</span>. Each file appears as a card.</li>
+  <li><b>Jama Connect and Polarion users</b> can skip the export (see <a href="connect-requirements-tool.html">Connecting your requirements tool</a> for everything your tool administrator has to provide): open <span class="ui">Read requirements straight from Jama Connect</span> or <span class="ui">…from Polarion</span>, enter the service address and the credentials your tool administrator creates (an API client ID and secret for Jama, a personal access token for Polarion; both are shown once), then <span class="ui">Test connection</span>, <span class="ui">Load projects</span>, tick the item or work item types that hold requirements or verification cases, and <span class="ui">Read requirements</span>. Each type becomes a card, with the tool’s own field names as its columns and its links already in place as trace links. ISAF only reads: nothing in your requirements tool is changed. The connection is kept on your own ISAF server and the secret is never shown again.</li>
+  <li>For each file, check the <span class="ui">Level</span> and the columns ISAF has chosen: <span class="ui">ID</span> and <span class="ui">Requirement text</span> are needed; <span class="ui">Traces to</span> (parent IDs), <span class="ui">Derived</span>, <span class="ui">Rationale</span> and <span class="ui">Verification method</span> make the review more complete. For system and hardware requirements, also map <span class="ui">Validation method</span>, <span class="ui">Validation conclusion</span>, <span class="ui">Assumption</span>, <span class="ui">Safety-related</span>, <span class="ui">DAL</span> and (system) <span class="ui">Source of requirement</span> when your export has them; checks that need a column you do not map are skipped or noted once. A ReqIF file with several specifications (modules) gets a level for each. The example line under the card shows how the first requirement is read. Your column choices are remembered in this browser.</li>
+  <li>Open <span class="ui">Review options</span> to match your requirements standard: the list of ambiguous or open terms, the maximum length, and which rules apply.</li>
+  <li>Select <span class="ui">Run review</span>. The results show, per level, how many requirements trace to a parent, are developed further and have tests; the review checklist evidence; and every finding (Error, Warning or Info) with the requirement, its text and the reference of its standard: DO-178C for software, DO-254 for hardware (for example tolerances, validation of derived requirements, safety requirements with a DAL), ARP4754A and ARP4761A for system requirements (for example source identified, tolerances, validation method and conclusion, assumptions, safety requirements allocated with a DAL). The checklist evidence is grouped the same way. Filter by severity, level or text.</li>
+  <li>Select <span class="ui">Download error report (Excel)</span> for the workbook: Summary, Findings (with Disposition and Reviewer notes columns for the review), Requirements, Trace and Checklist evidence.</li>
+</ol>
+<p><b>Using the requirements in your documents.</b> After the review, select <span class="ui">Use these requirements in every build</span>. From then on a build writes them into the documents as it generates them &mdash; there is nothing to do afterwards. The Build tab says what will be written in before the build starts, and the build log and <code>Requirements_Report.txt</code> say what was:</p>
+<ul>
+  <li><b>HLR, LLR, hardware requirements (HRD) and system requirements (REQ-Sys):</b> a requirements table (ID, text, parent, derived, verification method, number of findings) and a table of derived requirements with their rationale and a column for the safety assessment feedback (REQ-Sys: the downward trace).</li>
+  <li><b>Trace:</b> the trace matrix (traces to, developed by, verified by) and a gap register with a Disposition column.</li>
+  <li><b>SVCP:</b> the imported verification cases and the requirements each verifies.</li>
+  <li><b>VMAT-Sys (system validation matrix):</b> the validation matrix (source, DAL, validation method, conclusion; associated function and evidence references for you to complete), the status totals and the open validation findings.</li>
+  <li><b>PR-SWRD, PR-SDD, PR-HRD and Sys-SRR review checklists:</b> evidence in the Finding / Notes column of each criterion the data can speak to (for example "2 of 3 software high-level requirements trace to a system requirement; not traced: HLR-3"), and a reminder that judgment criteria are for the reviewer. Pass / Fail / N/A is never ticked.</li>
+</ul>
+<ol class="steps">
+  <li>Check each file's <span class="ui">Item</span>: the software or hardware item its requirements belong to (filled in when the program has only one). A ReqIF file with several specifications has an item for each.</li>
+  <li>Select <span class="ui">Use these requirements in every build</span>, then build. A build writes the requirements attached when it ran; ISAF does not re-read your requirements tool during a build.</li>
+  <li>Import again whenever the requirements change and build again: ISAF replaces the tables and evidence it inserted (marked "ISAF import" in Word) and keeps everything else, including the reviewer's notes next to the evidence. If someone edited an inserted table in Word, it is still replaced, and a Word comment says so; change requirements in the requirements tool.</li>
+</ol>
+<div class="note"><b>Good to know</b>Checklist questions that can be answered from the data (identification, wording, units, verification method, trace) show "No findings" or "Findings" with evidence; questions that need engineering judgment (accuracy, consistency, compatibility with the target, algorithms) are marked "Reviewer". Your files are read on the server and deleted at once; the requirements stay in this browser page only. Do not upload export-controlled data.</div>
+
+<h2 id="pns">12. Document PNs</h2>
+<p>Document PNs defines how document part numbers are formed: prefix, discipline (SYS/SW/HW), document type code, sequence length and starting number, separator and revision format.</p>
+<ol class="steps">
+  <li>Open <span class="ui">Document PNs</span>. The scheme stored in your workbook is shown.</li>
+  <li>Adjust the settings and the document type codes your company uses. The <b>Live examples</b> show the resulting numbers.</li>
+  <li>Select <span class="ui">Apply scheme to configuration</span>, then <span class="ui">Save Configuration Workbook</span>.</li>
+</ol>
+<figure><img src="img/user-guide-hosted/19-document-pns.jpg" alt="Document PNs tab"><figcaption>Figure 20. Document PNs.</figcaption></figure>
+
+<h2 id="other">13. Roadmap and Administration</h2>
+<p><span class="ui">Roadmap</span> tracks document owners, dates and dependencies through the program document register. The register is part of document control, which is available when ISAF is installed on your company network, so in the web app the Roadmap stays empty.</p>
+<p><span class="ui">Administration</span> shows the app edition, hosting mode and recent build activity. Most users do not need it.</p>
+
+<h2 id="later">14. Changes and new versions</h2>
+<ul>
+  <li><b>Change your configuration:</b> open your latest workbook (section 8), change it, save it under a new name and build again.</li>
+  <li><b>Unsaved changes:</b> if you edit and then select Build, ISAF asks you to save first, so the documents always match a saved workbook.</li>
+  <li><b>New ISAF version:</b> MX Aero updates this site for you, including any critical update, so there is nothing to install and no update notice to answer. The new version number appears in the banner. Open your latest workbook as usual; your entries carry over and licensed values are updated automatically.</li>
+</ul>
+
+<h2 id="trouble">15. Troubleshooting</h2>
+<table>
+  <tr><th>What you see</th><th>What to do</th></tr>
+  <tr><td>The site takes a long time to open</td><td>The web app sleeps when unused. Wait up to a minute and reload.</td></tr>
+  <tr><td>"That access key was not accepted"</td><td>Check the key with your ISAF administrator. Keys are case-sensitive.</td></tr>
+  <tr><td>Red tabs, or "problems must be fixed in Config Data before building"</td><td>Open each red tab and select each problem to go to the field (section 10).</td></tr>
+  <tr><td>"Select Save Configuration Workbook before generating documents"</td><td>You have unsaved edits. Save the workbook, then build.</td></tr>
+  <tr><td>"Could not load &lt;file&gt;" on the Build tab</td><td>The message gives the reason. Make sure the file is the <code>.xlsx</code> workbook saved by ISAF, then open it again.</td></tr>
+  <tr><td>"Save cancelled" or no file appears after saving</td><td>Save again and choose a name; in Safari or Firefox look in your Downloads folder.</td></tr>
+  <tr><td>A field shows "(licensed)" and cannot be edited</td><td>It comes from your licence. Contact MX Aero to change it.</td></tr>
+  <tr><td>A phase is greyed out on the Build tab</td><td>It is not in your licence.</td></tr>
+  <tr><td>The build stops with an error or the page reloads during a build</td><td>Build again with fewer phases at a time (one phase per build). If it keeps failing, send the message to MX Aero.</td></tr>
+  <tr><td>Documents have no logo</td><td>Choose the logo file under Program logo on the Build tab before building.</td></tr>
+</table>
+
+<h2 id="help">16. Getting help</h2>
+<ul>
+  <li>Select the <span class="ui">i</span> button next to any field for guidance on that field.</li>
+  <li>Open <span class="ui">Help → About</span> to find your licence ID and ISAF version.</li>
+  <li>Contact your ISAF representative at MX Aero LLC. Include the licence ID, the version, what you were doing and the exact message (a screenshot helps).</li>
+</ul>
+
+<footer>Copyright © 2026 MX Aero LLC. All rights reserved. Screens show a sample company (Example Avionics Inc.) and sample data.</footer>
+</div>
+</body>
+</html>
