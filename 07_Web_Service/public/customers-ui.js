@@ -24,18 +24,81 @@
   renderList();renderForm();
  }
  function blank(){return {id:'new',company:'',license_type:'Company-wide',license_term:'Annual subscription',usage_tracking:'Offline report',program_types:[],phases:[],do160_in_scope:'No',do160_revision:'G',tool_qualification:'No',primary_authority:'FAA',cert_regime:'CIVIL',cert_basis:'TSO',requirements_integration:'None',requirements_tools:[],plm_integration:'None',deployment_model:'On-premise',version_deployed:'',patches:[],deployments:[]};}
+ // Demo view (owner, 16 November 2026): shown to a prospect, this tab should not read as a client
+ // list. Every customer but the demo one is masked in place - the entries stay, so the list still
+ // behaves normally, but nothing identifies who they are. Per-viewer and per-browser, so it is kept
+ // in localStorage rather than on the customer records.
+ const PRIVACY_KEY='isafCustomerDemoView';
+ const privacyOn=()=>{try{return localStorage.getItem(PRIVACY_KEY)==='1';}catch{return false;}};
+ // Which customers Demo view shows is the owner's choice, ticked per customer, because sometimes
+ // the point is to show one customer their own block (owner, 16 November 2026). It used to be
+ // guessed from the company name, which could not express that.
+ const inDemoView=c=>String(c.demo_visible||'')==='Yes';
+ async function setDemoVisible(c,on){
+  c.demo_visible=on?'Yes':'No';
+  renderList();
+  try{await api('/api/admin/customers/'+encodeURIComponent(c.id),{method:'PUT',body:JSON.stringify({...c})});}
+  catch(err){status('Could not save the Demo view setting: '+err.message,true);await load();}
+ }
+
+ // The owner sets the order of this list; sort_order lives on the customer record so it survives a
+ // new browser. Records without one keep the old alphabetical behaviour, after those that have one.
+ const orderOf=c=>Number.isFinite(Number(c.sort_order))?Number(c.sort_order):Number.MAX_SAFE_INTEGER;
+ const inOrder=()=>[...state.customers].sort((a,b)=>orderOf(a)-orderOf(b)||String(a.company||'').localeCompare(String(b.company||'')));
+
+ async function moveCustomer(id,delta){
+  const ordered=inOrder();const from=ordered.findIndex(c=>c.id===id),to=from+delta;
+  if(from<0||to<0||to>=ordered.length)return;
+  const moved=ordered.splice(from,1)[0];ordered.splice(to,0,moved);
+  // Every row is renumbered, so an imported list with no sort_order gets one on the first move.
+  ordered.forEach((c,i)=>{c.sort_order=i;});
+  renderList();
+  try{
+   for(const c of ordered)await api('/api/admin/customers/'+encodeURIComponent(c.id),{method:'PUT',body:JSON.stringify({...c,sort_order:c.sort_order})});
+   status('Customer order saved.');
+  }catch(err){status('Could not save the new order: '+err.message,true);await load();}
+ }
+
  function renderList(){
   const list=$('customerList');list.replaceChildren();
   if(!state.customers.length){list.innerHTML='<p class="repo-muted">No customers yet. Choose New customer.</p>';return;}
-  for(const c of [...state.customers].sort((a,b)=>a.company.localeCompare(b.company))){
+  const masking=privacyOn();
+  // Demo view hides the other customers outright rather than masking them in place (owner,
+  // 16 November 2026): a prospect should see the demo customer and nothing else, not a row of
+  // placeholders telling them how many clients there are.
+  const ordered=masking?inOrder().filter(inDemoView):inOrder();
+  if(!ordered.length){
+   list.innerHTML='<p class="repo-muted">Demo view is on and no customer is ticked to show in it. Turn it off and tick the box beside each customer you want a visitor to see.</p>';
+   return;
+  }
+  ordered.forEach((c,index)=>{
+   const entry=document.createElement('div');entry.className='customer-row';
+   if(!masking){
+    const pick=document.createElement('label');pick.className='customer-demo-pick';
+    pick.title='Show this customer in Demo view';
+    const box=document.createElement('input');box.type='checkbox';box.checked=inDemoView(c);
+    box.setAttribute('aria-label','Show '+(c.company||'this customer')+' in Demo view');
+    box.onclick=e=>e.stopPropagation();
+    box.onchange=()=>setDemoVisible(c,box.checked);
+    pick.appendChild(box);entry.appendChild(pick);
+   }
    const b=document.createElement('button');b.type='button';b.className='customer-item'+(selected?.id===c.id?' active':'');
    b.innerHTML=`<strong>${esc(c.company)}</strong><span>${esc(c.license_id||'')} · ${esc(c.version_deployed?('v'+c.version_deployed):'not deployed')}${importsOff(c)?' · no requirements import':''}</span>`;
    b.onclick=()=>{selected=c;renderList();renderForm();};
    // The customer's web site, as a link under its entry (a link cannot sit inside the button).
    const url=String(c.hosted_url||'').trim();
-   if(/^https?:\/\//i.test(url)){const wrap=document.createElement('div');wrap.className='customer-item-wrap';const a=document.createElement('a');a.className='customer-site';a.href=url;a.target='_blank';a.rel='noopener';a.textContent=siteHost(url)+' ↗';a.title='Open '+url;wrap.append(b,a);list.appendChild(wrap);}
-   else list.appendChild(b);
-  }
+   if(/^https?:\/\//i.test(url)){const wrap=document.createElement('div');wrap.className='customer-item-wrap';const a=document.createElement('a');a.className='customer-site';a.href=url;a.target='_blank';a.rel='noopener';a.textContent=siteHost(url)+' ↗';a.title='Open '+url;wrap.append(b,a);entry.appendChild(wrap);}
+   else entry.appendChild(b);
+   const arrows=document.createElement('div');arrows.className='customer-move';
+   if(masking){entry.appendChild(arrows);list.appendChild(entry);return;}
+   const arrow=(dir,glyph,label)=>{const m=document.createElement('button');m.type='button';m.className='customer-move-btn';m.textContent=glyph;
+    m.title=label;m.setAttribute('aria-label',label);
+    m.disabled=dir<0?index===0:index===ordered.length-1;
+    m.onclick=e=>{e.stopPropagation();moveCustomer(c.id,dir);};return m;};
+   arrows.append(arrow(-1,'▲','Move up'),arrow(1,'▼','Move down'));
+   entry.appendChild(arrows);
+   list.appendChild(entry);
+  });
  }
  const sel=(key,label,opts,value)=>`<label>${label}<select data-key="${key}">${opts.map(o=>`<option ${o===value?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
  const txt=(key,label,value,type='text',extra='')=>`<label>${label}<input type="${type}" data-key="${key}" value="${esc(value)}" ${extra}></label>`;
@@ -246,7 +309,26 @@
   if(!selected||selected.id==='new')return;
   if(!confirmNoImport(draft||selected))return;
   const shared=!String(draft?.publish_repository||'').trim();
-  if(shared&&!confirm('No GitHub repository is set for '+selected.company+'. Publish to the shared Customer site (Customer_GitHub_Deploy.json)? This replaces what that site currently shows.'))return;
+  // Without a repository the only place to publish is the shared Customer site, which every
+  // customer without a repository of its own shares. That is almost never what is wanted, and the
+  // old wording described it without saying how to avoid it, so it read as a failure.
+  if(shared){
+   const site=String(draft?.hosted_url||selected.hosted_url||'').trim();
+   const lines=[
+    `${selected.company} has no GitHub repository set, so ISAF cannot publish to an app of its own.`,
+    '',
+    'TO PUBLISH THIS CUSTOMER\u2019S OWN APP (what you almost certainly want):',
+    'Choose Cancel, then fill in Deployment \u2192 \u201cGitHub repository for this customer\u2019s hosted app\u201d',
+    'with the repository the customer\u2019s site deploys from, for example  owner/' + (selected.company||'Customer').replace(/[^A-Za-z0-9]+/g,'-'),
+    'Save the customer, then Publish again.',
+    ...(site?[`That is the repository ${site} is built from.`]:[]),
+    '',
+    'CHOOSE OK ONLY TO PUBLISH TO THE SHARED CUSTOMER SITE',
+    '(Customer_GitHub_Deploy.json). That site is shared by every customer without a repository of',
+    'its own, and publishing replaces what it currently shows for all of them.',
+   ];
+   if(!confirm(lines.join('\n')))return;
+  }
   const button=$('customerPublishApp');button.disabled=true;status('');busy('Building and publishing the Customer app for '+selected.company+' to GitHub…');
   try{
    await saveDraftQuietly();
@@ -325,6 +407,21 @@
   $('updPublish').onclick=async()=>{try{const r=await api('/api/admin/updates/publish',{method:'POST'});$('updStatus').textContent='Published.';status(`Published ${r.published} release${r.published===1?'':'s'} to ${r.endpoint}. Customer apps see it within six hours, or at once when a user chooses Check for Updates.`);}catch(e){$('updStatus').textContent=e.message;status(e.message,true);}};
  }
  $('customerUpdatesPanel')?.addEventListener('toggle',e=>{if(e.target.open)renderUpdates();});
+ // Wired once at module load: the switch lives in static markup, and putting this inside a render
+ // path meant it only became live after a customer's usage happened to load.
+ const privacyBox=$('customerPrivacyToggle');
+ if(privacyBox){
+  privacyBox.checked=privacyOn();
+  privacyBox.addEventListener('change',()=>{
+   try{localStorage.setItem(PRIVACY_KEY,privacyBox.checked?'1':'0');}catch{}
+   // Entering demo view deselects everything (owner, 16 November 2026). Hiding the rows alone
+   // would leave whoever was selected open in the form beside the list, and moving the selection
+   // to a shown customer still opens a record nobody asked to see. Nothing is selected, so the
+   // form reads "Select a customer or choose New customer." until the visitor is shown one.
+   if(privacyBox.checked) selected=null;
+   renderList();renderForm();
+  });
+ }
  window.customersUI={refresh:()=>loaded?renderList():load()};
  document.addEventListener('DOMContentLoaded',()=>{});
  $('customerNew').onclick=()=>{selected=blank();renderList();renderForm();status('');};

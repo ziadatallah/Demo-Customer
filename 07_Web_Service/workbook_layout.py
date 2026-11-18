@@ -41,7 +41,7 @@ PN_TYPES=[
     ('POL','Policy','Quality policy, records retention policy'),
 ]
 TARGETS={key:row for _,_,fields in SPEC['groups'] for row,key in fields}
-LABELS={'customer_name':'Company Name','customer_short_name':'Company Short Name','name':'Program Name','short_name':'Program Short Name','type':'Program Type','doc_prefix':'Document Prefix','doc_revision':'Document Revision','brand_color_primary':'Primary Color','brand_color_accent':'Accent Color','target_tc_date':'Target Certification / Authorization Date','tso_category':'Applicable TSO / ETSO'}
+LABELS={'no_end_user':'No End User','purchaser_name':'End User Name','purchaser_address':'End User Address','contract_number':'Contract Number','security_assurance_level':'Security Assurance Level','customer_name':'Company Name','customer_short_name':'Company Short Name','name':'Program Name','short_name':'Program Short Name','type':'Program Type','doc_prefix':'Document Prefix','doc_revision':'Document Revision','brand_color_primary':'Primary Color','brand_color_accent':'Accent Color','target_tc_date':'Target Certification / Authorization Date','tso_category':'Applicable TSO / ETSO'}
 REQUIRED=set(SPEC['required'])
 def title(key):
     return ' '.join({'soi1':'SOI 1','soi2':'SOI 2','soi3':'SOI 3','soi4':'SOI 4','codr':'CoDR','pdr':'PDR','cdr':'CDR','trr':'TRR','eis':'EIS','mtow':'MTOW','kg':'kg','do160':'DO-160','tso':'TSO','tc':'TC','ata':'ATA','pn':'P/N','dal':'DAL','fdal':'FDAL','idal':'IDAL'}.get(w,w.title()) for w in key.split('_'))
@@ -131,6 +131,119 @@ def normalize_workbook(wb):
         sheet[col+'4'].comment=Comment('Required: company-assigned item PN, separate from item ID and document PN. Used in configuration index and identification documents.','ISAF')
         for r in range(6,31 if name=='4. Systems' else 61):sheet[col+str(r)].fill=PatternFill('solid',fgColor='E2EFD9');sheet[col+str(r)].alignment=Alignment(wrap_text=True,vertical='center')
     ensure_system_ata(wb)
+    ensure_item_ata(wb)
+    ensure_unit_type(wb)
+    ensure_article_characteristics(wb)
+
+def ensure_article_characteristics(wb):
+    """Add the Declaration of Design and Performance article columns to an older workbook.
+
+    These describe the ARTICLE - the certifiable unit - rather than the program or an item inside
+    it, so they belong on the Sys/LRU sheet. They cover AMC 21.A.608 items 2, 3 and 9(b) to 9(e),
+    which the DDP needs and nothing in ISAF previously held.
+
+    None is mandatory and a blank cell is not an omission: most apply to some articles only, and a
+    DC-DC converter neither transmits nor measures. The DDP prints "Not applicable" for a blank so
+    a reviewer can tell an answered question from an unanswered one. Nothing is back-filled.
+
+    Fields rather than document placeholders at the owner's direction (16 November 2026): adding
+    them now costs one migration, while adding them later would change the customer app twice.
+    """
+    if '4. Systems' not in wb.sheetnames: return
+    sheet = wb['4. Systems']
+    columns = (
+        ('N', 'sys.tso_numbers', 'TSO Numbers',
+         'Optional: Technical Standard Orders this article is declared against, comma-separated with '
+         'revisions (TSO-C113b, TSO-C115d). One article can hold several at once.'),
+        ('O', 'sys.modification_standard', 'Modification Standard',
+         'Optional: the article\'s current modification state as released by configuration management.'),
+        ('P', 'sys.unit_weight', 'Unit Weight',
+         'Optional: article weight with units, as measured on the qualified configuration.'),
+        ('Q', 'sys.unit_dimensions', 'Overall Dimensions',
+         'Optional: overall dimensions with units, for example 190 x 124 x 64 mm.'),
+        ('R', 'sys.time_rating', 'Time Rating',
+         'Optional: continuous, intermittent, or a duty cycle. Applies to nearly every article.'),
+        ('S', 'sys.radio_transmitter', 'Radio Transmitter',
+         'Optional, transmitting articles only: frequency band, maximum power and emission designator. '
+         'Leave blank where the article does not transmit.'),
+        ('T', 'sys.pressure_loads', 'Pressure And Loads',
+         'Optional, pressurised or load-bearing articles only: working and ultimate values with units.'),
+        ('U', 'sys.measuring_accuracy', 'Measuring Accuracy',
+         'Optional, measuring or indicating articles only: limits of accuracy over the operating range.'),
+    )
+    for col, key, label, comment in columns:
+        if str(sheet[col + '5'].value or '').strip() == key: continue
+        sheet[col + '4'] = label; sheet[col + '5'] = key
+        sheet[col + '4'].font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+        sheet[col + '4'].fill = PatternFill('solid', fgColor='1F3A5F')
+        sheet.column_dimensions[col].width = 22
+        sheet[col + '4'].comment = Comment(comment, 'ISAF')
+        for r in range(6, 31):
+            sheet[col + str(r)].fill = PatternFill('solid', fgColor='E2EFD9')
+            sheet[col + str(r)].alignment = Alignment(wrap_text=True, vertical='center')
+
+def ensure_unit_type(wb):
+    """Add the unit type and parent columns to the Systems sheet of an older workbook.
+
+    The sheet used to hold one level. An ARP4754 system containing several line-replaceable units
+    has two: the system, and the LRUs inside it. A row now says which it is in unit_type (L) and an
+    LRU names its system in parent_unit (M).
+
+    Nothing is back-filled and nothing is guessed. A blank unit_type behaves exactly as a row did
+    before the columns existed, so an untouched workbook renders unchanged; a program with one level
+    never has to fill them in. Letters come from workbook-items.json and are past everything the
+    sheet uses in both layouts (A-J plus fixed K), so they never ride the PN shift.
+    """
+    if '4. Systems' not in wb.sheetnames: return
+    sheet = wb['4. Systems']
+    for col, key, label, comment in (
+            ('L', 'sys.unit_type', 'Unit Type',
+             'Optional: SYSTEM for an ARP4754 system, LRU for a line-replaceable unit inside one. '
+             'Leave blank where the program has a single level.'),
+            ('M', 'sys.parent_unit', 'Parent Unit',
+             'Optional: for an LRU row, the id of the SYSTEM that contains it, from this same sheet. '
+             'Leave blank on a SYSTEM row or on a single-level program.')):
+        if str(sheet[col + '5'].value or '').strip() == key: continue
+        sheet[col + '4'] = label; sheet[col + '5'] = key
+        sheet[col + '4'].font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+        sheet[col + '4'].fill = PatternFill('solid', fgColor='1F3A5F')
+        sheet.column_dimensions[col].width = 16
+        sheet[col + '4'].comment = Comment(comment, 'ISAF')
+        for r in range(6, 31):
+            sheet[col + str(r)].fill = PatternFill('solid', fgColor='E2EFD9')
+            sheet[col + str(r)].alignment = Alignment(wrap_text=True, vertical='center')
+
+def ensure_item_ata(wb):
+    """Add the per-item ATA chapter column to an older workbook.
+
+    A hosted application's ATA chapter follows its own function, not the box it runs in: an FMS
+    stays ATA 34 and an FCS stays ATA 27 on a shared Data Aggregator that is itself ATA 42. So a
+    software or hardware item carries its own chapter, which the customer fills in.
+
+    The letters are per sheet and come from workbook-items.json: N on Software Items, M on Hardware
+    Items. Both are one past the last column each sheet uses in BOTH layouts - Software ends at M
+    and Hardware at L whether or not the PN shim moved PN to column C - so the column is safe to
+    fix there and never rides the shift. Nothing is inferred and nothing is back-filled: a blank
+    cell falls through to the parent unit and then the program, which is what the engine did before
+    the column existed, so an untouched workbook renders byte-identically.
+    """
+    for sheet_name, col, key, last_row in (
+            ('6. Software Items', 'N', 'sw.ata_chapter', 61),
+            ('7. Hardware Items', 'M', 'hw.ata_chapter', 61)):
+        if sheet_name not in wb.sheetnames: continue
+        sheet = wb[sheet_name]
+        if str(sheet[col + '5'].value or '').strip() == key: continue
+        sheet[col + '4'] = 'ATA Chapter'; sheet[col + '5'] = key
+        sheet[col + '4'].font = Font(name='Arial', size=11, bold=True, color='FFFFFF')
+        sheet[col + '4'].fill = PatternFill('solid', fgColor='1F3A5F')
+        sheet.column_dimensions[col].width = 14
+        sheet[col + '4'].comment = Comment(
+            'Optional: ATA chapter for this item, where it differs from the unit that hosts it (for '
+            'example an FMS at ATA 34 hosted on an IMA at ATA 42). Leave blank to use the parent '
+            "system's chapter, then the program's.", 'ISAF')
+        for r in range(6, last_row):
+            sheet[col + str(r)].fill = PatternFill('solid', fgColor='E2EFD9')
+            sheet[col + str(r)].alignment = Alignment(wrap_text=True, vertical='center')
 
 def ensure_system_ata(wb):
     """Add the per-system ATA chapter column (always K, after the PN columns) to an older workbook.

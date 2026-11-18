@@ -33,9 +33,9 @@
  for(const key of ['software_scope','hardware_scope','supplier_scope','separate_cdp'])FIELD_META[key]={...FIELD_META[key],options:['','Yes','No']};
  FIELD_META.fdal={label:'FDAL',options:['','A','B','C','D','E']};FIELD_META.idal_max={label:'Maximum IDAL',options:['','A','B','C','D','E']};
  const templates={
- systems:{id:'',name:'',pn:'',short_name:'',function_summary:'',fdal:'',idal_max:'',software_item_count:'',hardware_item_count:'',primary_supplier:'',ata_chapter:''},
- software_items:{id:'',name:'',pn:'',parent_system:'',dal:'',supplier:'',language:'',loc_estimate:'',formal_methods:false,notes:'',additional_documents:'',software_control_category:'',worst_case_severity:''},
- hardware_items:{id:'',name:'',pn:'',parent_system:'',dal:'',supplier:'',technology:'',complexity:'',notes:'',language:'',additional_documents:'',do160_applies:false},
+ systems:{id:'',name:'',pn:'',short_name:'',function_summary:'',fdal:'',idal_max:'',software_item_count:'',hardware_item_count:'',primary_supplier:'',ata_chapter:'',unit_type:'',parent_unit:'',tso_numbers:'',modification_standard:'',unit_weight:'',unit_dimensions:'',time_rating:'',radio_transmitter:'',pressure_loads:'',measuring_accuracy:''},
+ software_items:{id:'',name:'',pn:'',parent_system:'',dal:'',supplier:'',language:'',loc_estimate:'',formal_methods:false,notes:'',additional_documents:'',software_control_category:'',worst_case_severity:'',ata_chapter:''},
+ hardware_items:{id:'',name:'',pn:'',parent_system:'',dal:'',supplier:'',technology:'',complexity:'',notes:'',language:'',additional_documents:'',do160_applies:false,ata_chapter:''},
  suppliers:{id:'',name:'',role:'',items_delivered:[],highest_dal:'',cert_lead_name:'',cert_lead_email:'',flow_down_signed:'No',flow_down_date:'',country:'',work_countries:'',outside_us_percent:'',percentage_basis:'',oversight_notes:''},
  tools:{id:'',name:'',vendor:'',intended_use:'',lifecycle_data_affected:'',qualification_required:false,tql:'',qualification_status:''}
  };
@@ -59,31 +59,78 @@
   if(contextNote)info=info.replace(/(<\/div>\s*<\/span>)$/,'<p class="popover-note">'+escapeHtml(contextNote)+'</p>$1');
   heading.insertAdjacentHTML('beforeend',info);box.appendChild(heading);
   const control=node('div');control.innerHTML=makeValueCell(key,value,path.slice(0,path.lastIndexOf('.'))).replace(/^<td>|<\/td>$/g,'');
-  let input=control.querySelector('input,select');
-  if(['product_description','installation_basis','oversight_plan','production_quality_plan','application_records_plan','survey_notes','oversight_notes','percentage_basis','supplier_scope_basis','function_summary','notes','distribution_statement','independence_description','company_address'].includes(key)){
-   const area=document.createElement('textarea');area.dataset.path=input.dataset.path;area.value=input.value;area.rows=3;input.replaceWith(area);input=area;
+  let input=control.querySelector('input,select,textarea');
+  // Every notes or free-text answer is a textarea, so all of them can be dragged taller the way the
+  // address field could (owner, 16 November 2026). The second list is CONFIG_LONG_FIELDS, kept in
+  // step with the config tabs' own idea of a long field.
+  const FREE_TEXT=new Set(['product_description','installation_basis','oversight_plan','production_quality_plan',
+   'application_records_plan','survey_notes','oversight_notes','percentage_basis','supplier_scope_basis',
+   'function_summary','notes','distribution_statement','independence_description','company_address',
+   'additional_documents','intended_use','lifecycle_data_affected','particular_risks','items_delivered',
+   'work_countries','description','justification','rationale','export_control_notes','retention_notes']);
+  // The address and the distribution statement open at one line: both were three rows of mostly
+  // empty box. They still drag taller, and a long value scrolls rather than being cut off.
+  const ONE_LINE=new Set(['company_address','distribution_statement']);
+  if(FREE_TEXT.has(key)&&input.tagName!=='TEXTAREA'){
+   const area=document.createElement('textarea');area.dataset.path=input.dataset.path;area.value=input.value;
+   area.rows=ONE_LINE.has(key)?1:3;input.replaceWith(area);input=area;
   }
+  // A long field now arrives from makeValueCell already a textarea, at the one row a table row can
+  // afford. The intake has the space, so it opens at three unless it is one of the two the owner
+  // asked to start at one line.
+  if(input.tagName==='TEXTAREA')input.rows=ONE_LINE.has(key)?1:3;
   input.id=id;input.setAttribute('aria-required',String(required));if(key==='id')input.readOnly=true;
   if(key==='cage_code'){input.maxLength=5;input.pattern='[A-Za-z0-9]{5}';input.placeholder='Example: 1AB23';input.addEventListener('input',()=>{input.value=input.value.toUpperCase().replace(/[^A-Z0-9]/g,'').slice(0,5);});}
   if(pending){if(input.tagName==='SELECT'){input.prepend(new Option('To Be Determined',''));input.value='';}else{input.value='';input.placeholder='To Be Determined';}}
-  const actions=node('div','intake-field-actions'),state=node('span','hint',pending?'To Be Determined':'');
+  // No "To Be Determined" hint beside the buttons: the button already reads "Undo TBD", the input
+  // carries the placeholder and the field carries the amber unresolved border, so a fourth copy on
+  // the title row said nothing and was the widest thing competing with the label (owner,
+  // 15 November 2026).
+  const actions=node('div','intake-field-actions');
   if(key!=='id'&&input.dataset.derived!=='approval-path')actions.appendChild(button(pending?'Undo TBD':'TBD',()=>{mark(path,!pending);render();}));
   if(pending&&!required&&!CONFIG_BOOLEAN_KEYS.has(key))actions.appendChild(button('Not applicable',()=>{
    const reason=prompt('Reason this field does not apply:');if(!reason?.trim())return;
    put(path,'');put('intake.survey_notes',(configData.intake?.survey_notes||'')+'\n'+configLabel(key,path)+': Not applicable — '+reason.trim());render();
-  }));actions.appendChild(state);
+  }));
+  // The actions sit on the title row, right justified, not under the input. Under it they read as
+  // a control belonging to the next field down, and on a three-column grid they pushed every
+  // neighbouring field out of alignment (owner, 15 November 2026). .intake-field-actions carries
+  // margin-left:auto, so the heading's flex row does the justification.
+  heading.appendChild(actions);
   input.addEventListener('input',()=>{
    if(input.value===''){if(required||pending)mark(path,true);else applyConfigInput(input);}
    else{applyConfigInput(input);mark(path,false);}
-   box.dataset.unresolved=String(unresolved(path));state.textContent=unresolved(path)?'To Be Determined':'';
+   box.dataset.unresolved=String(unresolved(path));
    message='Unsaved intake changes.';updateProgress();
   });
   if(path==='intake.approval_path')input.addEventListener('change',()=>{syncApprovalBasis();render();});
   if(path==='program.target_authority_primary'||path==='program.target_authority_secondary')input.addEventListener('change',render);
   if(path==='program.type'||/^intake\.(software|hardware|supplier)_scope$/.test(path))input.addEventListener('change',render);
-  box.append(control,actions);return box;
+  box.append(control);return box;
  }
- function card(title,fields,note){const c=node('section','intake-card');c.appendChild(node('h3','',title));if(note)c.appendChild(node('p','hint intake-section-note',note));const grid=node('div','intake-grid');fields.forEach(path=>grid.appendChild(field(path)));c.appendChild(grid);return c;}
+ // The two brand colours are named-colour dropdowns, so each needs only enough width for a colour
+ // name. They are paired into a single grid cell and sit side by side on one row rather than taking
+ // a full column each (owner, 16 November 2026).
+ const COLOR_PAIR=['program.brand_color_primary','program.brand_color_accent'];
+ function card(title,fields,note){
+  const c=node('section','intake-card');c.appendChild(node('h3','',title));
+  if(note)c.appendChild(node('p','hint intake-section-note',note));
+  const grid=node('div','intake-grid');
+  const pairable=COLOR_PAIR.every(path=>fields.includes(path));
+  let paired=false;
+  fields.forEach(path=>{
+   if(pairable&&COLOR_PAIR.includes(path)){
+    if(paired)return;                       // the second colour is drawn inside the pair
+    paired=true;
+    const pair=node('div','intake-color-pair');
+    COLOR_PAIR.forEach(colorPath=>pair.appendChild(field(colorPath)));
+    grid.appendChild(pair);
+    return;
+   }
+   grid.appendChild(field(path));
+  });
+  c.appendChild(grid);return c;
+ }
  function progress(){const all=configFields().filter(f=>configRequired(f.path));const missing=all.filter(f=>unresolved(f.path)||String(configAt(f.path)??'').trim()==='');return {all,missing};}
  function updateProgress(){const el=$('intakeProgress');if(!el)return;const {all,missing}=progress();el.textContent=`${all.length-missing.length} of ${all.length} required configuration fields entered · ${openDecisionList().length} TBD decisions. Review the values before building.`;}
  // Split in two so each note sits in the info box of the field it is about: which authorities
@@ -103,7 +150,17 @@
   const c=node('section','intake-card'),head=node('div','intake-item-title');head.appendChild(node('h3','',title));head.appendChild(button('Add '+({'Environmental Evidence':'Evidence Row','Environmental Requirements':'Requirement Row'}[title]||title.replace(/s$/,'')),()=>addRow(section)));c.appendChild(head);
   const rows=configData[section]||[];
   if(!rows.length)c.appendChild(node('p','hint','No items entered. Add applicable items, or record No in the scope question.'));
-  rows.forEach((item,i)=>{const sub=node('details','intake-card');sub.open=true;const summary=node('summary','intake-item-summary'),label=node('span','intake-item-summary-label',`${i+1}. ${item.name||(item.hw_id?item.hw_id+' / Section '+item.section:'New item')}${item.pn?' · '+item.pn:''}`),removeLabel=section==='suppliers'?'Remove this Supplier':section.startsWith('environmental_')?'Remove this Row':'Remove this Item',remove=button(removeLabel,()=>{});remove.classList.add('intake-item-remove');remove.setAttribute('aria-label',`${removeLabel.replace('Remove this ','Remove ')}: ${item.name||item.id||'item'}`);remove.onclick=e=>{e.preventDefault();e.stopPropagation();if(!busy)removeRow(section,i);};summary.append(label);sub.append(summary,remove);
+  rows.forEach((item,i)=>{const sub=node('details','intake-card');sub.open=true;const summary=node('summary','intake-item-summary'),label=node('span','intake-item-summary-label',`${i+1}. ${item.name||(item.hw_id?item.hw_id+' / Section '+item.section:'New item')}${item.pn?' · '+item.pn:''}`),removeLabel=section==='suppliers'?'Remove this Supplier':section.startsWith('environmental_')?'Remove this Row':'Remove this Item',remove=button(removeLabel,()=>{});remove.classList.add('intake-item-remove');remove.setAttribute('aria-label',`${removeLabel.replace('Remove this ','Remove ')}: ${item.name||item.id||'item'}`);remove.onclick=e=>{e.preventDefault();e.stopPropagation();if(!busy)removeRow(section,i);};summary.append(label);
+   // Duplicate is offered where rows have an id of their own; environmental rows have none.
+   const actions=node('div','intake-item-actions');
+   if(!section.startsWith('environmental_')){
+    const dup=button('Duplicate',()=>{});dup.classList.add('intake-item-duplicate');
+    dup.title='Copy this item\u2019s details into a new one. The copy gets its own ID and an empty PN.';
+    dup.setAttribute('aria-label',`Duplicate ${item.name||item.id||'item'}`);
+    dup.onclick=e=>{e.preventDefault();e.stopPropagation();if(!busy)duplicateRow(section,i);};
+    actions.append(dup);
+   }
+   actions.append(remove);summary.classList.add('has-actions');sub.append(summary,actions);
    const grid=node('div','intake-grid');Object.keys({...templates[section],...item}).filter(k=>k!=='flow_down_letter_signed'&&!['software_control_category','worst_case_severity'].includes(k)||String(configData.program.cert_regime).startsWith('MILITARY')&&['software_control_category','worst_case_severity'].includes(k)).forEach(k=>grid.appendChild(field(`${section}[${i}].${k}`)));
    sub.appendChild(grid);c.appendChild(sub);
   });return c;
@@ -119,6 +176,31 @@
   rows.push({...clone(templates[section]),...(!section.startsWith('environmental_')?{id}:{})});syncRows(section);const i=rows.length-1;
   for(const k of Object.keys(rows[i]))if(k!=='id'&&configRequired(`${section}[${i}].${k}`)||CONFIG_BOOLEAN_KEYS.has(k))mark(`${section}[${i}].${k}`,true);
   message='New row added. Enter its company-controlled PN and applicable details.';render();refreshConfig();return '';
+ }
+ // Duplicate a card (owner, v5.3.40): everything that saves typing is copied - parent system, DAL,
+ // supplier, language, notes - while the two fields that must be unique are not. The id is derived
+ // from the source so the pair is recognisable, and the PN is cleared because it is company
+ // controlled and no two items may share one. The copy is appended rather than inserted, so the
+ // indexes of existing rows, and the open-decision paths that reference them, do not move.
+ function duplicateRow(section,index){
+  const rows=configData[section]||[],source=rows[index];
+  if(!source)return '';
+  const limit={systems:25,software_items:55,hardware_items:55,suppliers:45,tools:55}[section];
+  if(limit&&rows.length>=limit){message='This workbook supports at most '+limit+' rows for this section.';render();return message;}
+  const copy=clone(source);
+  const base=String(source.id||'').trim();
+  if(base){let id=base+'_copy',n=2;while(rows.some(r=>r.id===id))id=base+'_copy'+(n++);copy.id=id;}
+  else{let n=1,prefix={systems:'sys',software_items:'sw',hardware_items:'hw',suppliers:'sup',tools:'tool'}[section],id;
+   do{id=prefix+'.item_'+String(n++).padStart(3,'0');}while(rows.some(r=>r.id===id));copy.id=id;}
+  if('pn' in copy)copy.pn='';
+  if(copy.name)copy.name=String(copy.name)+' (copy)';
+  rows.push(copy);syncRows(section);
+  const i=rows.length-1;
+  // Only the PN was cleared, so only the PN is unresolved. Everything else carries the source's
+  // value and its resolved state; marking it all would hand the owner a page of false findings.
+  if('pn' in copy)mark(`${section}[${i}].pn`,true);
+  message=`Copied ${source.name||source.id||'the row'} as ${copy.id}. Give it its own PN and name before building.`;
+  render();refreshConfig();return '';
  }
  function removeRow(section,index){
   const item=configData[section][index];if(!confirm('Remove '+(item.name||item.id)+' from this configuration draft? Review any references to its ID. Stored documents are retained.'))return;
@@ -217,13 +299,25 @@
  function render(){
   if(!host)return;syncApprovalBasis();host.replaceChildren();
   const heading=node('div','intake-heading'),text=node('div');text.appendChild(node('h2','','Program Intake'));text.appendChild(node('p','hint','Set up your program, record its approval path and collect the program and people information used by the config workbook. Enter systems, items, suppliers, tools and environmental data in Config Data. Answers are shared with Config Data. Save a workbook to keep your progress.'));
-  heading.appendChild(text);const actions=node('div','intake-actions'),select=document.createElement('select');select.setAttribute('aria-label','New program boundary');for(const type of ['LRU','SYSTEM','AIRCRAFT'])select.add(new Option(type==='LRU'?'LRU':configTitle(type.toLowerCase()),type));select.value=newKind;select.disabled=busy;select.onchange=()=>newKind=select.value;actions.append(select,button('Start New Intake',start));actions.appendChild(button('Load Existing Config',()=>{switchMainTab('build');$('fileInput').click();}));actions.appendChild(button('Save Configuration Workbook',createWorkbook,false));actions.lastChild.disabled=busy||!configData;heading.appendChild(actions);host.appendChild(heading);
+  heading.appendChild(text);const actions=node('div','intake-actions');
+  // A program carries ONE boundary (owner, 16 November 2026). This picker chooses what a NEW intake
+  // will be, so it only belongs on an empty screen: once a program exists the single setting is the
+  // Program Type field in step 1. Shown alongside it, the two disagreed the moment either changed -
+  // setting the field to LRU left this reading SYSTEM.
+  if(!configData){
+   const select=document.createElement('select');select.setAttribute('aria-label','New program boundary');
+   for(const type of ['LRU','SYSTEM','AIRCRAFT'])select.add(new Option(type==='LRU'?'LRU':configTitle(type.toLowerCase()),type));
+   select.value=newKind;select.disabled=busy;select.onchange=()=>newKind=select.value;
+   actions.append(select,button('Start New Intake',start));
+  } else {
+   actions.appendChild(button('Start New Intake',start));
+  }actions.appendChild(button('Load Existing Config',()=>{switchMainTab('build');$('fileInput').click();}));actions.appendChild(button('Save Configuration Workbook',createWorkbook,false));actions.lastChild.disabled=busy||!configData;heading.appendChild(actions);host.appendChild(heading);
   const status=node('p','hint intake-status',message);status.setAttribute('role','status');host.appendChild(status);
   if(!configData){host.appendChild(node('div','intake-empty','Choose Aircraft, System or LRU and start a blank intake, or load a saved workbook.'));return;}
   configData.intake??={};for(const key of Object.keys(intakeMeta).filter(k=>!['country','work_countries','outside_us_percent','percentage_basis','oversight_notes'].includes(k)))configData.intake[key]??='';
   const nav=node('nav','intake-steps');nav.setAttribute('aria-label','Intake steps');stages.forEach((name,i)=>{const b=button(`${i+1}. ${name}`,()=>{step=i;message='';render();toTop();});if(step===i)b.setAttribute('aria-current','step');nav.appendChild(b);});host.appendChild(nav);const prog=node('p','intake-progress');prog.id='intakeProgress';host.appendChild(prog);
-  if(step===0){host.appendChild(card('Company And Program',['program.customer_name','intake.cage_code','intake.company_address','program.customer_short_name','program.name','program.short_name','program.type','program.doc_prefix','program.doc_revision','intake.survey_owner','intake.product_description']));if(configData.program.type==='AIRCRAFT')host.appendChild(card('Aircraft And Operational Context',['program.mtow_kg','program.passenger_count','program.annual_flight_hours']));host.appendChild(card('Branding And Document Control',['program.brand_color_primary','program.brand_color_accent','program.logo_path','program.export_control_marking','program.distribution_statement','program.document_retention_years']));}
-  if(step===1){host.appendChild(card('Approval And Aircraft Integration',['intake.approval_path','intake.separate_cdp','program.cert_basis_type','program.target_authority_primary','program.target_authority_secondary','program.cert_basis_part','program.tso_category','program.cert_regime','intake.authority_project_reference']));if(/TC|STC/.test(configData.intake.approval_path))host.appendChild(card('Aircraft Applicant And Allocations',['intake.installation_applicant','intake.installation_basis']));host.appendChild(card('Technical Scope',['intake.software_scope','intake.hardware_scope','intake.supplier_scope','program.do160_in_scope','program.do160_revision']));host.appendChild(card('Safety Inputs',Object.keys(configData.safety||{}).map(k=>'safety.'+k),'Enter allocated classifications, scope and counts from your safety work. Leave unfinished assessment results as TBD.'));host.appendChild(card('Authority Coordination',configObjectEntries(configData.authority||{},'authority').filter(f=>!f.path.startsWith('authority.items')).map(f=>f.path)));}
+  if(step===0){host.appendChild(card('Company And Program',['program.customer_name','intake.cage_code','intake.company_address','program.customer_short_name','program.name','program.short_name','program.type','program.doc_prefix','program.doc_revision','intake.survey_owner','intake.product_description','program.no_end_user','program.purchaser_name','program.purchaser_address','program.contract_number','program.export_control_marking','program.distribution_statement','program.document_retention_years']));if(configData.program.type==='AIRCRAFT')host.appendChild(card('Aircraft And Operational Context',['program.mtow_kg','program.passenger_count','program.annual_flight_hours']));host.appendChild(card('Branding',['program.brand_color_primary','program.brand_color_accent','program.logo_path']));}
+  if(step===1){host.appendChild(card('Approval And Aircraft Integration',['intake.approval_path','intake.separate_cdp','program.cert_basis_type','program.target_authority_primary','program.target_authority_secondary','program.cert_basis_part','program.tso_category','program.cert_regime','intake.authority_project_reference']));if(/TC|STC/.test(configData.intake.approval_path))host.appendChild(card('Aircraft Applicant And Allocations',['intake.installation_applicant','intake.installation_basis']));host.appendChild(card('Technical Scope',['intake.software_scope','intake.hardware_scope','intake.supplier_scope','program.do160_in_scope','program.do160_revision','program.security_assurance_level']));host.appendChild(card('Safety Inputs',Object.keys(configData.safety||{}).map(k=>'safety.'+k),'Enter allocated classifications, scope and counts from your safety work. Leave unfinished assessment results as TBD.'));host.appendChild(card('Authority Coordination',configObjectEntries(configData.authority||{},'authority').filter(f=>!f.path.startsWith('authority.items')).map(f=>f.path)));}
   if(step===2){for(const [role,person] of Object.entries(configData.personnel||{}))if(person&&typeof person==='object')host.appendChild(card(configTitle(role),['name','email','title','signatory'].map(k=>'personnel.'+role+'.'+k)));host.appendChild(card('Assurance Independence',['personnel.independence_mechanism','personnel.independence_description']));host.appendChild(card('Target Dates',CONFIG_DATE_ORDER.map(k=>'program.'+k),'Use YYYY-MM-DD, TBD, or Not applicable: followed by the reason. Milestone timing is agreed by the program.'));host.appendChild(card('Remaining Intake Notes',['intake.survey_notes']));}
   const footer=node('div','intake-footer');footer.appendChild(button('Back',()=>{step=Math.max(0,step-1);render();toTop();}));if(step===stages.length-1){footer.appendChild(button('Save Configuration Workbook',createWorkbook));footer.appendChild(button('Continue to Config Data',()=>{switchMainTab('config');renderConfigTabs();toTop(document.getElementById('panel-config'));},false));}else footer.appendChild(button('Continue',()=>{step++;render();toTop();},false));host.appendChild(footer);updateProgress();if(typeof enhanceDateInputs==='function')enhanceDateInputs(host);
   if(busy)host.querySelectorAll('button,input,select,textarea').forEach(e=>e.disabled=true);
@@ -233,5 +327,5 @@
  function prepareNew(){if(busy)return;message='Choose Aircraft, System or LRU, then select Start New Intake.';render();toTop();host.querySelector('.intake-actions select')?.focus();}
  // File → Save Configuration (outside Config Data): the intake save, or a prompt when nothing is loaded.
  function save(){if(busy)return;if(!configData){message='Nothing to save yet. Start a new intake or load a configuration first.';render();toTop();return;}toTop();createWorkbook();}
- window.intakeUI={prepareNew,save,render,chooseWorkbookDestination,deliverWorkbook,discardEmptyDestination,addRow,removeRow,reviewPanel,syncAll,canAddRows:section=>section in templates};render();
+ window.intakeUI={prepareNew,save,render,chooseWorkbookDestination,deliverWorkbook,discardEmptyDestination,addRow,removeRow,duplicateRow,lastMessage:()=>message,reviewPanel,syncAll,canAddRows:section=>section in templates};render();
 })();

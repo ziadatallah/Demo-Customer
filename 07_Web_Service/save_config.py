@@ -41,12 +41,34 @@ SHEET_MAP = {
     '9. Tools':          'tools',
 }
 
-FIELD_MAP = {'program': {'sheet': '1. Program', 'fields': {'customer_name': 'C5', 'customer_short_name': 'C6', 'name': 'C7', 'short_name': 'C8', 'type': 'C11', 'doc_prefix': 'C12', 'doc_revision': 'C13', 'target_authority_primary': 'C16', 'target_authority_secondary': 'C17', 'cert_basis_type': 'C18', 'cert_basis_part': 'C19', 'tso_category': 'C20', 'target_tc_date': 'C23', 'target_soi1_date': 'C24', 'target_soi2_date': 'C25', 'target_soi3_date': 'C26', 'target_soi4_date': 'C27', 'brand_color_primary': 'C30', 'brand_color_accent': 'C31', 'logo_path': 'C32', 'do160_in_scope': 'C33', 'do160_revision': 'C34', 'cert_regime': 'C35', 'export_control_marking': 'C36', 'distribution_statement': 'C37', 'company_name': 'C38', 'aircraft_category': 'C39', 'mtow_kg': 'C40', 'passenger_count': 'C41', 'document_retention_years': 'C42', 'target_pdr_date': 'C43', 'target_cdr_date': 'C44', 'target_trr_date': 'C45', 'target_first_flight_date': 'C46', 'target_eis_date': 'C47', 'annual_flight_hours': 'C48', 'target_codr_date': 'C49'}}, 'safety': {'sheet': '5. Safety', 'fields': {'aircraft_fha_classification_max': 'C5', 'system_fha_classification_max': 'C6', 'failure_conditions_catastrophic': 'C7', 'failure_conditions_hazardous': 'C8', 'failure_conditions_major': 'C9', 'failure_conditions_minor': 'C10', 'cca_in_scope': 'C13', 'zsa_in_scope': 'C14', 'pra_in_scope': 'C15', 'particular_risks': 'C16', 'do254_appendix_b_in_scope': 'C17'}}, 'personnel': {'sheet': '2. Personnel', 'fields': {'independence_mechanism': 'C16', 'independence_description': 'C17'}}, 'authority': {'sheet': '3. Authority', 'fields': {'poc_secondary': 'C8', 'partnering_arrangement': 'C11', 'partnering_ref': 'C12'}}, 'systems': {'sheet': '4. Systems', 'fields': {'id': 'A', 'name': 'B', 'short_name': 'C', 'function_summary': 'D', 'fdal': 'E', 'idal_max': 'F', 'software_item_count': 'G', 'hardware_item_count': 'H', 'primary_supplier': 'I', 'pn': 'J', 'ata_chapter': 'K'}, 'end': 30}, 'software_items': {'sheet': '6. Software Items', 'fields': {'id': 'A', 'name': 'B', 'parent_system': 'C', 'dal': 'D', 'supplier': 'E', 'language': 'F', 'loc_estimate': 'G', 'formal_methods': 'H', 'notes': 'I', 'additional_documents': 'J', 'software_control_category': 'K', 'worst_case_severity': 'L', 'pn': 'M'}, 'end': 60}, 'hardware_items': {'sheet': '7. Hardware Items', 'fields': {'id': 'A', 'name': 'B', 'parent_system': 'C', 'dal': 'D', 'supplier': 'E', 'technology': 'F', 'complexity': 'G', 'notes': 'H', 'language': 'I', 'additional_documents': 'J', 'do160_applies': 'K', 'pn': 'L'}, 'end': 60}, 'suppliers': {'sheet': '8. Suppliers', 'fields': {'id': 'A', 'name': 'B', 'role': 'C', 'items_delivered': 'D', 'highest_dal': 'E', 'cert_lead_name': 'F', 'cert_lead_email': 'G', 'flow_down_signed': 'H', 'flow_down_date': 'I', 'flow_down_letter_signed': 'H'}, 'end': 50}, 'tools': {'sheet': '9. Tools', 'fields': {'id': 'A', 'name': 'B', 'vendor': 'C', 'intended_use': 'D', 'lifecycle_data_affected': 'E', 'qualification_required': 'F', 'tql': 'G', 'qualification_status': 'H'}, 'end': 60}}
+FIELD_MAP = {'program': {'sheet': '1. Program', 'fields': {'customer_name': 'C5', 'customer_short_name': 'C6', 'name': 'C7', 'short_name': 'C8', 'type': 'C11', 'doc_prefix': 'C12', 'doc_revision': 'C13', 'target_authority_primary': 'C16', 'target_authority_secondary': 'C17', 'cert_basis_type': 'C18', 'cert_basis_part': 'C19', 'tso_category': 'C20', 'target_tc_date': 'C23', 'target_soi1_date': 'C24', 'target_soi2_date': 'C25', 'target_soi3_date': 'C26', 'target_soi4_date': 'C27', 'brand_color_primary': 'C30', 'brand_color_accent': 'C31', 'logo_path': 'C32', 'do160_in_scope': 'C33', 'do160_revision': 'C34', 'cert_regime': 'C35', 'export_control_marking': 'C36', 'distribution_statement': 'C37', 'company_name': 'C38', 'aircraft_category': 'C39', 'mtow_kg': 'C40', 'passenger_count': 'C41', 'document_retention_years': 'C42', 'security_assurance_level': 'C21', 'no_end_user': 'C63', 'purchaser_name': 'C60', 'purchaser_address': 'C61', 'contract_number': 'C62', 'target_pdr_date': 'C43', 'target_cdr_date': 'C44', 'target_trr_date': 'C45', 'target_first_flight_date': 'C46', 'target_eis_date': 'C47', 'annual_flight_hours': 'C48', 'target_codr_date': 'C49'}}, 'safety': {'sheet': '5. Safety', 'fields': {'aircraft_fha_classification_max': 'C5', 'system_fha_classification_max': 'C6', 'failure_conditions_catastrophic': 'C7', 'failure_conditions_hazardous': 'C8', 'failure_conditions_major': 'C9', 'failure_conditions_minor': 'C10', 'cca_in_scope': 'C13', 'zsa_in_scope': 'C14', 'pra_in_scope': 'C15', 'particular_risks': 'C16', 'do254_appendix_b_in_scope': 'C17'}}, 'personnel': {'sheet': '2. Personnel', 'fields': {'independence_mechanism': 'C16', 'independence_description': 'C17'}}, 'authority': {'sheet': '3. Authority', 'fields': {'poc_secondary': 'C8', 'partnering_arrangement': 'C11', 'partnering_ref': 'C12'}}, 'systems': {'sheet': '4. Systems', 'fields': {'id': 'A', 'name': 'B', 'short_name': 'C', 'function_summary': 'D', 'fdal': 'E', 'idal_max': 'F', 'software_item_count': 'G', 'hardware_item_count': 'H', 'primary_supplier': 'I', 'pn': 'J', 'ata_chapter': 'K'}, 'end': 30}, 'software_items': {'sheet': '6. Software Items', 'fields': {'id': 'A', 'name': 'B', 'parent_system': 'C', 'dal': 'D', 'supplier': 'E', 'language': 'F', 'loc_estimate': 'G', 'formal_methods': 'H', 'notes': 'I', 'additional_documents': 'J', 'software_control_category': 'K', 'worst_case_severity': 'L', 'pn': 'M'}, 'end': 60}, 'hardware_items': {'sheet': '7. Hardware Items', 'fields': {'id': 'A', 'name': 'B', 'parent_system': 'C', 'dal': 'D', 'supplier': 'E', 'technology': 'F', 'complexity': 'G', 'notes': 'H', 'language': 'I', 'additional_documents': 'J', 'do160_applies': 'K', 'pn': 'L'}, 'end': 60}, 'suppliers': {'sheet': '8. Suppliers', 'fields': {'id': 'A', 'name': 'B', 'role': 'C', 'items_delivered': 'D', 'highest_dal': 'E', 'cert_lead_name': 'F', 'cert_lead_email': 'G', 'flow_down_signed': 'H', 'flow_down_date': 'I', 'flow_down_letter_signed': 'H'}, 'end': 50}, 'tools': {'sheet': '9. Tools', 'fields': {'id': 'A', 'name': 'B', 'vendor': 'C', 'intended_use': 'D', 'lifecycle_data_affected': 'E', 'qualification_required': 'F', 'tql': 'G', 'qualification_status': 'H'}, 'end': 60}}
 
-# Item columns added after the PN shim: the same letter with PN in column C and without it, so they
-# never ride on the shift below. Mirrors FIXED_COLUMNS in read_workbook.js / read_workbook.py.
-FIXED_ITEM_COLUMNS = {'ata_chapter': 'K'}
+# The unit and item sheet layouts above are replaced by the shared map in workbook-items.json, which
+# read_workbook.js and read_workbook.py read too. They used to be written out by hand in all three
+# and had drifted: read_workbook.py was missing do160_applies, software_control_category and
+# worst_case_severity. Defining them once is what makes a new item column a single edit.
+with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'workbook-items.json'), encoding='utf-8') as _f:
+    ITEM_SHEETS = json.load(_f)
+for _name, _spec in ITEM_SHEETS['sheets'].items():
+    FIELD_MAP[_name] = {'sheet': _spec['sheet'],
+                        'fields': {c[1]: c[0] for c in _spec['columns']},
+                        'end': _spec['endRow']}
+
+# Item columns added after the PN shim keep the same letter with PN in column C and without it, so
+# they never ride on the shift below. The map is PER SHEET, because ata_chapter sits at a different
+# letter on each (K / N / M) and a global map would collide with software_control_category and
+# do160_applies at K. fixed_item_columns(section) is the accessor; callers that handle one section
+# at a time pass its own map.
+FIXED_ITEM_COLUMNS_BY_SHEET = {n: s.get('fixedColumns', {}) for n, s in ITEM_SHEETS['sheets'].items()}
+
+
+def fixed_item_columns(section):
+    """Fixed-letter columns for one sheet. {} for a sheet that has none."""
+    return FIXED_ITEM_COLUMNS_BY_SHEET.get(section, {})
 FIELD_MAP['program']['fields']['ata_chapter'] = 'C14'  # located by its program.ata_chapter key when present
+# The IANA time zone that dates documents. Located by its program.time_zone key like the rest;
+# C49 is the fallback for a workbook written before the key row existed.
+FIELD_MAP['program']['fields']['time_zone'] = 'C49'
 FIELD_MAP['suppliers']['fields'].update({'country':'J','work_countries':'K','outside_us_percent':'L','percentage_basis':'M','oversight_notes':'N'})
 
 from engineering_workbook import SCHEMA as ENGINEERING_SCHEMA, ensure_engineering
@@ -131,13 +153,19 @@ def apply_modifications(wb, modifications):
             target = 'C'+str(matches[0])
         if index is not None:
             if section in ['systems','software_items','hardware_items'] and str(ws['C5'].value).endswith('.pn'):
-                target = FIXED_ITEM_COLUMNS.get(key) or ('C' if key=='pn' else chr(ord(target)+1) if target>='C' else target)
+                target = fixed_item_columns(section).get(key) or ('C' if key=='pn' else chr(ord(target)+1) if target>='C' else target)
             rows = [row for row in range(6, spec['end']+1) if any(ws[f'{col}{row}'].value is not None and str(ws[f'{col}{row}'].value).strip() for col in (spec['fields'].values() if section.startswith('environmental_') else ['A']))]
             if int(index) >= len(rows):
                 continue
             target += str(rows[int(index)])
         elif 'end' in spec:
             continue
+        # parent_system is a list of unit ids: one software load installed in two LRUs is one
+        # certified item, not two rows. A list reaches a cell as a comma-separated string, the same
+        # shape read_workbook splits back apart and the same one items_delivered already uses.
+        # openpyxl rejects a list outright, so without this the save failed rather than misbehaving.
+        if isinstance(value, (list, tuple)):
+            value = ', '.join(str(v).strip() for v in value if str(v).strip())
         ws[target] = value
         applied += 1
     return applied

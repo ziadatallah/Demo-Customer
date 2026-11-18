@@ -1,4 +1,4 @@
-Current release: ISAF v5.3.39. Hosted builds return an authenticated temporary `/api/download` URL and the Build tab provides a ZIP download action. The web service supports Admin, Customer and Demo editions. See the root User Guide and release verification for workflow and test details.
+Current release: ISAF v5.3.41. Hosted builds return an authenticated temporary `/api/download` URL and the Build tab provides a ZIP download action. The web service supports Admin, Customer and Demo editions. See the root User Guide and release verification for workflow and test details.
 
 Current release: ISAF v4.0.17. See the main-folder README and Word guides for current behavior. Historical notes below retain their original versions.
 

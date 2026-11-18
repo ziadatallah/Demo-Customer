@@ -91,7 +91,7 @@ def style_sheet(ws,header,width):
 
 def blank_workbook(kind):
     if kind not in ['AIRCRAFT','SYSTEM','LRU']:raise ValueError('Choose Aircraft, System or LRU')
-    from save_config import FIELD_MAP, FIXED_ITEM_COLUMNS
+    from save_config import FIELD_MAP, fixed_item_columns
     wb=Workbook();wb.remove(wb.active)
     for spec in FIELD_MAP.values():
         if spec['sheet'] not in wb.sheetnames:wb.create_sheet(spec['sheet'])
@@ -111,9 +111,10 @@ def blank_workbook(kind):
             columns={k:v for k,v in spec['fields'].items() if k!='flow_down_letter_signed'}
             for key,col in columns.items():
                 if section in ['systems','software_items','hardware_items']:
-                    # FIXED_ITEM_COLUMNS keeps a late-added column on its own letter; without it
-                    # a new workbook got its ATA chapter header one column right of the readers.
-                    col=FIXED_ITEM_COLUMNS.get(key) or ('C' if key=='pn' else chr(ord(col)+1) if col>='C' else col)
+                    # The sheet's own fixed map keeps a late-added column on its own letter;
+                    # without it a new workbook got its ATA chapter header one column right of
+                    # the readers. It is per sheet: ata_chapter is K / N / M, not one letter.
+                    col=fixed_item_columns(section).get(key) or ('C' if key=='pn' else chr(ord(col)+1) if col>='C' else col)
                 ws[f'{col}4']=title(key)
                 ws[f'{col}5']=({'systems':'sys','software_items':'sw','hardware_items':'hw'}.get(section,section))+'.'+key
             style_sheet(ws,4,len(columns))
@@ -149,16 +150,17 @@ def blank_workbook(kind):
     return wb
 
 def replace_rows(wb,section,rows):
-    from save_config import FIELD_MAP, FIXED_ITEM_COLUMNS
+    from save_config import FIELD_MAP, fixed_item_columns
     spec=FIELD_MAP.get(section)
     if not spec or 'end' not in spec or not isinstance(rows,list):raise ValueError('Unsupported intake item table')
     if len(rows)>spec['end']-5:raise ValueError('Too many '+section+' rows')
     ws=wb[spec['sheet']];mapping={k:v for k,v in spec['fields'].items() if k!='flow_down_letter_signed'}
     if section in ['systems','software_items','hardware_items'] and str(ws['C5'].value).endswith('.pn'):
-        # Columns added after the PN shim keep their letter in both layouts. Without
-        # FIXED_ITEM_COLUMNS here the intake wrote the ATA chapter one column right of where
-        # every reader looks for it, so the value disappeared on the next load.
-        mapping={k:(FIXED_ITEM_COLUMNS.get(k) or ('C' if k=='pn' else chr(ord(v)+1) if v>='C' else v))
+        # Columns added after the PN shim keep their letter in both layouts. Without the sheet's
+        # own fixed map here the intake wrote the ATA chapter one column right of where every
+        # reader looks for it, so the value disappeared on the next load.
+        _fixed=fixed_item_columns(section)
+        mapping={k:(_fixed.get(k) or ('C' if k=='pn' else chr(ord(v)+1) if v>='C' else v))
                  for k,v in mapping.items()}
     seen=set()
     for row in rows:

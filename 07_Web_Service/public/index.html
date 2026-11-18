@@ -27,6 +27,8 @@
     header { background: var(--brand); color: white; padding: 0.85rem 1.5rem; display: flex; align-items: center; justify-content: space-between; }
     header h1 { font-size: 1.25rem; font-weight: 650; letter-spacing: -.012em; }
     header .version { font-size: 0.8rem; opacity: 0.7; }
+    header .version-block { display: flex; flex-direction: column; align-items: flex-end; line-height: 1.25; flex-shrink: 0; }
+    header .version-clock { font-size: 0.72rem; opacity: 0.6; font-variant-numeric: tabular-nums; white-space: nowrap; }
     main { width: 100%; min-width: 0; margin: 1.5rem auto; padding: 0 clamp(0.75rem, 2vw, 2rem); }
 
     /* ── Main tab bar (Build / Config Data) ── */
@@ -147,6 +149,7 @@
     /* Explicit colour: an h4 here inherits a light colour from the panel styles and the title
        rendered almost white on the header's light background. */
     .config-card-head h4 { margin:0; font-size:.95rem; display:flex; align-items:baseline; gap:.5rem; min-width:0; color:var(--text); }
+    .config-card-actions {display:inline-flex;gap:.4rem;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;}
     .config-card-id { font-size:.78rem; font-weight:400; color:var(--text-muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
     .config-card-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.75rem 1rem; padding:.9rem; }
     .config-field { min-width:0; display:flex; flex-direction:column; gap:.25rem; }
@@ -250,7 +253,43 @@
     .color-cell { display: flex; align-items: center; gap: 0.5rem; }
     .color-cell input[type=color] { width: 48px; height: 30px; padding: 2px 3px; border: 1px solid var(--border); border-radius: 6px; cursor: pointer; background: transparent; }
 
-    .key-cell { display: flex; align-items: center; gap: 0.4rem; }
+    .key-cell { display: flex; align-items: center; gap: 0.4rem; min-width: 0; }
+    /* A flex item defaults to min-width:auto and will not shrink below the intrinsic width of a
+       form control, so narrowing a column left the input at its original size and only slid the
+       info button along (owner, 16 November 2026). The control shrinks with the column now.
+       Note: no overflow:hidden on the cell - that would clip the info popover. */
+    .key-cell > input, .key-cell > select, .key-cell > textarea { min-width: 0; flex: 1 1 auto; }
+    /* Demo view switch: shown to a prospect, the Customers tab should not read as a client list
+       (owner, 16 November 2026). */
+    .privacy-switch {display:inline-flex;align-items:center;gap:.45rem;cursor:pointer;user-select:none;font-size:.82rem;color:var(--text-muted);}
+    .privacy-switch input {position:absolute;opacity:0;width:0;height:0;}
+    .privacy-switch-track {position:relative;flex:0 0 auto;width:34px;height:19px;border-radius:19px;background:#c6cedb;transition:background .15s ease;}
+    .privacy-switch-track::after {content:"";position:absolute;top:2px;left:2px;width:15px;height:15px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:transform .15s ease;}
+    .privacy-switch input:checked + .privacy-switch-track {background:var(--brand);}
+    .privacy-switch input:checked + .privacy-switch-track::after {transform:translateX(15px);}
+    .privacy-switch input:focus-visible + .privacy-switch-track {outline:3px solid rgba(49,91,130,.35);outline-offset:2px;}
+    .customer-row {display:flex;align-items:stretch;gap:.3rem;}
+    .config-long-text {width:100%;min-width:0;padding:.25rem .4rem;border:1px solid #AEB9C7;border-radius:4px;background:var(--surface);color:var(--text);font:inherit;font-size:.85rem;line-height:1.35;resize:vertical;}
+    .multi-pick {position:relative;min-width:0;}
+    .multi-pick-source {position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;}
+    .multi-pick-button {display:flex;align-items:center;justify-content:space-between;gap:.4rem;width:100%;min-width:0;padding:.25rem .4rem;border:1px solid #AEB9C7;border-radius:4px;background:var(--surface);color:var(--text);font:inherit;font-size:.85rem;text-align:left;cursor:pointer;}
+    .multi-pick-summary {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .multi-pick-caret {flex:0 0 auto;width:0;height:0;border-top:5px solid currentColor;border-left:4px solid transparent;border-right:4px solid transparent;opacity:.6;}
+    .multi-pick-source.field-missing + .multi-pick-button {border:1px solid #b42318;background-color:#fff1f0;}
+    .multi-pick-menu {position:absolute;z-index:40;top:calc(100% + 2px);left:0;min-width:100%;max-width:22rem;max-height:14rem;overflow:auto;padding:.3rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:0 6px 18px rgba(16,32,52,.18);}
+    .multi-pick-option {display:flex;align-items:center;gap:.45rem;padding:.2rem .3rem;border-radius:4px;font-size:.85rem;white-space:nowrap;cursor:pointer;}
+    .multi-pick-option:hover {background:var(--bg);}
+    .multi-pick-option input {width:14px;height:14px;min-width:0;margin:0;accent-color:var(--brand);}
+    .multi-pick-empty {margin:.25rem .3rem;font-size:.8rem;color:var(--text-muted);}
+    .customer-demo-pick {display:flex;align-items:center;flex:0 0 auto;padding:0 .15rem;cursor:pointer;}
+    .customer-demo-pick input {width:14px;height:14px;min-width:0;margin:0;cursor:pointer;accent-color:var(--brand);}
+    .customer-row > :first-child {flex:1 1 auto;min-width:0;}
+    .customer-move {display:flex;flex-direction:column;justify-content:center;gap:.15rem;flex:0 0 auto;}
+    .customer-move-btn {padding:0 .3rem;font-size:.6rem;line-height:1.1;border:1px solid var(--border);border-radius:4px;background:#fff;color:var(--text-muted);cursor:pointer;}
+    .customer-move-btn:disabled {opacity:.3;cursor:default;}
+    .customer-move-btn:hover:not(:disabled) {border-color:var(--brand);color:var(--brand);}
+    .key-cell > span { min-width: 0; flex: 1 1 auto; }
+    .key-cell > .popover-wrap { flex: 0 0 auto; }
     .popover-wrap { position: relative; display: inline-flex; }
     /* Output folder input — smaller, softer */
     #outputDir {
@@ -393,12 +432,26 @@
     .access-key-form input {padding:.45rem .6rem;border:1px solid var(--border);border-radius:6px;font-size:.9rem;}
     .access-key-actions {display:flex;justify-content:flex-end;margin-top:.25rem;}
     @media (max-width:800px){.customer-layout{grid-template-columns:1fr;}}
-    .config-remove-row {font-size:.75rem;padding:.2rem .5rem;}
+    /* Duplicate used to inherit the full .secondary size while Remove was compact, so the two sat
+       side by side at different sizes (owner, 16 November 2026). They now match and stack. */
+    .config-remove-row, .config-duplicate-row {font-size:.75rem;padding:.2rem .5rem;white-space:nowrap;}
+    .config-row-actions {display:flex;flex-direction:column;gap:.25rem;align-items:stretch;}
+    .config-card-toggle {display:flex;align-items:center;gap:.4rem;width:100%;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;}
+    .config-card-toggle:focus-visible {outline:3px solid rgba(49,91,130,.35);outline-offset:2px;border-radius:4px;}
+    .config-card-chevron {flex:0 0 auto;width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;opacity:.55;transition:transform .12s ease;}
+    .config-card:not(.is-collapsed) .config-card-chevron {transform:rotate(90deg);}
+    .config-card.is-collapsed .config-card-fields {display:none;}
+    .config-card.is-collapsed .config-card-head {margin-bottom:0;}
+    .config-row-actions button {width:100%;}
     .config-review {margin:0 0 .8rem;padding:.5rem .8rem;border:1px solid #d9c27a;background:#fff9e6;border-radius:6px;}
     .config-review summary {font-weight:600;cursor:pointer;}
 .config-table.config-array-table {width:max-content;min-width:100%;}
-.config-table.config-array-table input[type=text],.config-table.config-array-table input[type=date] {min-width:11rem !important;}
-.config-table.config-array-table select {min-width:8rem !important;}
+/* These were 11rem and 8rem !important, which set a floor the user could not get under: dragging a
+   column narrower moved the info button but left the control at its old width, overflowing the cell
+   (owner, 16 November 2026). enhanceConfigTable already clamps a column at 100px, so the control
+   can follow the column down without disappearing. */
+.config-table.config-array-table input[type=text],.config-table.config-array-table input[type=date] {min-width:0;}
+.config-table.config-array-table select {min-width:0;}
 .config-table.config-array-table td {overflow:visible;}
 #configTabContent th {position:relative;padding-right:15px;}
 .config-resizer {position:absolute;right:0;top:0;bottom:0;width:10px;cursor:col-resize;touch-action:none;border-right:2px solid var(--border);}
@@ -490,25 +543,32 @@
 #intakeHost .intake-status:empty {display:none;}
 #intakeHost .intake-status:not(:empty) {padding:.75rem 1rem;border-radius:8px;background:#eef5fb;color:#294b6e;font-size:.9rem;margin:0 0 1rem;}
 #intakeHost .intake-progress {display:inline-flex;margin:0 0 1rem;padding:.35rem .65rem;border-radius:6px;background:#f1f4f7;color:#4f5e6e;font-size:.83rem;font-weight:550;}
-#intakeHost .intake-card {min-width:0;margin:0 0 1rem;padding:1.15rem 1.25rem;border:1px solid #e1e6ec;border-radius:10px;background:#fff;box-shadow:0 2px 10px rgba(27,45,68,.035);}
+#intakeHost .intake-card {min-width:0;margin:0 0 .6rem;padding:.8rem 1.05rem;border:1px solid #e1e6ec;border-radius:10px;background:#fff;box-shadow:0 2px 10px rgba(27,45,68,.035);}
 /* Same title row as the Config Data card view: a bold heading on a tinted bar across the top of
    the card, divided from the fields by a rule. The negative margins match this card's own
    padding (1.15rem 1.25rem, set just above) so the bar spans its full width. */
-#intakeHost section.intake-card > h3 {font-size:.98rem;line-height:1.35;font-weight:630;color:#263f5b;margin:-1.15rem -1.25rem .9rem;padding:.6rem 1.25rem;background:var(--bg);border-bottom:1px solid #e1e6ec;border-radius:10px 10px 0 0;}
+#intakeHost section.intake-card > h3 {font-size:.98rem;line-height:1.35;font-weight:630;color:#263f5b;margin:-.8rem -1.05rem .65rem;padding:.5rem 1.05rem;background:var(--bg);border-bottom:1px solid #e1e6ec;border-radius:10px 10px 0 0;}
 #intakeHost .intake-item-title h3 {font-size:1.08rem;line-height:1.35;font-weight:630;color:#263f5b;margin:0 0 .85rem;}
-#intakeHost .intake-section-note,#intakeHost .intake-note {font-size:.9rem;line-height:1.55;color:#596579;margin:-.35rem 0 .9rem;}
+#intakeHost .intake-section-note,#intakeHost .intake-note {font-size:.9rem;line-height:1.5;color:#596579;margin:-.25rem 0 .65rem;}
 #intakeHost .intake-grid {display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.9rem 1.1rem;}
-#intakeHost .intake-field {min-width:0;padding:.65rem .7rem;border:1px solid #edf0f3;border-radius:8px;background:#fcfdfe;}
-#intakeHost .intake-field-heading {display:flex;align-items:center;gap:.35rem;min-height:1.5rem;margin:0 0 .4rem;}
+#intakeHost .intake-field {min-width:0;padding:.45rem .6rem .5rem;border:1px solid #edf0f3;border-radius:8px;background:#fcfdfe;}
+#intakeHost .intake-field-heading {display:flex;align-items:center;gap:.35rem;min-height:1.5rem;margin:0 0 .25rem;flex-wrap:wrap;}
 #intakeHost .intake-field-heading label {font-size:.87rem;line-height:1.35;font-weight:600;color:#354457;}
-#intakeHost .intake-field input,#intakeHost .intake-field select,#intakeHost .intake-field textarea {width:100%;min-width:0;padding:.58rem .65rem;border:1px solid #cfd7e1;border-radius:7px;background:#fff;color:#202b38;font:inherit;font-size:.92rem;}
+#intakeHost .intake-color-pair {display:flex;gap:.75rem;min-width:0;}
+#intakeHost .intake-color-pair .intake-field {flex:0 1 auto;min-width:0;}
+#intakeHost .intake-color-pair .intake-field select {width:auto;min-width:8.5rem;max-width:11rem;}
+#intakeHost .intake-field textarea {resize:vertical;min-height:2rem;line-height:1.4;}
+#intakeHost .intake-field input,#intakeHost .intake-field select,#intakeHost .intake-field textarea {width:100%;min-width:0;padding:.38rem .55rem;border:1px solid #cfd7e1;border-radius:7px;background:#fff;color:#202b38;font:inherit;font-size:.92rem;}
 #intakeHost .intake-field input:focus,#intakeHost .intake-field select:focus,#intakeHost .intake-field textarea:focus {outline:3px solid rgba(49,91,130,.16);border-color:#527ba2;}
-#intakeHost .intake-field-actions {display:flex;align-items:center;gap:.45rem;flex-wrap:wrap;margin-top:.4rem;}
+#intakeHost .intake-field-actions {display:flex;align-items:center;justify-content:flex-end;gap:.45rem;flex-wrap:wrap;margin:0 0 0 auto;}
 #intakeHost .intake-field-actions button {font-size:.76rem;padding:.25rem .55rem;border-radius:6px;}
 #intakeHost .intake-item-title {display:flex;align-items:center;justify-content:space-between;gap:.75rem;}
 #intakeHost details.intake-card {position:relative;padding-top:.85rem;}
 #intakeHost .intake-item-summary {padding:.55rem 2.5rem .55rem .65rem;font-size:.9rem;font-weight:550;color:#394b60;}
-#intakeHost .intake-item-remove {position:absolute;right:1.25rem;top:.9rem;z-index:1;font-size:.76rem;padding:.3rem .55rem;border-radius:6px;}
+#intakeHost .intake-item-actions {position:absolute;right:1.25rem;top:.9rem;z-index:1;display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end;}
+#intakeHost .intake-item-remove, #intakeHost .intake-item-duplicate {font-size:.76rem;padding:.3rem .55rem;border-radius:6px;}
+#intakeHost .intake-item-summary.has-actions {padding-right:14rem;}
+@media (max-width:720px){#intakeHost .intake-item-actions {position:static;margin:0 .65rem .5rem;} #intakeHost .intake-item-summary.has-actions {padding-right:.65rem;}}
 #intakeHost .intake-empty {padding:1.1rem;border:1px dashed #cbd5df;border-radius:8px;background:#f8fafc;color:#596579;font-size:.9rem;}
 #intakeHost .intake-footer {display:flex;justify-content:space-between;gap:.75rem;margin:1rem 0 0;padding-top:.85rem;border-top:1px solid var(--border);}
 #intakeHost .intake-review-list {padding-left:1.25rem;color:#435264;font-size:.9rem;line-height:1.6;}
@@ -516,6 +576,7 @@
 header {gap:1rem;}
 header h1 {min-width:0;overflow-wrap:anywhere;}
 header .version {flex-shrink:0;}
+header .version-block {flex-shrink:0;}
 .tab-panel,.panel,.tab-group {min-width:0;}
 .config-toolbar {gap:.75rem;flex-wrap:wrap;}
 .config-toolbar > div {min-width:0;flex:1 1 240px;}
@@ -555,6 +616,7 @@ header .version {flex-shrink:0;}
 <style>
 input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#AEB9C7 !important;}
 </style>
+  <link rel="stylesheet" href="ui-scale.css">
 </head>
 <body data-edition="customer">
 
@@ -562,7 +624,13 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 <div id="appChrome" class="app-chrome">
 <header id="mainHeader">
   <h1 id="headerTitle">ISAF (Integrated Standards Assurance Framework) — &lt;Company&gt;</h1>
-  <span class="version" id="appVersion">v5.3.39</span>
+  <span class="version-block">
+    <span class="version" id="appVersion">v5.3.41</span>
+    <!-- The clock that dates generated documents. Read-only on purpose: it reflects
+         program.time_zone, so if it disagrees with the wall clock the documents are
+         already going to be dated wrong, and the fix is the field, not this display. -->
+    <span class="version-clock" id="appClock" title="Local time used to date generated documents"></span>
+  </span>
 </header>
 
 <!-- Top bar (all editions): File, Help and the user menu. Stays usable while the app is locked. -->
@@ -645,6 +713,9 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
       <div id="topHelpMenu" class="top-menu hidden" role="menu" aria-label="Help">
         <a role="menuitem" href="help/user-guide.html" target="_blank" rel="noopener" id="topMenuGuide">User Guide</a>
         <a role="menuitem" href="help/connect-requirements-tool.html" target="_blank" rel="noopener" id="topMenuConnect">Connecting your requirements tool</a>
+        <!-- Admin only: owner-internal reference. Hidden below unless the edition is 'full', and
+             stripped from Customer and Demo packages in scripts/make_edition.py. -->
+        <a role="menuitem" href="help/document-architecture.html" target="_blank" rel="noopener" id="topMenuArchitecture" class="hidden">Document Architecture</a>
         <button type="button" role="menuitem" id="topMenuUpdates">Check for Updates…</button>
         <button type="button" role="menuitem" id="topMenuAbout">About</button>
       </div>
@@ -711,7 +782,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
   <div class="tab-panel hidden" id="panel-documents"><div id="certPackageHost"></div><h3>Program document register</h3><p class="repo-muted">Certification and internal documents, protected versions, build snapshots and released baselines. Names are activity labels, not authenticated individual accounts.</p><div class="repo-toolbar"><input id="repoSearch" placeholder="Search documents" aria-label="Search documents"><select id="repoCategory" aria-label="Category"><option value="">All categories</option><option>Certification support</option><option>Engineering</option><option>Company process</option><option>Supplier</option><option>Meeting</option><option>Other</option></select><button id="repoImport">Import document</button><button id="repoControl">Enable document control</button><button id="repoBaseline">Establish baseline</button></div><p id="repoDocumentCount" class="repo-muted"></p><div id="repoDocuments" class="repo-scroll"></div><div id="repoRecords"></div></div>
   <div class="tab-panel hidden" id="panel-roadmap"><h3>Document roadmap</h3><p class="repo-muted">Assign owners, target dates and dependencies in each document's register entry.</p><div class="repo-toolbar"><input id="repoRoadmapSearch" placeholder="Search roadmap" aria-label="Search roadmap"><select id="repoRoadmapFilter" aria-label="Roadmap filter"><option value="">All documents</option><option value="blocked">Waiting for dependencies</option><option value="overdue">Overdue</option><option value="mine">Assigned to me</option></select></div><div id="repoRoadmap" class="repo-scroll"></div></div>
   <div class="tab-panel hidden" id="panel-customers" aria-labelledby="tab-customers">
-    <div class="customers-heading"><h2>Customers</h2><button type="button" class="secondary" id="customerSetupHelp" onclick="window.open('help/new-customer-setup.html','isafCustomerSetupHelp','width=900,height=820,scrollbars=yes,resizable=yes')">Setup New Customer Help</button> <button type="button" class="secondary" id="customerUsageHelp" onclick="window.open('help/usage-tracking-setup.html','_blank','noopener')">Usage Tracking Setup</button></div>
+    <div class="customers-heading"><h2>Customers</h2><button type="button" class="secondary" id="customerSetupHelp" onclick="window.open('help/new-customer-setup.html','isafCustomerSetupHelp','width=900,height=820,scrollbars=yes,resizable=yes')">Setup New Customer Help</button> <label class="privacy-switch" for="customerPrivacyToggle" title="Hide every customer except the demo customer, for showing the app to a prospect"><input type="checkbox" id="customerPrivacyToggle"><span class="privacy-switch-track" aria-hidden="true"></span><span class="privacy-switch-label">Demo view</span></label> <button type="button" class="secondary" id="customerUsageHelp" onclick="window.open('help/usage-tracking-setup.html','_blank','noopener')">Usage Tracking Setup</button></div>
     <p class="repo-muted">Record each customer's license, licensed scope, deployed version and patch history, and create their Customer app from this Admin version. Customer records are confidential and are kept in the folder that holds your Admin app folders and zips, so they carry over to new Admin versions. Every Customer app you create or publish, and every license or scope change, adds a row to the Excel delivery register in that folder.</p>
     <div class="customer-actions"><button type="button" id="customerNew">New customer</button><button type="button" class="secondary" id="customerSave">Save customer</button><button type="button" class="secondary" id="customerCreateApp" disabled>Create Customer app</button><button type="button" class="secondary" id="customerPublishApp" disabled>Publish Customer app</button><button type="button" class="secondary" id="customerPublishAll" title="Publish this Admin version to every hosted customer that has a GitHub repository and an access key">Publish all customers</button><button type="button" class="secondary" id="customerOpenApp" disabled title="Open this customer's hosted app (Hosted URL) in a new tab">Open Customer app</button><button type="button" class="secondary" id="customerExport" disabled>Export record (Excel)</button><button type="button" class="secondary" id="customerDelete" disabled>Delete</button></div>
     <span id="customerBusy" class="build-busy hidden" role="status" aria-live="polite"><span class="build-busy-spinner" aria-hidden="true"></span><span id="customerBusyText">Building the Customer app…</span><span class="build-busy-bar" aria-hidden="true"></span><span id="customerBusyTime" class="build-busy-time">0:00</span></span>
@@ -1064,6 +1135,12 @@ const AUTHORITY_ISSUE_STATUSES = ['PROPOSED','NEGOTIATING','ACCEPTED','CLOSED'];
 const AUTHORITY_ISSUE_STATUS_LABELS = {PROPOSED:'Proposed', NEGOTIATING:'Negotiating', ACCEPTED:'Accepted', CLOSED:'Closed'};
 const FHA_CLASSIFICATION_LABELS = {CAT:'Catastrophic (CAT)', HAZ:'Hazardous (HAZ)', MAJ:'Major (MAJ)', MIN:'Minor (MIN)', NSE:'No Safety Effect (NSE)'};
 const FIELD_META = {
+  // The keys stay purchaser_* - renaming them would mean a workbook migration and an engine change
+  // for no gain - but the owner calls this entity the End User, which is clearer than "purchaser"
+  // sitting beside a field labelled Company Name (owner, 16 November 2026).
+  no_end_user: { label: 'No End User', desc: null, options: null, isColor: false },
+  purchaser_name: { label: 'End User Name', desc: null, options: null, isColor: false },
+  purchaser_address: { label: 'End User Address', desc: null, options: null, isColor: false },
   pn: {label:'PN'},
   ata_chapter: {label:'ATA Chapter', desc:'ATA iSpec 2200 chapter of the product (for example 24 for Electrical Power). Shown on document cover pages.'},
   customer_name: {label:'Company Name'},
@@ -1114,6 +1191,9 @@ let licensedValues = {};
 let hostedTrial = false;
 let licensedProgramTypes = [];   // customer app: program types its licence covers (AIRCRAFT, SYSTEM, LRU); others are unavailable          // customer app hosted by MX Aero: Document Control off, builds downloaded, nothing kept on the server          // customer-specific app: fields set by the license, shown read-only        // customer-specific app: starter configuration preloaded when the app opens // customer-specific Customer app: banner shows the licensed company, not the workbook company
 if (!isAdminEdition) {$('tab-create-demo').classList.add('hidden');$('tab-customers').classList.add('hidden');$('buildOutputOptions').classList.add('hidden');}
+// The Document Architecture reference is owner-internal. It starts hidden in the markup so a
+// Customer app never shows it even for the instant before the edition resolves below.
+if (isAdminEdition) $('topMenuArchitecture').classList.remove('hidden');
 window.isafEditionReady=(async () => {
   let h={edition:document.body.dataset.edition||'full'};
   try {
@@ -1164,6 +1244,7 @@ window.isafEditionReady=(async () => {
     isAdminEdition = h.edition === 'full';
     $('tab-create-demo').classList.toggle('hidden',!isAdminEdition);$('tab-customers').classList.toggle('hidden',!isAdminEdition);
     $('buildOutputOptions').classList.toggle('hidden',!isAdminEdition);$('buildPdfRow').classList.toggle('hidden',!!h.hosted);
+    $('topMenuArchitecture').classList.toggle('hidden',!isAdminEdition);
     // PDF copies are converted by LibreOffice after the build. Say so here rather than letting the
     // user wait out a whole build to find the option could not run.
     {
@@ -2053,15 +2134,63 @@ function makeValueCell(key, val, path) {
     if(val&&!ids.includes(String(val)))ids.unshift(String(val));
     return `<td>${configTbdSelect(fullPath,ids,val)}</td>`;
   }
+  // The zone that dates documents. Offered as a list where the browser can enumerate zones, so a
+  // typo cannot silently send the build back to the machine clock; the validator (V152) catches the
+  // rest. Blank is first and legitimate - it keeps the previous machine-local behavior.
+  if (key==='time_zone' && path==='program') {
+    let zones = [];
+    try { zones = Intl.supportedValuesOf('timeZone'); } catch { zones = []; }
+    const current=String(val??'').trim();
+    if(!zones.length) return `<td><input type="text" data-path="${escapeHtml(fullPath)}" aria-label="Time Zone" placeholder="America/New_York" value="${escapeHtml(current)}"></td>`;
+    if(current&&!zones.includes(current))zones=[current,...zones];
+    return `<td>${configTbdSelect(fullPath,['',...zones],current)}</td>`;
+  }
+  // A Sys/LRU row says what it is. Blank keeps a row behaving as it did before the column existed,
+  // so it stays first in the list rather than forcing a choice on a single-level program.
+  if (key==='unit_type' && path.startsWith('systems')) {
+    return `<td>${configTbdSelect(fullPath,['','SYSTEM','LRU'],String(val??''))}</td>`;
+  }
+  // An LRU names the system that contains it, from this same sheet. A row never parents itself.
+  if (key==='parent_unit' && path.startsWith('systems')) {
+    const self=String(configData?.systems?.[Number((path.match(/\[(\d+)\]/)||[])[1])]?.id||'');
+    const ids=(configData?.systems||[]).map(u=>String(u.id||'')).filter(x=>x&&x!==self);
+    const current=String(val??'');
+    if(current&&!ids.includes(current))ids.unshift(current);
+    return `<td>${configTbdSelect(fullPath,['',...ids],current)}</td>`;
+  }
   // Parent System names a unit from the Systems register, so offer those ids rather than asking
   // the user to retype one and risk a mistyped reference the build then rejects. Blank stays
   // available, because a single-unit program may legitimately leave it empty, and a value that is
   // no longer in the register is kept as an option so it is visible rather than silently dropped.
+  //
+  // It is a LIST: one software load installed in two LRUs is one certified item with one document
+  // set, referenced by each, not two rows. So this is a multi-select, and the value round-trips as
+  // an array (applyConfigInput reads selectedOptions; a plain .value would take only the first).
   if (key==='parent_system') {
     const ids=(configData?.systems||[]).map(s=>String(s.id||'')).filter(Boolean);
-    const current=String(val??'');
-    if(current&&!ids.includes(current))ids.unshift(current);
-    return `<td>${configTbdSelect(fullPath,['',...ids],current)}</td>`;
+    const chosen=Array.isArray(val)?val.map(v=>String(v).trim()).filter(Boolean)
+                                   :String(val??'').split(/[,;\n]/).map(v=>v.trim()).filter(Boolean);
+    for(const c of chosen)if(!ids.includes(c))ids.unshift(c);
+    const names=new Map((configData?.systems||[]).map(s=>[String(s.id||''),String(s.name||'')]));
+    const labelFor=id=>names.get(id)&&names.get(id)!==id?`${id} — ${names.get(id)}`:id;
+    const opts=ids.map(id=>`<option value="${escapeHtml(id)}"${chosen.includes(id)?' selected':''}>${escapeHtml(labelFor(id))}</option>`).join('');
+    const hint=ids.length?'':'Add a system or LRU on the Systems tab first.';
+    const hintHtml=hint?`<div class="muted" style="font-size:.78rem;margin-top:.2rem">${hint}</div>`:'';
+    // A list box showing every unit grew down the card and the table row and cost more vertical
+    // room than the rest of the item put together (owner, 16 November 2026). This is a closed
+    // dropdown that opens a checkbox list. The multi-select is kept as the value, hidden: saving,
+    // the missing-field highlight and the config search all read it, and a checkbox list of its
+    // own would have had to re-implement each of those.
+    const menuId='pick-'+fullPath.replace(/[^a-z0-9]/gi,'_');
+    const summary=chosen.length===0?'None chosen':chosen.length===1?labelFor(chosen[0]):`${chosen.length} chosen`;
+    const boxes=ids.map(id=>`<label class="multi-pick-option"><input type="checkbox" value="${escapeHtml(id)}"${chosen.includes(id)?' checked':''}><span>${escapeHtml(labelFor(id))}</span></label>`).join('')
+      ||'<p class="multi-pick-empty">No system or LRU on the Systems tab yet.</p>';
+    return `<td><div class="multi-pick">`
+      +`<select multiple class="multi-pick-source" data-path="${escapeHtml(fullPath)}" aria-hidden="true" tabindex="-1">${opts}</select>`
+      +`<button type="button" class="multi-pick-button" aria-haspopup="true" aria-expanded="false" aria-controls="${menuId}" title="Choose the systems or LRUs this item belongs to">`
+      +`<span class="multi-pick-summary">${escapeHtml(summary)}</span><span class="multi-pick-caret" aria-hidden="true"></span></button>`
+      +`<div class="multi-pick-menu" id="${menuId}" role="group" aria-label="Parent system or LRU" hidden>${boxes}</div>`
+      +`</div>${hintHtml}</td>`;
   }
 
   // Dropdown
@@ -2072,6 +2201,13 @@ function makeValueCell(key, val, path) {
   // Plain text input: show TBD in place while retaining the prior value in the decision register.
   const pending=configDecisionOpen(fullPath),display=pending?'TBD':(configDisplayValue(key,val) ?? '');
   const previous=pending?(configData?._openDecisions||[]).find(d=>d.path===fullPath)?.previous_value:display;
+  // A notes or other long free-text answer is a textarea here too, so it can be dragged taller
+  // (owner, 16 November 2026). It opens at one line: in a table row anything more would set the
+  // height of every row. config-tbd keys off [data-path], which a textarea carries, so the TBD
+  // control keeps working.
+  if (CONFIG_LONG_FIELDS.has(key)) {
+    return `<td><textarea rows="1" class="config-long-text" data-path="${path}.${key}" data-original-value="${escapeHtml(previous??'')}">${escapeHtml(display)}</textarea></td>`;
+  }
   return `<td><input type="text" data-path="${path}.${key}" data-original-value="${escapeHtml(previous??'')}" value="${escapeHtml(display)}"></td>`;
 }
 
@@ -2166,17 +2302,29 @@ function configViewMode(tabPath, keyCount) {
   return keyCount > 8 ? 'cards' : 'table';
 }
 
+// Collapsed cards (owner, 16 November 2026): a Systems or LRU card is tall, and scanning a list of
+// them means scrolling past every field. Clicking the title collapses a card to its title alone.
+// Keyed by the row's own id where it has one, so the state survives a re-render and still points at
+// the same row after a row above it is removed; a row with no id falls back to its index, which is
+// the best available for a row with nothing stable to key on.
+const configCollapsedCards = new Set();
+const configCardKey = (tabPath, item, i) => tabPath + '::' + String(item?.id || ('#' + i));
+
 function renderArrayCards(data, tab, keys, rowsEditable) {
   return '<div class="config-cards">' + data.map((item, i) => {
     const title = escapeHtml(String(item.name || item.id || `Item ${i + 1}`));
     const sub = item.name && item.id ? `<span class="config-card-id">${escapeHtml(String(item.id))}</span>` : '';
-    const remove = rowsEditable ? `<button type="button" class="secondary config-remove-row" data-remove-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Remove this item">Remove</button>` : '';
+    // Duplicate (owner, v5.3.41): copies the details that save typing into a new item with its own
+    // ID and an empty PN, so a second LRU, software item or hardware item is a click and two edits.
+    const remove = rowsEditable ? `<span class="config-card-actions"><button type="button" class="secondary config-duplicate-row" data-duplicate-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Copy this item's details into a new one. The copy gets its own ID and an empty PN.">Duplicate</button><button type="button" class="secondary config-remove-row" data-remove-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Remove this item">Remove</button></span>` : '';
     const fields = keys.map(k => {
       const meta = getFieldMeta(k), path = `${tab.path}[${i}]`;
       const wide = CONFIG_LONG_FIELDS.has(k) ? ' config-field-wide' : '';
       return `<div class="config-field${wide}"><div class="config-field-label">${configFieldLabel(k, `${path}.${k}`, configRequired(`${path}.${k}`))}${makeInfoBtn(k, meta, `${path}.${k}`)}</div>${configValueControl(k, item[k], path)}</div>`;
     }).join('');
-    return `<article class="config-card"><header class="config-card-head"><h4 data-fallback="Item ${i + 1}">${title}${sub}</h4>${remove}</header><div class="config-card-fields">${fields}</div></article>`;
+    const cardKey = configCardKey(tab.path, item, i);
+    const collapsed = configCollapsedCards.has(cardKey);
+    return `<article class="config-card${collapsed ? ' is-collapsed' : ''}"><header class="config-card-head"><h4 data-fallback="Item ${i + 1}"><button type="button" class="config-card-toggle" data-card-toggle="${escapeHtml(cardKey)}" aria-expanded="${collapsed ? 'false' : 'true'}"><span class="config-card-chevron" aria-hidden="true"></span><span class="config-card-title">${title}${sub}</span></button></h4>${remove}</header><div class="config-card-fields">${fields}</div></article>`;
   }).join('') + '</div>';
 }
 
@@ -2188,7 +2336,12 @@ function renderArrayTab(data, tab) {
   // The tab is now named LRUs in an LRU program, so the note no longer has to explain away a
   // label that contradicts its own rows. What is left is the part a user still needs: that items
   // must name their LRU once more than one is listed.
-  const lruNote = isLruProgram() && tab.path==='systems' && data.length > 1 ? '<p class="hint config-lru-note">With more than one LRU listed, every software and hardware item must name its LRU in Parent System.</p>' : '';
+  // An AIRCRAFT or SYSTEM program holds both levels on this one sheet, and Unit Type is optional and
+  // blank by default, so nothing told the user the sheet could do it (owner, 16 November 2026).
+  const twoLevelNote = tab.path==='systems' && /^(AIRCRAFT|SYSTEM)$/.test(String(configData?.program?.type||'').toUpperCase())
+    ? '<p class="hint config-lru-note">This sheet holds both levels. Set <strong>Unit Type</strong> to SYSTEM on a system row and LRU on each unit inside it, then name the containing system in <strong>Parent Unit</strong> on every LRU row. A declaration is generated per LRU, not for the system.</p>'
+    : '';
+  const lruNote = isLruProgram() && tab.path==='systems' && data.length > 1 ? '<p class="hint config-lru-note">With more than one LRU listed, every software and hardware item must name its LRU in Parent System.</p>' : twoLevelNote;
   const mode = configViewMode(tab.path, keys.length);
   const viewToggle = `<div class="config-view-toggle" role="group" aria-label="Layout"><button type="button" data-config-view="cards" data-config-view-tab="${escapeHtml(tab.path)}" aria-pressed="${mode==='cards'}">Cards</button><button type="button" data-config-view="table" data-config-view-tab="${escapeHtml(tab.path)}" aria-pressed="${mode==='table'}">Table</button></div>`;
   if (mode === 'cards') { $('configTabContent').innerHTML = toolbar + viewToggle + lruNote + renderArrayCards(data, tab, keys, rowsEditable); return; }
@@ -2201,7 +2354,7 @@ function renderArrayTab(data, tab) {
   html += '</tr></thead><tbody>';
   data.forEach((item, i) => {
     html += '<tr>';
-    if (rowsEditable) html += `<td><button type="button" class="secondary config-remove-row" data-remove-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Remove this row">Remove</button></td>`;
+    if (rowsEditable) html += `<td><div class="config-row-actions"><button type="button" class="secondary config-duplicate-row" data-duplicate-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Copy this row's details into a new one. The copy gets its own ID and an empty PN.">Duplicate</button><button type="button" class="secondary config-remove-row" data-remove-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Remove this row">Remove</button></div></td>`;
     keys.forEach(k => {
       const meta = getFieldMeta(k);
       const cellStart = html.length;
@@ -2522,16 +2675,50 @@ async function savePN(e){
 
 let configDraftMods={};
 const configColumnWidths={};
+// ── Header clock ────────────────────────────────────────────────────────────
+// The time that will be stamped on generated documents. Documents are dated in the program's
+// time zone (program.time_zone), not the machine's, because the hosted service runs UTC and an
+// evening build in the Americas was coming out dated tomorrow. Showing it here means a wrong zone
+// is visible before a build rather than discovered in an issued document.
+function configuredBuildZone(){
+  const v = configData?.program?.time_zone;
+  return typeof v === 'string' && v.trim() ? v.trim() : '';
+}
+function renderAppClock(){
+  const el = $('appClock');
+  if (!el) return;
+  const zone = configuredBuildZone();
+  try {
+    const opts = { hour: '2-digit', minute: '2-digit', hour12: false,
+                   day: '2-digit', month: 'short', timeZoneName: 'short' };
+    const text = new Intl.DateTimeFormat('en-GB', zone ? { ...opts, timeZone: zone } : opts).format(new Date());
+    el.textContent = text;
+    el.title = zone
+      ? `Local time in ${zone} — the time zone that dates generated documents (program.time_zone)`
+      : 'This machine\u2019s local time. Set a Time Zone on the Program tab to date documents in a specific zone.';
+  } catch {
+    // An unusable zone is reported by the validator; the clock just falls back rather than breaking the header.
+    el.textContent = new Date().toLocaleTimeString();
+    el.title = 'Local time';
+  }
+}
+renderAppClock();
+setInterval(renderAppClock, 30000);
+
 function applyConfigInput(el){
  if(!el.dataset.path)return;
  if(el.dataset.path==='program.cert_basis_type'&&approvalBasisValue()){el.value=approvalBasisValue();return;}
  if(el.value===CONFIG_TBD_OPTION&&configDecisionOpen(el.dataset.path))return;
  const fieldKey=el.dataset.path.split('.').at(-1);
- const value=el.type==='color'?el.value.replace('#',''):CONFIG_BOOLEAN_KEYS.has(fieldKey)?configYes(el.value):el.value;
+ // A multi-select (Parent System) carries a list: el.value would silently take only the first
+ // selection, so an item in two LRUs would lose one of them on every edit.
+ const value=el.multiple?[...el.selectedOptions].map(o=>o.value).filter(Boolean)
+            :el.type==='color'?el.value.replace('#',''):CONFIG_BOOLEAN_KEYS.has(fieldKey)?configYes(el.value):el.value;
  configDraftMods[el.dataset.path]=value;
  const parts=el.dataset.path.replace(/\[(\d+)\]/g,'.$1').split('.');let obj=configData;
  for(const k of parts.slice(0,-1))obj=obj?.[k];if(obj)obj[parts.at(-1)]=value;
  if(el.dataset.path==='intake.approval_path')syncApprovalBasis();
+ if(el.dataset.path==='program.time_zone')renderAppClock();
  refreshConfigCardTitle(el);
  refreshConfigRequired();
  searchConfig();
@@ -2549,6 +2736,25 @@ function refreshConfigCardTitle(el){
  head.textContent=name||id||head.dataset.fallback||'Item';
  if(name&&id){const tag=document.createElement('span');tag.className='config-card-id';tag.textContent=id;head.appendChild(tag);}
 }
+function closeMultiPicks(root=document){
+ root.querySelectorAll('.multi-pick-menu:not([hidden])').forEach(m=>{m.hidden=true;
+  m.closest('.multi-pick')?.querySelector('.multi-pick-button')?.setAttribute('aria-expanded','false');});
+}
+document.addEventListener('click',e=>{if(!e.target.closest?.('.multi-pick'))closeMultiPicks();});
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMultiPicks();});
+// A tick updates the hidden multi-select and then lets the ordinary input path save it, so the
+// value shape stays exactly what applyConfigInput already understood: an array of unit ids.
+$('configTabContent').addEventListener('change',e=>{
+ const box=e.target.closest('.multi-pick-menu input[type=checkbox]');if(!box)return;
+ const pick=box.closest('.multi-pick'),source=pick.querySelector('.multi-pick-source');
+ const ticked=[...pick.querySelectorAll('.multi-pick-menu input[type=checkbox]')].filter(b=>b.checked).map(b=>b.value);
+ [...source.options].forEach(o=>{o.selected=ticked.includes(o.value);});
+ const label=o=>o?.textContent||'';
+ const summary=ticked.length===0?'None chosen'
+   :ticked.length===1?label([...source.options].find(o=>o.value===ticked[0])):`${ticked.length} chosen`;
+ pick.querySelector('.multi-pick-summary').textContent=summary;
+ source.dispatchEvent(new Event('input',{bubbles:true}));
+});
 $('configTabContent').addEventListener('input',e=>applyConfigInput(e.target));
 // Renaming an item ID updates every reference to it (environmental rows, parent systems, item lists).
 const CONFIG_ID_PATH=/^(systems|software_items|hardware_items|suppliers|tools)\[(\d+)\]\.id$/;
@@ -2578,8 +2784,30 @@ function renameConfigId(before,after,ownPath){
  return count;
 }
 $('configTabContent').addEventListener('click',e=>{
- const add=e.target.closest('[data-add-row]'),remove=e.target.closest('[data-remove-row]'),view=e.target.closest('[data-config-view]');
+ const add=e.target.closest('[data-add-row]'),remove=e.target.closest('[data-remove-row]'),view=e.target.closest('[data-config-view]'),duplicate=e.target.closest('[data-duplicate-row]');
+ // Checked first, and the card's own buttons are excluded, so Duplicate and Remove sit inside the
+ // header without collapsing the card when clicked.
+ // Parent System dropdown: the button opens the checkbox list, and a tick writes straight back to
+ // the hidden multi-select, which is what everything else reads.
+ const pickBtn=e.target.closest('.multi-pick-button');
+ if(pickBtn){
+  const pick=pickBtn.closest('.multi-pick'),menu=pick.querySelector('.multi-pick-menu'),wasOpen=!menu.hidden;
+  closeMultiPicks();
+  if(!wasOpen){menu.hidden=false;pickBtn.setAttribute('aria-expanded','true');}
+  return;
+ }
+ if(e.target.closest('.multi-pick-menu'))return;   // ticking must not close the list
+ closeMultiPicks();
+ const toggle=e.target.closest('[data-card-toggle]');
+ if(toggle&&!duplicate&&!remove){
+  const key=toggle.dataset.cardToggle;
+  if(configCollapsedCards.has(key))configCollapsedCards.delete(key);else configCollapsedCards.add(key);
+  const card=toggle.closest('.config-card'),nowCollapsed=configCollapsedCards.has(key);
+  if(card){card.classList.toggle('is-collapsed',nowCollapsed);toggle.setAttribute('aria-expanded',nowCollapsed?'false':'true');}
+  return;
+ }
  if(view){try{localStorage.setItem('isafConfigView.'+view.dataset.configViewTab,view.dataset.configView);}catch{}renderConfigTabs();return;}
+ if(duplicate){const msg=window.intakeUI.duplicateRow(duplicate.dataset.duplicateRow,Number(duplicate.dataset.rowIndex));renderConfigTabs();if($('configRowStatus'))$('configRowStatus').textContent=msg||window.intakeUI.lastMessage?.()||'';return;}
  if(add){const msg=window.intakeUI.addRow(add.dataset.addRow);renderConfigTabs();if(msg&&$('configRowStatus'))$('configRowStatus').textContent=msg;}
  else if(remove){window.intakeUI.removeRow(remove.dataset.removeRow,Number(remove.dataset.rowIndex));renderConfigTabs();}
 });

@@ -50,7 +50,7 @@ export const AVAILABLE_IMPORT_IDS = Object.freeze(REQUIREMENTS_IMPORT.filter(o =
 /** File import is licensed by either file entry; DOORS customers get it through "DOORS ReqIF". */
 export const FILE_IMPORT_IDS = Object.freeze(REQUIREMENTS_IMPORT.filter(o => o.kind === "files").map(o => o.id));
 
-const TEXT_FIELDS = ["company", "address", "contact_name", "contact_email", "contact_role", "it_contact", "license_id", "license_type", "seats", "license_term", "license_start", "license_end", "maintenance_until", "usage_tracking", "do160_in_scope", "do160_revision", "tool_qualification", "primary_authority", "cert_regime", "cert_basis", "requirements_integration", "plm_integration", "deployment_model", "watermark_documents", "watermark_text", "publish_repository", "version_deployed", "deployed_date", "hosted_url", "notes"];
+const TEXT_FIELDS = ["company", "address", "contact_name", "contact_email", "contact_role", "it_contact", "license_id", "license_type", "seats", "license_term", "license_start", "license_end", "maintenance_until", "usage_tracking", "do160_in_scope", "do160_revision", "tool_qualification", "primary_authority", "cert_regime", "cert_basis", "requirements_integration", "plm_integration", "deployment_model", "watermark_documents", "watermark_text", "publish_repository", "version_deployed", "deployed_date", "hosted_url", "notes", "demo_visible"];
 const LIST_FIELDS = ["program_types", "phases", "requirements_tools"];
 const clean = (v, max = 2000) => String(v ?? "").replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, "").trim().slice(0, max);
 
@@ -157,6 +157,14 @@ export class CustomerRegister {
     // A planned connection can be discussed, not licensed: only what ISAF can actually do is kept.
     if ("requirements_tools" in input) record.requirements_tools = (record.requirements_tools || []).filter(v => AVAILABLE_IMPORT_IDS.includes(v));
     if (Array.isArray(input.patches)) record.patches = input.patches.slice(0, 500).map(p => ({ date: clean(p.date, 20), version: clean(p.version, 40), problem: clean(p.problem, 1000), ported: clean(p.ported, 200) })).filter(p => p.date || p.version || p.problem);
+    // Display order in the Admin Customers list (owner, 16 November 2026). Kept on the record
+    // rather than in browser storage so the order the owner sets survives a new browser or machine.
+    // A record without one sorts after those that have one, alphabetically, as before.
+    if ("sort_order" in input) {
+      const order = Number(input.sort_order);
+      if (Number.isFinite(order)) record.sort_order = Math.max(0, Math.min(9999, Math.round(order)));
+      else delete record.sort_order;
+    }
     record.program_types = expandProgramTypes(record.program_types || []);
     if ((record.program_types || []).includes("Aircraft")) record.do160_in_scope = "Yes"; // Aircraft programs always include DO-160
     if (!record.company) throw Object.assign(new Error("Enter the customer company name."), { status: 400 });

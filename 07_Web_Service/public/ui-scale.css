@@ -1,0 +1,17 @@
+/* Interface scale.
+ *
+ * The owner works with Chrome at 80% zoom and prefers the app at that size; at 100% everything
+ * reads as oversized (owner, 16 November 2026). `zoom` on the root is what the browser's own zoom
+ * control does, so it scales text, spacing, borders, icons and images together, and media queries
+ * still evaluate against the scaled viewport. A transform would not: it would leave scrollbars,
+ * fixed elements and hit testing at the original size.
+ *
+ * Change the one number below to re-scale the whole interface. 1 restores the original size.
+ *
+ * NOTE: this stacks with the browser's own zoom. With Chrome also at 80% the result is 64%, so the
+ * browser should sit at 100% now.
+ *
+ * The Desktop App has its own copy at 05_Desktop_App/renderer/ui-scale.css, because it loads its
+ * renderer from disk rather than from this folder. Change both together.
+ */
+:root { zoom: 0.8; }

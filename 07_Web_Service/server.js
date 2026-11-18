@@ -199,10 +199,10 @@ const buildJobs = createBuildJobStore(repository, {
   organizationId: process.env.ISAF_ORGANIZATION_ID,
 });
 const connectors=createConnectorService({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository")});
-const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"5.3.39",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
+const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"5.3.41",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
 
 app.get("/api/session",requireAuth,(req,res)=>res.json({
-  edition:appEdition(), version:"5.3.39", authentication:authentication.mode,
+  edition:appEdition(), version:"5.3.41", authentication:authentication.mode,
   user:{id:req.auth.id||null,subject:req.auth.subject,displayName:req.auth.displayName,email:req.auth.email||null,role:req.auth.role},
   organizationId:req.auth.organizationId||process.env.ISAF_ORGANIZATION_ID||null,
   capabilities:{teamAdministration:authentication.mode==="oidc"&&hasPermission(req.auth.role,"organization.manage"),durableBuilds:!!repository?.metadata?.withTenant,integrationAdministration:hasPermission(req.auth.role,"integration.manage"),hosted:HOSTED_SERVICE},
@@ -353,7 +353,7 @@ app.post("/api/jobs", requireAuth, authorize("build.run"), requireUpToDate, uplo
     const job=await buildJobs.submit({
       organizationId:req.auth.organizationId||null,programId,requestedBy:req.auth.id||null,
       actor:requestActor(req,req.body.actor),phase:String(req.body.phase||"all").toLowerCase(),
-      engineVersion:"5.3.39",filename:req.file.originalname,
+      engineVersion:"5.3.41",filename:req.file.originalname,
       // The imported requirements are resolved here rather than in the worker: a Postgres-backed
       // repository has no program folder to read a link from, and the job must build with the
       // requirements as they were when it was submitted. They are part of the idempotency key
@@ -901,7 +901,7 @@ app.get("/api/health", (_req, res) => {
   // pdfAvailable lets the Build tab say LibreOffice is missing BEFORE a build rather than after
   // one: the conversion runs on the exported folder, so without this the user waits out a full
   // build (1312 documents on an aircraft program) to be told the box they ticked could not run.
-  res.json({ status: "ok", version: "5.3.39", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
+  res.json({ status: "ok", version: "5.3.41", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
 });
 
 app.get("/api/demo-register", requireAuth, authorize("demo.manage"), async(_req,res)=>{
@@ -1214,7 +1214,7 @@ app.post("/api/admin/customers/:id/create-app",requireAuth,authorize("demo.manag
   if(!adminOnly(res))return;
   const customer=customerRegister.read().find(c=>c.id===req.params.id);
   if(!customer)return res.status(404).json({error:"Save the customer before creating its app."});
-  if(!customer.access_key_sha256&&!appAccessKeys(customer).length)return res.status(409).json({error:"Add a user with a key (Users) or set the company access key first (Deployment → Access key). The Customer app asks for it when it opens."});
+  if(!customer.access_key_sha256&&!appAccessKeys(customer).length)return res.status(409).json({error:"This customer has no access key, so the app would open for anyone. Set one first: Deployment → Access key → type a key of at least 8 characters and press Set key, or press Generate new key and copy what ISAF shows — it is shown once and never stored. Adding a user under Users gives that person their own key instead."});
   let built;
   try{
     const mark=customerWatermark(req);built=await buildCustomerArchive(customer,mark);
@@ -1249,7 +1249,7 @@ app.post("/api/admin/customers/:id/publish-app",requireAuth,authorize("demo.mana
   if(!adminOnly(res))return;
   const customer=customerRegister.read().find(c=>c.id===req.params.id);
   if(!customer)return res.status(404).json({error:"Save the customer before publishing its app."});
-  if(!customer.access_key_sha256&&!appAccessKeys(customer).length)return res.status(409).json({error:"Add a user with a key (Users) or set the company access key first (Deployment → Access key). Use the same value as ISAF_API_KEY on Render."});
+  if(!customer.access_key_sha256&&!appAccessKeys(customer).length)return res.status(409).json({error:"This customer has no access key, so the published app would open for anyone. Set one first: Deployment → Access key. If the Render service already has ISAF_API_KEY, type that same value and press Set key — the two must match or the app will not open. Otherwise press Generate new key, copy what ISAF shows (it is shown once and never stored) and set it as ISAF_API_KEY in Render. Adding a user under Users gives that person their own key instead."});
   if(!fs.existsSync(CUSTOMER_GITHUB_CONFIG))return res.status(409).json({error:"Customer publishing is not configured. Create Customer_GitHub_Deploy.json using the supplied example."});
   if(!fs.existsSync(EDITION_PUBLISHER))return res.status(500).json({error:"The Customer publisher is missing."});
   let built,configDir;
@@ -1373,7 +1373,7 @@ app.post("/api/import/report",requireAuth,authorize("build.run"),express.json({l
 // not kept. format=zip returns the updated documents and Import_Report.txt as a ZIP; otherwise JSON with the
 // updated documents (base64) for the browser to write into the working folder.
 const importDocsUpload=multer({storage:multer.memoryStorage(),limits:{fileSize:25*1024*1024,files:300,fieldSize:100*1024*1024}});
-// Editing documents that were already generated is an Admin capability (owner, v5.3.39). In a
+// Editing documents that were already generated is an Admin capability (owner, v5.3.41). In a
 // Customer or Demo app the imported requirements reach documents one way only: a build writes them
 // in. The UI does not render the block there, and the route refuses it, so hiding it is a fact
 // rather than an appearance.
