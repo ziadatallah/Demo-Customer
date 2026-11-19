@@ -101,16 +101,18 @@
   }
  }
  // Show messages in screen terms: field paths become their on-screen labels, sections their tab names.
- const SECTION_NAME={software_items:'Software Items',hardware_items:'Hardware Items',systems:'Systems',suppliers:'Suppliers',tools:'Tools',environmental_baseline:'Environmental Evidence',environmental_flow_down:'Environmental Requirements',dev_environment:'Development Environment'};
+ const SECTION_NAME={software_items:'Software Items',hardware_items:'Hardware Items',systems:'System/LRU',suppliers:'Suppliers',tools:'Tools',environmental_baseline:'Environmental Evidence',environmental_flow_down:'Environmental Requirements',dev_environment:'Development Environment'};
  function friendly(message){
   let m=String(message||'');
-  m=m.replace(/\b(software_items|hardware_items|systems|suppliers|tools|environmental_baseline|environmental_flow_down)\[(\d+)\](?: \(([^)]+)\))?/g,(_,sec,i,id)=>`${SECTION_NAME[sec]} row ${+i+1}${id?` (${id})`:''}`);
+  m=m.replace(/\b(software_items|hardware_items|systems|suppliers|tools|environmental_baseline|environmental_flow_down)\[(\d+)\](?: \(([^)]+)\))?/g,(_,sec,i,id)=>`${sec==='systems'&&typeof systemsTabName==='function'?systemsTabName():SECTION_NAME[sec]} row ${+i+1}${id?` (${id})`:''}`);
   m=m.replace(/\b(program|intake|personnel|authority|safety|dev_environment)\.([a-z0-9_]+(?:\.[a-z0-9_]+)?)\b/g,(all,sec,rest)=>{
    const key=rest.split('.').at(-1);let label='';try{label=typeof configLabel==='function'?configLabel(key,`${sec}.${rest}`):'';}catch{}
    if(sec==='personnel'&&rest.includes('.')){const role=rest.split('.')[0].replace(/_/g,' ').replace(/\b\w/g,c=>c.toUpperCase()).replace(/\b(Pm|Qa|Pa|Cm)\b/g,x=>x.toUpperCase());const f=key==='email'?'Email':key==='name'?'Name':label||key;return `${role} ${f}`;}
    const named={'program.name':'Program Name','program.short_name':'Program Short Name','program.type':'Program Type'}[`${sec}.${rest}`];if(named)return named;
    return label&&label!==key?label:all;});
   m=m.replace(/\b(software_items|hardware_items|environmental_baseline|environmental_flow_down|dev_environment)\b/g,sec=>SECTION_NAME[sec]||sec);
+  // Engine messages name a unit as systems "id"; on screen that is the System/LRU (or LRU) tab.
+  m=m.replace(/\bsystems ("[^"]+")/gi,(_,id)=>`${typeof systemsTabName==='function'?systemsTabName():'System/LRU'} ${id}`);
   m=m.replace(/\b(Environmental_Baseline|Environmental_FlowDown)\b/g,x=>x==='Environmental_Baseline'?'Environmental Evidence':'Environmental Requirements');
   m=m.replace(/\bintake scope\b/g,'the Program Intake scope answer');
   return m.charAt(0).toUpperCase()+m.slice(1);

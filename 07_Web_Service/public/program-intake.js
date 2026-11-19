@@ -150,12 +150,13 @@
   const c=node('section','intake-card'),head=node('div','intake-item-title');head.appendChild(node('h3','',title));head.appendChild(button('Add '+({'Environmental Evidence':'Evidence Row','Environmental Requirements':'Requirement Row'}[title]||title.replace(/s$/,'')),()=>addRow(section)));c.appendChild(head);
   const rows=configData[section]||[];
   if(!rows.length)c.appendChild(node('p','hint','No items entered. Add applicable items, or record No in the scope question.'));
-  rows.forEach((item,i)=>{const sub=node('details','intake-card');sub.open=true;const summary=node('summary','intake-item-summary'),label=node('span','intake-item-summary-label',`${i+1}. ${item.name||(item.hw_id?item.hw_id+' / Section '+item.section:'New item')}${item.pn?' · '+item.pn:''}`),removeLabel=section==='suppliers'?'Remove this Supplier':section.startsWith('environmental_')?'Remove this Row':'Remove this Item',remove=button(removeLabel,()=>{});remove.classList.add('intake-item-remove');remove.setAttribute('aria-label',`${removeLabel.replace('Remove this ','Remove ')}: ${item.name||item.id||'item'}`);remove.onclick=e=>{e.preventDefault();e.stopPropagation();if(!busy)removeRow(section,i);};summary.append(label);
+  rows.forEach((item,i)=>{const sub=node('details','intake-card');sub.open=true;const summary=node('summary','intake-item-summary'),label=node('span','intake-item-summary-label',`${i+1}. ${item.name||(item.hw_id?item.hw_id+' / Section '+item.section:'New item')}${item.pn?' · '+item.pn:''}`),removeLabel=section==='suppliers'?'Remove this Supplier':section.startsWith('environmental_')?'Remove this Row':'Remove this Item',remove=makeRowIconButton('remove',removeLabel);remove.disabled=busy;remove.classList.add('intake-item-remove');remove.setAttribute('aria-label',`${removeLabel.replace('Remove this ','Remove ')}: ${item.name||item.id||'item'}`);remove.onclick=e=>{e.preventDefault();e.stopPropagation();if(!busy)removeRow(section,i);};summary.append(label);
    // Duplicate is offered where rows have an id of their own; environmental rows have none.
-   const actions=node('div','intake-item-actions');
+   const actions=node('div','intake-item-actions row-icon-group');
    if(!section.startsWith('environmental_')){
-    const dup=button('Duplicate',()=>{});dup.classList.add('intake-item-duplicate');
-    dup.title='Copy this item\u2019s details into a new one. The copy gets its own ID and an empty PN.';
+    // Duplicate and Remove are picture buttons beside each other (owner, 19 November 2026).
+    const dup=makeRowIconButton('duplicate','Duplicate: copy this item\u2019s details into a new one. The copy gets its own ID and an empty PN.');
+    dup.disabled=busy;dup.classList.add('intake-item-duplicate');
     dup.setAttribute('aria-label',`Duplicate ${item.name||item.id||'item'}`);
     dup.onclick=e=>{e.preventDefault();e.stopPropagation();if(!busy)duplicateRow(section,i);};
     actions.append(dup);
@@ -171,11 +172,13 @@
   configDraftMods._intakeRows??={};configDraftMods._intakeRows[section]=clone(configData[section]);
   for(const k of Object.keys(configDraftMods))if(k.startsWith(section+'['))delete configDraftMods[k];
  }
- function addRow(section){const rows=configData[section]??=[];const limit={systems:25,software_items:55,hardware_items:55,suppliers:45,tools:55,environmental_baseline:495,environmental_flow_down:495}[section];if(rows.length>=limit){message='This workbook supports at most '+limit+' rows for this section.';render();return message;}
-  let n=1,prefix={systems:'sys',software_items:'sw',hardware_items:'hw',suppliers:'sup',tools:'tool'}[section],id;do{id=prefix+'.item_'+String(n++).padStart(3,'0');}while(rows.some(r=>r.id===id));
-  rows.push({...clone(templates[section]),...(!section.startsWith('environmental_')?{id}:{})});syncRows(section);const i=rows.length-1;
+ function addRow(section,preset={}){const rows=configData[section]??=[];const limit={systems:25,software_items:55,hardware_items:55,suppliers:45,tools:55,environmental_baseline:495,environmental_flow_down:495}[section];if(rows.length>=limit){message='This workbook supports at most '+limit+' rows for this section.';render();return message;}
+  // A new LRU's ID starts LRU.item_ (owner, 19 November 2026); a System keeps sys.item_.
+  let n=1,prefix=section==='systems'&&String(preset.unit_type||'').toUpperCase()==='LRU'?'LRU':{systems:'sys',software_items:'sw',hardware_items:'hw',suppliers:'sup',tools:'tool'}[section],id;do{id=prefix+'.item_'+String(n++).padStart(3,'0');}while(rows.some(r=>r.id===id));
+  // preset: values the new row starts with, e.g. unit_type when the System/LRU tab asked which to add.
+  rows.push({...clone(templates[section]),...(!section.startsWith('environmental_')?{id}:{}),...preset});syncRows(section);const i=rows.length-1;
   for(const k of Object.keys(rows[i]))if(k!=='id'&&configRequired(`${section}[${i}].${k}`)||CONFIG_BOOLEAN_KEYS.has(k))mark(`${section}[${i}].${k}`,true);
-  message='New row added. Enter its company-controlled PN and applicable details.';render();refreshConfig();return '';
+  message='New item added. Enter its company-controlled PN and applicable details.';render();refreshConfig();return '';
  }
  // Duplicate a card (owner, v5.3.40): everything that saves typing is copied - parent system, DAL,
  // supplier, language, notes - while the two fields that must be unique are not. The id is derived
@@ -190,7 +193,7 @@
   const copy=clone(source);
   const base=String(source.id||'').trim();
   if(base){let id=base+'_copy',n=2;while(rows.some(r=>r.id===id))id=base+'_copy'+(n++);copy.id=id;}
-  else{let n=1,prefix={systems:'sys',software_items:'sw',hardware_items:'hw',suppliers:'sup',tools:'tool'}[section],id;
+  else{let n=1,prefix=section==='systems'&&String(source.unit_type||'').toUpperCase()==='LRU'?'LRU':{systems:'sys',software_items:'sw',hardware_items:'hw',suppliers:'sup',tools:'tool'}[section],id;
    do{id=prefix+'.item_'+String(n++).padStart(3,'0');}while(rows.some(r=>r.id===id));copy.id=id;}
   if('pn' in copy)copy.pn='';
   if(copy.name)copy.name=String(copy.name)+' (copy)';
@@ -321,6 +324,7 @@
   if(step===2){for(const [role,person] of Object.entries(configData.personnel||{}))if(person&&typeof person==='object')host.appendChild(card(configTitle(role),['name','email','title','signatory'].map(k=>'personnel.'+role+'.'+k)));host.appendChild(card('Assurance Independence',['personnel.independence_mechanism','personnel.independence_description']));host.appendChild(card('Target Dates',CONFIG_DATE_ORDER.map(k=>'program.'+k),'Use YYYY-MM-DD, TBD, or Not applicable: followed by the reason. Milestone timing is agreed by the program.'));host.appendChild(card('Remaining Intake Notes',['intake.survey_notes']));}
   const footer=node('div','intake-footer');footer.appendChild(button('Back',()=>{step=Math.max(0,step-1);render();toTop();}));if(step===stages.length-1){footer.appendChild(button('Save Configuration Workbook',createWorkbook));footer.appendChild(button('Continue to Config Data',()=>{switchMainTab('config');renderConfigTabs();toTop(document.getElementById('panel-config'));},false));}else footer.appendChild(button('Continue',()=>{step++;render();toTop();},false));host.appendChild(footer);updateProgress();if(typeof enhanceDateInputs==='function')enhanceDateInputs(host);
   if(busy)host.querySelectorAll('button,input,select,textarea').forEach(e=>e.disabled=true);
+  if(typeof sizeRowIconButtons==='function')sizeRowIconButtons(host);
  }
  window.addEventListener('beforeunload',event=>{if(Object.keys(configDraftMods).length){event.preventDefault();event.returnValue='';}});
  // File → New Program Intake: open the intake at the top with the program type ready to choose.

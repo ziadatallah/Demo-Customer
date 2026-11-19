@@ -11,7 +11,7 @@ const here=path.dirname(fileURLToPath(import.meta.url)),service=path.resolve(her
 const repositoryRoot=process.env.ISAF_REPOSITORY_DIR||path.join(service,"repository");
 const repository=await createRepositoryProviderAsync({root:repositoryRoot});
 const jobs=createBuildJobStore(repository,{root:path.join(repositoryRoot,"build-jobs"),organizationId:process.env.ISAF_ORGANIZATION_ID});
-const operations=createOperationsCenter({root:repositoryRoot,environment:process.env,version:"5.3.41",edition:process.env.ISAF_EDITION||"full",metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
+const operations=createOperationsCenter({root:repositoryRoot,environment:process.env,version:"5.3.44",edition:process.env.ISAF_EDITION||"full",metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
 const bundle=path.resolve(service,"../03_Build_Engine/build.bundle.js"),source=path.resolve(service,"../03_Build_Engine/src/build.js");
 const worker=new DurableBuildWorker({jobStore:jobs,repository,operations,workerId:`${os.hostname()}-${process.pid}`,buildOptions:{
   buildScript:fs.existsSync(bundle)?bundle:source,

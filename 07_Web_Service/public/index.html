@@ -131,6 +131,8 @@
 
     /* ── Config sub-tabs ── */
     .config-tab-bar, #intakeHost .intake-steps { display: flex; align-items: flex-end; gap: 0; border-bottom: 1px solid #C8D2DE; margin: 0 0 0.85rem; padding: 0 .2rem; overflow-x: auto; overflow-y: hidden; }
+    /* The Config Data tabs wrap onto further rows like the main tabs, with no scrollbar (owner, 19 November 2026). */
+    .config-tab-bar { flex-wrap: wrap; overflow: visible; }
     .config-tab-bar button, #intakeHost .intake-steps button { flex: 0 0 auto; height: 2.3rem; display: flex; align-items: center; white-space: nowrap; background: #F2F5F8 !important; color: #43546A !important; border: 1px solid #D5DDE6 !important; border-bottom-color: #C8D2DE !important; border-radius: 7px 7px 0 0 !important; padding: 0 1.05rem !important; margin: .35rem .18rem -1px !important; font-size: 0.88rem !important; font-weight: 550 !important; cursor: pointer; transition: color 0.15s, background 0.15s; }
     .config-tab-bar button:hover:not(:disabled), #intakeHost .intake-steps button:hover:not(:disabled) { background: #E8EEF5 !important; color: var(--brand) !important; }
     .config-tab-bar button.active, #intakeHost .intake-steps button[aria-current="step"] { box-shadow: inset 0 3px 0 var(--brand) !important; color: var(--brand) !important; font-weight: 650 !important; background: var(--surface) !important; border-color: #AABBCD !important; border-bottom-color: var(--surface) !important; }
@@ -150,6 +152,7 @@
        rendered almost white on the header's light background. */
     .config-card-head h4 { margin:0; font-size:.95rem; display:flex; align-items:baseline; gap:.5rem; min-width:0; color:var(--text); }
     .config-card-actions {display:inline-flex;gap:.4rem;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;}
+    .config-card-title { display:inline-flex; align-items:baseline; gap:.5rem; min-width:0; }
     .config-card-id { font-size:.78rem; font-weight:400; color:var(--text-muted); font-family:ui-monospace,SFMono-Regular,Menlo,monospace; }
     .config-card-fields { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:.75rem 1rem; padding:.9rem; }
     .config-field { min-width:0; display:flex; flex-direction:column; gap:.25rem; }
@@ -276,11 +279,15 @@
     .multi-pick-summary {overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
     .multi-pick-caret {flex:0 0 auto;width:0;height:0;border-top:5px solid currentColor;border-left:4px solid transparent;border-right:4px solid transparent;opacity:.6;}
     .multi-pick-source.field-missing + .multi-pick-button {border:1px solid #b42318;background-color:#fff1f0;}
-    .multi-pick-menu {position:absolute;z-index:40;top:calc(100% + 2px);left:0;min-width:100%;max-width:22rem;max-height:14rem;overflow:auto;padding:.3rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:0 6px 18px rgba(16,32,52,.18);}
+    .multi-pick-menu {position:absolute;z-index:40;top:calc(100% + 2px);left:0;min-width:100%;max-width:30rem;max-height:14rem;overflow-x:hidden;overflow-y:auto;padding:.3rem;border:1px solid var(--border);border-radius:6px;background:var(--surface);box-shadow:0 6px 18px rgba(16,32,52,.18);}
     .multi-pick-option {display:flex;align-items:center;gap:.45rem;padding:.2rem .3rem;border-radius:4px;font-size:.85rem;white-space:nowrap;cursor:pointer;}
     .multi-pick-option:hover {background:var(--bg);}
     .multi-pick-option input {width:14px;height:14px;min-width:0;margin:0;accent-color:var(--brand);}
+    .multi-pick-option span {min-width:0;overflow:hidden;text-overflow:ellipsis;}
     .multi-pick-empty {margin:.25rem .3rem;font-size:.8rem;color:var(--text-muted);}
+    .multi-pick-add {display:flex;gap:.3rem;position:sticky;bottom:-.3rem;margin:.3rem -.3rem -.3rem;padding:.35rem .6rem .45rem;border-top:1px solid var(--border);background:var(--surface);}
+    .multi-pick-add input {flex:1 1 auto;min-width:0;font-size:.82rem;padding:.2rem .3rem;}
+    .multi-pick-add .multi-pick-add-btn {flex:0 0 auto;font-size:.78rem;padding:.15rem .5rem;}
     .customer-demo-pick {display:flex;align-items:center;flex:0 0 auto;padding:0 .15rem;cursor:pointer;}
     .customer-demo-pick input {width:14px;height:14px;min-width:0;margin:0;cursor:pointer;accent-color:var(--brand);}
     .customer-row > :first-child {flex:1 1 auto;min-width:0;}
@@ -289,6 +296,12 @@
     .customer-move-btn:disabled {opacity:.3;cursor:default;}
     .customer-move-btn:hover:not(:disabled) {border-color:var(--brand);color:var(--brand);}
     .key-cell > span { min-width: 0; flex: 1 1 auto; }
+    /* Field labels keep their natural width: left-aligned, with the "i" right after the text. */
+    .key-cell > .required-marker, .key-cell > .field-label { flex: 0 1 auto; }
+    /* Table-view column headers wrap when a column is narrow; laid out as text so the "i" follows the last word. */
+    th .key-cell { display: block; }
+    th .key-cell > span { display: inline; }
+    th .key-cell > .popover-wrap { vertical-align: middle; margin-left: .4rem; }
     .key-cell > .popover-wrap { flex: 0 0 auto; }
     .popover-wrap { position: relative; display: inline-flex; }
     /* Output folder input — smaller, softer */
@@ -372,7 +385,12 @@
     .config-array-scroll::-webkit-scrollbar-track {background:#eef1f5;}
     .config-array-scroll::-webkit-scrollbar-thumb {background:#9aa7b6;border-radius:7px;border:3px solid #eef1f5;}
     .config-array-scroll::-webkit-scrollbar-thumb:hover {background:#6f7f92;}
-    .config-array-scroll {scrollbar-width:auto;scrollbar-color:#9aa7b6 #eef1f5;}
+    /* Firefox only. Chrome and Edge 121+ ignore the ::-webkit-scrollbar rules above whenever
+       scrollbar-color is set, and on a Mac they then fall back to overlay scrollbars that stay
+       hidden until you scroll, so the table showed no horizontal scrollbar (owner, 17 November 2026). */
+    @supports not selector(::-webkit-scrollbar) {
+      .config-array-scroll {scrollbar-width:auto;scrollbar-color:#9aa7b6 #eef1f5;}
+    }
     .config-array-scroll thead th {position:sticky;top:0;z-index:2;}
     .date-field {display:inline-flex;align-items:center;gap:.3rem;}
     .date-field .date-pick {padding:.15rem .4rem;font-size:.9rem;line-height:1;}
@@ -383,13 +401,18 @@
     main.app-locked > :not(#accessCallout) { opacity: .4; pointer-events: none; user-select: none; filter: grayscale(.4); } /* Admin-only watermark/PDF options: hidden in Customer and Demo apps */
     .build-output-options label {display:flex;align-items:center;gap:.45rem;font-size:.92rem;font-weight:500;}
     .customer-actions {display:flex;gap:.5rem;flex-wrap:wrap;margin:.6rem 0;}
-    .customers-heading {display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;}
+    /* Demo view sits beside the title; the two help buttons sit together on the right (owner, 19 November 2026). */
+    .customers-heading {display:flex;align-items:center;justify-content:flex-start;gap:1rem;flex-wrap:wrap;}
+    .customers-heading #customerSetupHelp {margin-left:auto;}
     .customers-heading h2 {margin:0;}
     .customer-layout {display:grid;grid-template-columns:260px 1fr;gap:1rem;align-items:start;}
     .customer-list {display:flex;flex-direction:column;gap:.4rem;}
     .customer-item {text-align:left;display:flex;flex-direction:column;gap:.15rem;padding:.55rem .7rem;border:1px solid #cbd5df;border-radius:8px;background:#fff;color:#25364a;cursor:pointer;}
     .customer-item span {font-size:.78rem;color:#5a6b7e;}
     .customer-item.active {border-color:#2f6db5;box-shadow:0 0 0 2px rgba(47,109,181,.15);}
+    /* Light blue on hover (owner, 19 November 2026): the general button hover is the dark brand blue,
+       which hid the customer name and the version line. */
+    .customer-item:hover:not(:disabled) {background:#e8f1fb;border-color:#9fc0e6;color:#25364a;}
     .customer-item-wrap {display:flex;flex-direction:column;gap:.15rem;}
     .customer-item-wrap .customer-item {width:100%;}
     .customer-site {font-size:.8rem;font-weight:500;color:#1f5fa8;text-decoration:underline;overflow-wrap:anywhere;padding:0 .2rem;}
@@ -406,6 +429,8 @@
     .customer-section h3 {margin:-.9rem -1.1rem .9rem;padding:.6rem 1.1rem;font-size:.95rem;font-weight:600;color:var(--text);background:var(--bg);border-bottom:1px solid var(--border);border-radius:10px 10px 0 0;}
     .customer-grid {display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:.6rem .9rem;}
     .customer-grid label,.customer-section > label {display:flex;flex-direction:column;gap:.25rem;font-size:.86rem;font-weight:550;color:#344256;}
+    /* Boxes in a row line up; a label that wraps to two lines grows upward (owner, 19 November 2026). */
+    .customer-grid label {justify-content:flex-end;}
     .customer-grid input,.customer-grid select,.customer-section textarea,.customer-table input,.customer-table select {padding:.4rem .55rem;border:1px solid #AEB9C7;border-radius:6px;font:inherit;font-size:.88rem;}
     .customer-section textarea {width:100%;box-sizing:border-box;}
     .customer-checks {border:0;padding:0;margin:0 0 .6rem;display:flex;flex-wrap:wrap;gap:.35rem .6rem;}
@@ -434,15 +459,30 @@
     @media (max-width:800px){.customer-layout{grid-template-columns:1fr;}}
     /* Duplicate used to inherit the full .secondary size while Remove was compact, so the two sat
        side by side at different sizes (owner, 16 November 2026). They now match and stack. */
-    .config-remove-row, .config-duplicate-row {font-size:.75rem;padding:.2rem .5rem;white-space:nowrap;}
-    .config-row-actions {display:flex;flex-direction:column;gap:.25rem;align-items:stretch;}
+    /* Duplicate and Remove are the owner's pictures as buttons, side by side, as tall as the edit
+       boxes on their row (owner, 19 November 2026). sizeRowIconButtons() sets --edit-box-h from a
+       visible edit box in the same row, card or Program Intake item; these defaults cover the moment
+       before that and a collapsed card, and match the measured boxes (28, 30 and 37 px). */
+    .config-add-kind {display:inline-flex;align-items:center;gap:.35rem;margin-left:.5rem;font-size:.85rem;}
+    .config-add-kind[hidden] {display:none;}
+    .config-fixed-value {display:inline-block;padding:.2rem .1rem;font-weight:600;color:#43546A;}
+    .row-icon-group {display:inline-flex;align-items:center;gap:.25rem;flex:0 0 auto;--edit-box-h:28px;}
+    .config-card-head .row-icon-group {--edit-box-h:30px;}
+    #intakeHost .row-icon-group {--edit-box-h:37px;}
+    .row-icon-btn {display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;flex:0 0 auto;
+      height:var(--edit-box-h);width:var(--edit-box-h);min-width:0;margin:0;padding:3px;border:1px solid transparent;
+      border-radius:6px;background:transparent;cursor:pointer;line-height:0;}
+    .row-icon-btn img {display:block;width:100%;height:100%;object-fit:contain;pointer-events:none;}
+    .row-icon-btn:hover:not(:disabled) {background:#eef2f6;border-color:var(--border);}
+    .row-icon-btn:focus-visible {outline:3px solid rgba(49,91,130,.35);outline-offset:1px;}
+    .row-icon-btn:disabled {opacity:.45;cursor:default;}
+    .config-row-actions {display:flex;align-items:center;}
     .config-card-toggle {display:flex;align-items:center;gap:.4rem;width:100%;padding:0;border:0;background:none;font:inherit;color:inherit;text-align:left;cursor:pointer;}
     .config-card-toggle:focus-visible {outline:3px solid rgba(49,91,130,.35);outline-offset:2px;border-radius:4px;}
     .config-card-chevron {flex:0 0 auto;width:0;height:0;border-left:5px solid currentColor;border-top:4px solid transparent;border-bottom:4px solid transparent;opacity:.55;transition:transform .12s ease;}
     .config-card:not(.is-collapsed) .config-card-chevron {transform:rotate(90deg);}
     .config-card.is-collapsed .config-card-fields {display:none;}
     .config-card.is-collapsed .config-card-head {margin-bottom:0;}
-    .config-row-actions button {width:100%;}
     .config-review {margin:0 0 .8rem;padding:.5rem .8rem;border:1px solid #d9c27a;background:#fff9e6;border-radius:6px;}
     .config-review summary {font-weight:600;cursor:pointer;}
 .config-table.config-array-table {width:max-content;min-width:100%;}
@@ -566,7 +606,7 @@
 #intakeHost details.intake-card {position:relative;padding-top:.85rem;}
 #intakeHost .intake-item-summary {padding:.55rem 2.5rem .55rem .65rem;font-size:.9rem;font-weight:550;color:#394b60;}
 #intakeHost .intake-item-actions {position:absolute;right:1.25rem;top:.9rem;z-index:1;display:flex;gap:.35rem;flex-wrap:wrap;justify-content:flex-end;}
-#intakeHost .intake-item-remove, #intakeHost .intake-item-duplicate {font-size:.76rem;padding:.3rem .55rem;border-radius:6px;}
+#intakeHost .intake-item-remove, #intakeHost .intake-item-duplicate {padding:3px;}
 #intakeHost .intake-item-summary.has-actions {padding-right:14rem;}
 @media (max-width:720px){#intakeHost .intake-item-actions {position:static;margin:0 .65rem .5rem;} #intakeHost .intake-item-summary.has-actions {padding-right:.65rem;}}
 #intakeHost .intake-empty {padding:1.1rem;border:1px dashed #cbd5df;border-radius:8px;background:#f8fafc;color:#596579;font-size:.9rem;}
@@ -625,7 +665,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 <header id="mainHeader">
   <h1 id="headerTitle">ISAF (Integrated Standards Assurance Framework) — &lt;Company&gt;</h1>
   <span class="version-block">
-    <span class="version" id="appVersion">v5.3.41</span>
+    <span class="version" id="appVersion">v5.3.44</span>
     <!-- The clock that dates generated documents. Read-only on purpose: it reflects
          program.time_zone, so if it disagrees with the wall clock the documents are
          already going to be dated wrong, and the fix is the field, not this display. -->
@@ -782,7 +822,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
   <div class="tab-panel hidden" id="panel-documents"><div id="certPackageHost"></div><h3>Program document register</h3><p class="repo-muted">Certification and internal documents, protected versions, build snapshots and released baselines. Names are activity labels, not authenticated individual accounts.</p><div class="repo-toolbar"><input id="repoSearch" placeholder="Search documents" aria-label="Search documents"><select id="repoCategory" aria-label="Category"><option value="">All categories</option><option>Certification support</option><option>Engineering</option><option>Company process</option><option>Supplier</option><option>Meeting</option><option>Other</option></select><button id="repoImport">Import document</button><button id="repoControl">Enable document control</button><button id="repoBaseline">Establish baseline</button></div><p id="repoDocumentCount" class="repo-muted"></p><div id="repoDocuments" class="repo-scroll"></div><div id="repoRecords"></div></div>
   <div class="tab-panel hidden" id="panel-roadmap"><h3>Document roadmap</h3><p class="repo-muted">Assign owners, target dates and dependencies in each document's register entry.</p><div class="repo-toolbar"><input id="repoRoadmapSearch" placeholder="Search roadmap" aria-label="Search roadmap"><select id="repoRoadmapFilter" aria-label="Roadmap filter"><option value="">All documents</option><option value="blocked">Waiting for dependencies</option><option value="overdue">Overdue</option><option value="mine">Assigned to me</option></select></div><div id="repoRoadmap" class="repo-scroll"></div></div>
   <div class="tab-panel hidden" id="panel-customers" aria-labelledby="tab-customers">
-    <div class="customers-heading"><h2>Customers</h2><button type="button" class="secondary" id="customerSetupHelp" onclick="window.open('help/new-customer-setup.html','isafCustomerSetupHelp','width=900,height=820,scrollbars=yes,resizable=yes')">Setup New Customer Help</button> <label class="privacy-switch" for="customerPrivacyToggle" title="Hide every customer except the demo customer, for showing the app to a prospect"><input type="checkbox" id="customerPrivacyToggle"><span class="privacy-switch-track" aria-hidden="true"></span><span class="privacy-switch-label">Demo view</span></label> <button type="button" class="secondary" id="customerUsageHelp" onclick="window.open('help/usage-tracking-setup.html','_blank','noopener')">Usage Tracking Setup</button></div>
+    <div class="customers-heading"><h2>Customers</h2> <label class="privacy-switch" for="customerPrivacyToggle" title="Hide every customer except the demo customer, for showing the app to a prospect"><input type="checkbox" id="customerPrivacyToggle"><span class="privacy-switch-track" aria-hidden="true"></span><span class="privacy-switch-label">Demo view</span></label> <button type="button" class="secondary" id="customerSetupHelp" onclick="window.open('help/new-customer-setup.html','isafCustomerSetupHelp','width=900,height=820,scrollbars=yes,resizable=yes')">Setup New Customer Help</button> <button type="button" class="secondary" id="customerUsageHelp" onclick="window.open('help/usage-tracking-setup.html','_blank','noopener')">Usage Tracking Setup</button></div>
     <p class="repo-muted">Record each customer's license, licensed scope, deployed version and patch history, and create their Customer app from this Admin version. Customer records are confidential and are kept in the folder that holds your Admin app folders and zips, so they carry over to new Admin versions. Every Customer app you create or publish, and every license or scope change, adds a row to the Excel delivery register in that folder.</p>
     <div class="customer-actions"><button type="button" id="customerNew">New customer</button><button type="button" class="secondary" id="customerSave">Save customer</button><button type="button" class="secondary" id="customerCreateApp" disabled>Create Customer app</button><button type="button" class="secondary" id="customerPublishApp" disabled>Publish Customer app</button><button type="button" class="secondary" id="customerPublishAll" title="Publish this Admin version to every hosted customer that has a GitHub repository and an access key">Publish all customers</button><button type="button" class="secondary" id="customerOpenApp" disabled title="Open this customer's hosted app (Hosted URL) in a new tab">Open Customer app</button><button type="button" class="secondary" id="customerExport" disabled>Export record (Excel)</button><button type="button" class="secondary" id="customerDelete" disabled>Delete</button></div>
     <span id="customerBusy" class="build-busy hidden" role="status" aria-live="polite"><span class="build-busy-spinner" aria-hidden="true"></span><span id="customerBusyText">Building the Customer app…</span><span class="build-busy-bar" aria-hidden="true"></span><span id="customerBusyTime" class="build-busy-time">0:00</span></span>
@@ -1963,19 +2003,21 @@ window.repoWorkbook={
 };
 
 // ── Config tab rendering ───────────────────────────────────────────────────
-// The Systems tab is the register of certifiable units. Until the unit hierarchy splits it into
-// a Systems sheet and an LRUs sheet, an LRU program's rows are all LRUs, so the tab is named for
-// what it holds rather than carrying a note that contradicts its own label.
+// The register of certifiable units is named for what it holds (owner, 19 November 2026): "System/LRU"
+// in an Aircraft or System program, where it holds both levels, and "LRU" in an LRU program.
 function configTabLabel(tab) {
-  if (tab.id === 'systems' && isLruProgram()) return 'LRUs';
+  if (tab.id === 'systems') return systemsTabName();
   return tab.label;
 }
+function systemsTabName() { return isLruProgram() ? 'LRU' : 'System/LRU'; }
+// An Aircraft or System program holds systems and the LRUs inside them on this one tab.
+function isTwoLevelProgram() { return /^(AIRCRAFT|SYSTEM)$/.test(String(configData?.program?.type||'').toUpperCase()); }
 
 const CONFIG_TABS = [
   { id: 'program',   label: 'Program',        path: 'program' },
   { id: 'personnel', label: 'Personnel',       path: 'personnel' },
   { id: 'authority', label: 'Authority',       path: 'authority' },
-  { id: 'systems',   label: 'Systems',         path: 'systems' },
+  { id: 'systems',   label: 'System/LRU',      path: 'systems' },
   { id: 'safety',    label: 'Safety',          path: 'safety' },
   { id: 'software',  label: 'Software Items',  path: 'software_items' },
   { id: 'hardware',  label: 'Hardware Items',  path: 'hardware_items' },
@@ -2036,6 +2078,7 @@ function renderConfigTabs() {
   enhanceConfigTable();
   enhanceTBDFields();
   enhanceDateInputs($('configTabContent'));
+  sizeRowIconButtons($('configTabContent'));
   refreshConfigRequired();
   searchConfig();
   window.configCheck?.decorateTabs();
@@ -2110,6 +2153,33 @@ const CONFIG_INDEPENDENCE_OPTIONS=[
  'A quality or assurance function with its own reporting line to management',
  'An external party, such as a DER, consultant or parent-company quality group',
  'Automated analysis whose result does not depend on the developer'];
+// One closed dropdown opening a checkbox list, storing its value as an array in a hidden
+// multi-select (see the comment at its first use in makeValueCell). Options are register ids,
+// labelled "id — name"; a chosen value the register does not hold is kept as an option so it is
+// visible rather than silently dropped. cfg.freeText, when set, adds an entry row at the end of
+// the list for typing a value the register does not offer.
+function multiPickCell(fullPath,val,ids,names,cfg){
+  ids=[...ids];
+  const chosen=Array.isArray(val)?val.map(v=>String(v).trim()).filter(Boolean)
+                                 :String(val??'').split(/[,;\n]/).map(v=>v.trim()).filter(Boolean);
+  for(const c of chosen)if(!ids.includes(c))ids.unshift(c);
+  const labelFor=id=>names.get(id)&&names.get(id)!==id?`${id} — ${names.get(id)}`:id;
+  const opts=ids.map(id=>`<option value="${escapeHtml(id)}"${chosen.includes(id)?' selected':''}>${escapeHtml(labelFor(id))}</option>`).join('');
+  const hintHtml=cfg.hint?`<div class="muted" style="font-size:.78rem;margin-top:.2rem">${cfg.hint}</div>`:'';
+  const menuId='pick-'+fullPath.replace(/[^a-z0-9]/gi,'_');
+  const none=cfg.none||'None chosen';
+  const summary=chosen.length===0?none:chosen.length===1?labelFor(chosen[0]):`${chosen.length} chosen`;
+  const boxes=ids.map(id=>`<label class="multi-pick-option" title="${escapeHtml(labelFor(id))}"><input type="checkbox" value="${escapeHtml(id)}"${chosen.includes(id)?' checked':''}><span>${escapeHtml(labelFor(id))}</span></label>`).join('')
+    ||`<p class="multi-pick-empty">${escapeHtml(cfg.empty||'Nothing to choose from yet.')}</p>`;
+  const add=cfg.freeText?`<div class="multi-pick-add"><input type="text" placeholder="${escapeHtml(cfg.freeText)}" aria-label="${escapeHtml(cfg.freeText)}"><button type="button" class="secondary multi-pick-add-btn">Add</button></div>`:'';
+  return `<td><div class="multi-pick" data-none="${escapeHtml(none)}">`
+    +`<select multiple class="multi-pick-source" data-path="${escapeHtml(fullPath)}" aria-hidden="true" tabindex="-1">${opts}</select>`
+    +`<button type="button" class="multi-pick-button" aria-haspopup="true" aria-expanded="false" aria-controls="${menuId}" title="${escapeHtml(cfg.title)}">`
+    +`<span class="multi-pick-summary">${escapeHtml(summary)}</span><span class="multi-pick-caret" aria-hidden="true"></span></button>`
+    +`<div class="multi-pick-menu" id="${menuId}" role="group" aria-label="${escapeHtml(cfg.aria)}" hidden>${boxes}${add}</div>`
+    +`</div>${hintHtml}</td>`;
+}
+
 function makeValueCell(key, val, path) {
   const meta = getFieldMeta(key,path.split(/[.[]/)[0]);
   if(path==='program'&&key==='cert_basis_type'&&approvalBasisValue())return `<td><input type="text" data-path="program.cert_basis_type" data-derived="approval-path" value="${escapeHtml(approvalBasisValue())}" readonly aria-readonly="true" title="Set automatically from Approval Path"><span class="hint" style="display:block;margin-top:.35rem">Set automatically from Approval Path.</span></td>`;
@@ -2147,16 +2217,26 @@ function makeValueCell(key, val, path) {
   }
   // A Sys/LRU row says what it is. Blank keeps a row behaving as it did before the column existed,
   // so it stays first in the list rather than forcing a choice on a single-level program.
+  // Type is set when the item is added (Add Item asks System or LRU) and is not editable afterwards
+  // (owner, 19 November 2026). A row from a workbook made before that has no Type yet; it can be
+  // chosen once, and then it is fixed like any other.
   if (key==='unit_type' && path.startsWith('systems')) {
+    const t=String(val??'').trim().toUpperCase();
+    if (t==='SYSTEM'||t==='LRU') return `<td><span class="config-fixed-value" data-fixed-path="${escapeHtml(fullPath)}" title="Set when the item was added">${t==='SYSTEM'?'System':'LRU'}</span></td>`;
     return `<td>${configTbdSelect(fullPath,['','SYSTEM','LRU'],String(val??''))}</td>`;
   }
   // An LRU names the system that contains it, from this same sheet. A row never parents itself.
+  // Only a System can be a parent (owner, 19 November 2026): an LRU cannot have an LRU as its parent,
+  // and a System cannot have an LRU as its parent, so only rows whose Type is System are offered.
+  // A value already there that is not one is kept, so it stays visible; the validator (V153) flags it.
   if (key==='parent_unit' && path.startsWith('systems')) {
     const self=String(configData?.systems?.[Number((path.match(/\[(\d+)\]/)||[])[1])]?.id||'');
-    const ids=(configData?.systems||[]).map(u=>String(u.id||'')).filter(x=>x&&x!==self);
+    const ids=(configData?.systems||[]).filter(u=>String(u.unit_type||'').trim().toUpperCase()==='SYSTEM')
+      .map(u=>String(u.id||'')).filter(x=>x&&x!==self);
     const current=String(val??'');
     if(current&&!ids.includes(current))ids.unshift(current);
-    return `<td>${configTbdSelect(fullPath,['',...ids],current)}</td>`;
+    // No parent shows as N/A, as in every Parent dropdown (owner, 19 November 2026); the value stays blank.
+    return `<td>${configTbdSelect(fullPath,['',...ids],current,{'':'N/A'})}</td>`;
   }
   // Parent System names a unit from the Systems register, so offer those ids rather than asking
   // the user to retype one and risk a mistyped reference the build then rejects. Blank stays
@@ -2166,31 +2246,35 @@ function makeValueCell(key, val, path) {
   // It is a LIST: one software load installed in two LRUs is one certified item with one document
   // set, referenced by each, not two rows. So this is a multi-select, and the value round-trips as
   // an array (applyConfigInput reads selectedOptions; a plain .value would take only the first).
+  // A list box showing every option grew down the card and the table row and cost more vertical
+  // room than the rest of the item put together (owner, 16 November 2026). multiPickCell is a
+  // closed dropdown that opens a checkbox list. The multi-select is kept as the value, hidden:
+  // saving, the missing-field highlight and the config search all read it, and a checkbox list of
+  // its own would have had to re-implement each of those.
   if (key==='parent_system') {
     const ids=(configData?.systems||[]).map(s=>String(s.id||'')).filter(Boolean);
-    const chosen=Array.isArray(val)?val.map(v=>String(v).trim()).filter(Boolean)
-                                   :String(val??'').split(/[,;\n]/).map(v=>v.trim()).filter(Boolean);
-    for(const c of chosen)if(!ids.includes(c))ids.unshift(c);
     const names=new Map((configData?.systems||[]).map(s=>[String(s.id||''),String(s.name||'')]));
-    const labelFor=id=>names.get(id)&&names.get(id)!==id?`${id} — ${names.get(id)}`:id;
-    const opts=ids.map(id=>`<option value="${escapeHtml(id)}"${chosen.includes(id)?' selected':''}>${escapeHtml(labelFor(id))}</option>`).join('');
-    const hint=ids.length?'':'Add a system or LRU on the Systems tab first.';
-    const hintHtml=hint?`<div class="muted" style="font-size:.78rem;margin-top:.2rem">${hint}</div>`:'';
-    // A list box showing every unit grew down the card and the table row and cost more vertical
-    // room than the rest of the item put together (owner, 16 November 2026). This is a closed
-    // dropdown that opens a checkbox list. The multi-select is kept as the value, hidden: saving,
-    // the missing-field highlight and the config search all read it, and a checkbox list of its
-    // own would have had to re-implement each of those.
-    const menuId='pick-'+fullPath.replace(/[^a-z0-9]/gi,'_');
-    const summary=chosen.length===0?'None chosen':chosen.length===1?labelFor(chosen[0]):`${chosen.length} chosen`;
-    const boxes=ids.map(id=>`<label class="multi-pick-option"><input type="checkbox" value="${escapeHtml(id)}"${chosen.includes(id)?' checked':''}><span>${escapeHtml(labelFor(id))}</span></label>`).join('')
-      ||'<p class="multi-pick-empty">No system or LRU on the Systems tab yet.</p>';
-    return `<td><div class="multi-pick">`
-      +`<select multiple class="multi-pick-source" data-path="${escapeHtml(fullPath)}" aria-hidden="true" tabindex="-1">${opts}</select>`
-      +`<button type="button" class="multi-pick-button" aria-haspopup="true" aria-expanded="false" aria-controls="${menuId}" title="Choose the systems or LRUs this item belongs to">`
-      +`<span class="multi-pick-summary">${escapeHtml(summary)}</span><span class="multi-pick-caret" aria-hidden="true"></span></button>`
-      +`<div class="multi-pick-menu" id="${menuId}" role="group" aria-label="Parent system or LRU" hidden>${boxes}</div>`
-      +`</div>${hintHtml}</td>`;
+    return multiPickCell(fullPath,val,ids,names,{
+      title:'Choose the systems or LRUs this item belongs to',
+      aria:'Parent system or LRU',
+      none:'N/A',   // no parent shows as N/A in every Parent dropdown (owner, 19 November 2026)
+      empty:`No system or LRU on the ${systemsTabName()} tab yet.`,
+      hint:ids.length?'':`Add a system or LRU on the ${systemsTabName()} tab first.`});
+  }
+  // Items Delivered lists software and hardware item ids (the validator's V070 rejects anything
+  // else, and the supplier's Highest DAL is derived from them), so offer the registers rather than
+  // asking the user to retype ids. The entry row (owner, 17 November 2026) takes an id the
+  // registers do not hold yet; the validator still checks every entry at build time, so a typed
+  // entry that matches no item is flagged there rather than silently kept.
+  if (key==='items_delivered') {
+    const items=[...(configData?.software_items||[]),...(configData?.hardware_items||[])];
+    const ids=items.map(s=>String(s.id||'')).filter(Boolean);
+    const names=new Map(items.map(s=>[String(s.id||''),String(s.name||'')]));
+    return multiPickCell(fullPath,val,ids,names,{
+      title:'Choose the software and hardware items this supplier delivers',
+      aria:'Items delivered',
+      empty:'No software or hardware item yet.',
+      freeText:'Add an item id'});
   }
 
   // Dropdown
@@ -2287,7 +2371,7 @@ function renderPersonnelTab(data, tab) {
 
 // Fields whose content is a sentence rather than a token. In a table they were squeezed into a
 // column like every other; in the card view they take the full card width.
-const CONFIG_LONG_FIELDS = new Set(['notes','additional_documents','function_summary','intended_use','lifecycle_data_affected','particular_risks','items_delivered','oversight_notes','work_countries','independence_description','description','justification','rationale']);
+const CONFIG_LONG_FIELDS = new Set(['notes','additional_documents','function_summary','intended_use','lifecycle_data_affected','particular_risks','oversight_notes','work_countries','independence_description','description','justification','rationale']);
 
 // The card view reuses makeValueCell so every control, its data-path wiring and the TBD handling
 // are identical to the table; only the <td> wrapper is dropped.
@@ -2307,6 +2391,35 @@ function configViewMode(tabPath, keyCount) {
 // Keyed by the row's own id where it has one, so the state survives a re-render and still points at
 // the same row after a row above it is removed; a row with no id falls back to its index, which is
 // the best available for a row with nothing stable to key on.
+// Duplicate and Remove as picture buttons (owner, 19 November 2026). The text they replaced survives
+// as each button's tooltip and accessible name. The data attributes are the ones the click handler
+// already reads, so nothing else changed.
+function rowIconButtons(tabPath, i, noun) {
+  const p = escapeHtml(tabPath);
+  return `<span class="row-icon-group">`
+    + `<button type="button" class="row-icon-btn config-duplicate-row" data-duplicate-row="${p}" data-row-index="${i}" title="Duplicate: copy this ${noun}'s details into a new one. The copy gets its own ID and an empty PN." aria-label="Duplicate this ${noun}"><img src="img/duplicate.png" alt=""></button>`
+    + `<button type="button" class="row-icon-btn config-remove-row" data-remove-row="${p}" data-row-index="${i}" title="Remove this ${noun}" aria-label="Remove this ${noun}"><img src="img/remove.png" alt=""></button>`
+    + `</span>`;
+}
+// The same picture button for code that builds elements (Program Intake).
+function makeRowIconButton(kind, label) {
+  const b = document.createElement('button'), img = document.createElement('img');
+  b.type = 'button'; b.className = 'row-icon-btn'; b.title = label; b.setAttribute('aria-label', label);
+  img.src = kind === 'duplicate' ? 'img/duplicate.png' : 'img/remove.png'; img.alt = '';
+  b.appendChild(img); return b;
+}
+// Each pair takes the height of a visible edit box in its own table row, card or intake item, so the
+// buttons line up with the boxes beside them wherever the boxes' own size is set.
+function sizeRowIconButtons(root) {
+  for (const group of (root || document).querySelectorAll('.row-icon-group')) {
+    const scope = group.closest('tr') || group.closest('.config-card') || group.closest('details.intake-card');
+    if (!scope) continue;
+    const box = [...scope.querySelectorAll('input[type="text"], input:not([type]), select, input[type="date"]')]
+      .find(el => el.offsetHeight > 0 && !el.closest('.multi-pick-menu, .row-icon-group'));
+    if (box) group.style.setProperty('--edit-box-h', box.offsetHeight + 'px');
+  }
+}
+
 const configCollapsedCards = new Set();
 const configCardKey = (tabPath, item, i) => tabPath + '::' + String(item?.id || ('#' + i));
 
@@ -2316,7 +2429,7 @@ function renderArrayCards(data, tab, keys, rowsEditable) {
     const sub = item.name && item.id ? `<span class="config-card-id">${escapeHtml(String(item.id))}</span>` : '';
     // Duplicate (owner, v5.3.41): copies the details that save typing into a new item with its own
     // ID and an empty PN, so a second LRU, software item or hardware item is a click and two edits.
-    const remove = rowsEditable ? `<span class="config-card-actions"><button type="button" class="secondary config-duplicate-row" data-duplicate-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Copy this item's details into a new one. The copy gets its own ID and an empty PN.">Duplicate</button><button type="button" class="secondary config-remove-row" data-remove-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Remove this item">Remove</button></span>` : '';
+    const remove = rowsEditable ? `<span class="config-card-actions">${rowIconButtons(tab.path, i, 'item')}</span>` : '';
     const fields = keys.map(k => {
       const meta = getFieldMeta(k), path = `${tab.path}[${i}]`;
       const wide = CONFIG_LONG_FIELDS.has(k) ? ' config-field-wide' : '';
@@ -2330,15 +2443,26 @@ function renderArrayCards(data, tab, keys, rowsEditable) {
 
 function renderArrayTab(data, tab) {
   const rowsEditable = !!window.intakeUI?.canAddRows?.(tab.path);
-  const toolbar = rowsEditable ? `<div class="config-row-tools"><button type="button" class="secondary" data-add-row="${escapeHtml(tab.path)}">+ Add row</button><span class="hint" id="configRowStatus" role="status"></span></div>` : '';
+  // "Add Item" everywhere (owner, 19 November 2026). On the System/LRU tab of an Aircraft or System
+  // program it first asks which kind to add, and the new row's Type is set to the answer.
+  const askKind = tab.path==='systems' && isTwoLevelProgram();
+  const chooser = askKind ? `<span class="config-add-kind" id="configAddKind" role="group" aria-label="Kind of item to add" hidden><span>Add a</span><button type="button" class="secondary" data-add-kind="SYSTEM">System</button><button type="button" class="secondary" data-add-kind="LRU">LRU</button></span>` : '';
+  const toolbar = rowsEditable ? `<div class="config-row-tools"><button type="button" class="secondary" data-add-row="${escapeHtml(tab.path)}"${askKind?' data-ask-kind="1" aria-haspopup="true" aria-controls="configAddKind"':''}>+ Add Item</button>${chooser}<span class="hint" id="configRowStatus" role="status"></span></div>` : '';
   if (!data.length) { $('configTabContent').innerHTML = toolbar + '<p class="hint">No items.</p>'; return; }
   const keys = Object.keys(data[0]).filter(k => (typeof data[0][k] !== 'object'||Array.isArray(data[0][k]))&&k!=='flow_down_letter_signed'&&configKeyVisible(tab.path,k));
+  // Type of item is the first column on the System/LRU tab (owner, 19 November 2026).
+  // Parent Unit follows it, so the containing system is visible without scrolling (owner, 19 November 2026).
+  if (tab.path==='systems') {
+    const t = keys.indexOf('unit_type'); if (t > 0) keys.unshift(...keys.splice(t, 1));
+    const pu = keys.indexOf('parent_unit'), at = keys.indexOf('unit_type') + 1;
+    if (pu > at) keys.splice(at, 0, ...keys.splice(pu, 1));
+  }
   // The tab is now named LRUs in an LRU program, so the note no longer has to explain away a
   // label that contradicts its own rows. What is left is the part a user still needs: that items
   // must name their LRU once more than one is listed.
   // An AIRCRAFT or SYSTEM program holds both levels on this one sheet, and Unit Type is optional and
   // blank by default, so nothing told the user the sheet could do it (owner, 16 November 2026).
-  const twoLevelNote = tab.path==='systems' && /^(AIRCRAFT|SYSTEM)$/.test(String(configData?.program?.type||'').toUpperCase())
+  const twoLevelNote = tab.path==='systems' && isTwoLevelProgram()
     ? '<p class="hint config-lru-note">This sheet holds both levels. Set <strong>Unit Type</strong> to SYSTEM on a system row and LRU on each unit inside it, then name the containing system in <strong>Parent Unit</strong> on every LRU row. A declaration is generated per LRU, not for the system.</p>'
     : '';
   const lruNote = isLruProgram() && tab.path==='systems' && data.length > 1 ? '<p class="hint config-lru-note">With more than one LRU listed, every software and hardware item must name its LRU in Parent System.</p>' : twoLevelNote;
@@ -2354,7 +2478,7 @@ function renderArrayTab(data, tab) {
   html += '</tr></thead><tbody>';
   data.forEach((item, i) => {
     html += '<tr>';
-    if (rowsEditable) html += `<td><div class="config-row-actions"><button type="button" class="secondary config-duplicate-row" data-duplicate-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Copy this row's details into a new one. The copy gets its own ID and an empty PN.">Duplicate</button><button type="button" class="secondary config-remove-row" data-remove-row="${escapeHtml(tab.path)}" data-row-index="${i}" title="Remove this row">Remove</button></div></td>`;
+    if (rowsEditable) html += `<td><div class="config-row-actions">${rowIconButtons(tab.path, i, 'row')}</div></td>`;
     keys.forEach(k => {
       const meta = getFieldMeta(k);
       const cellStart = html.length;
@@ -2558,8 +2682,9 @@ $('build-btn').addEventListener('click', async () => {
       <div class="summary-tile"><div class="label">Time</div><div class="value">${elapsed}s</div></div>`;
     $('summary').querySelectorAll('.build-result-actions,.build-output-location').forEach(node=>node.remove());
     if(buildDownloads.length){
-      // Hosted builds: the ZIP starts downloading as soon as the build finishes (one ZIP for all phases when
-      // several were built), because the site keeps finished builds only for a limited time.
+      // Hosted builds: nothing downloads by itself. The build reports success and offers the download
+      // buttons (one ZIP for all phases when several were built); the user downloads when ready
+      // (owner, 17 November 2026: the automatic download opened a Save As window on every build).
       const actions=document.createElement('div');actions.className='build-result-actions';actions.style.cssText='display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;margin-top:.8rem;';
       const fetchZip=async(url,filename,button)=>{const prior=button?.textContent;if(button){button.disabled=true;button.textContent='Preparing download…';}
         try{const response=await fetch(url,{headers:authHeaders()});if(!response.ok){let message='The build ZIP could not be downloaded.';try{message=(await response.json()).error||message;}catch{}throw Error(message);}
@@ -2567,7 +2692,7 @@ $('build-btn').addEventListener('click', async () => {
           const blobUrl=URL.createObjectURL(await response.blob()),link=document.createElement('a');link.href=blobUrl;link.download=name;document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(blobUrl),60000);return true;}
         catch(error){alert(error.message);return false;}finally{if(button){button.disabled=false;button.textContent=prior;}}};
       const all=buildDownloads.length>1?{url:'/api/download?ids='+buildDownloads.map(d=>encodeURIComponent(new URL(d.url,location.href).searchParams.get('id'))).join(','),filename:'ISAF_All_Phases.zip'}:buildDownloads[0];
-      const note=document.createElement('span');note.className='hint';note.textContent=buildDownloads.length===1?'Your ZIP is downloading. If it did not start, select Download ZIP.':'One ZIP with all phases is downloading. If it did not start, select Download all phases.';
+      const note=document.createElement('span');note.className='hint';note.textContent=buildDownloads.length===1?'Your ZIP is ready. Select Download ZIP to save it.':'Your ZIPs are ready. Select a download button to save them.';
       const main=document.createElement('button');main.type='button';main.textContent=buildDownloads.length===1?'Download ZIP':'Download all phases (one ZIP)';main.addEventListener('click',()=>fetchZip(all.url,all.filename,main));
       actions.append(main);
       if(buildDownloads.length>1)for(const item of buildDownloads){const button=document.createElement('button');button.type='button';button.className='secondary';button.textContent=`${item.phase==='all'?'All':item.phase.toUpperCase()} only`;button.addEventListener('click',()=>fetchZip(item.url,item.filename,button));actions.appendChild(button);}
@@ -2582,8 +2707,8 @@ $('build-btn').addEventListener('click', async () => {
             const r=await window.workingFolder.writeZip(await response.blob(),{backupStamp});saved.written+=r.written;saved.backedUp+=r.backedUp+r.superseded;saved.superseded+=r.superseded;saved.failed.push(...r.failed);saved.backup=r.backup||saved.backup;}
           note.textContent=`Saved ${saved.written} file${saved.written===1?'':'s'} into "${window.workingFolder.name()}"${saved.backedUp?`; ${saved.backedUp} previous version${saved.backedUp===1?'':'s'} kept in ${saved.backup}`:''}.${saved.failed.length?` ${saved.failed.length} could not be written (is a file open in Word?).`:''}`;
           $('log').textContent+=`\nWorking folder: ${note.textContent}\n${saved.failed.map(f=>`  Not written: ${f.path}: ${f.error}`).join('\n')}${saved.failed.length?'\n':''}`;}
-        catch(error){note.textContent=`Could not save into the working folder: ${error.message} Downloading the ZIP instead.`;fetchZip(all.url,all.filename,main);}
-      }else fetchZip(all.url,all.filename,main);
+        catch(error){note.textContent=`Could not save into the working folder: ${error.message} Select Download ZIP to save a copy instead.`;}
+      }
     }else{
       const displayPath = phasesToBuild.length === 1 ? lastOutputDir : lastOutputDir.replace(/_[^_]+$/, '') + '  (+ ' + (phasesToBuild.length - 1) + ' more folder' + (phasesToBuild.length > 2 ? 's' : '') + ')';
       const location=document.createElement('div');location.className='build-output-location';location.style.cssText='background:var(--bg);padding:0.5rem 0.75rem;border-radius:6px;font-family:ui-monospace,monospace;font-size:0.8rem;color:var(--text-muted);margin-top:0.5rem;word-break:break-all;';location.textContent=displayPath;$('summary').appendChild(location);
@@ -2740,20 +2865,75 @@ function closeMultiPicks(root=document){
  root.querySelectorAll('.multi-pick-menu:not([hidden])').forEach(m=>{m.hidden=true;
   m.closest('.multi-pick')?.querySelector('.multi-pick-button')?.setAttribute('aria-expanded','false');});
 }
-document.addEventListener('click',e=>{if(!e.target.closest?.('.multi-pick'))closeMultiPicks();});
-document.addEventListener('keydown',e=>{if(e.key==='Escape')closeMultiPicks();});
+document.addEventListener('keydown',e=>{if(e.key!=='Escape')return;closeMultiPicks();const k=document.getElementById('configAddKind');if(k&&!k.hidden){k.hidden=true;document.querySelector('[data-ask-kind]')?.setAttribute('aria-expanded','false');}});
+// The open list is a fixed layer, so scrolling the page or the table would leave it behind: close it.
+// Scrolls from inside a picker are ignored: ticking a box selects an option in the hidden 1 px
+// multi-select, which scrolls that select and closed the list after each tick (fixed 19 November 2026).
+window.addEventListener('scroll',e=>{if(!e.target.closest?.('.multi-pick'))closeMultiPicks();},true);
+window.addEventListener('resize',()=>closeMultiPicks());
 // A tick updates the hidden multi-select and then lets the ordinary input path save it, so the
-// value shape stays exactly what applyConfigInput already understood: an array of unit ids.
-$('configTabContent').addEventListener('change',e=>{
- const box=e.target.closest('.multi-pick-menu input[type=checkbox]');if(!box)return;
- const pick=box.closest('.multi-pick'),source=pick.querySelector('.multi-pick-source');
+// value shape stays exactly what applyConfigInput already understood: an array of ids. Delegated
+// at the document level, because the control is used on the Config Data tabs and on the Program
+// Intake form, where a container-bound handler left the menu unable to open.
+function updateMultiPick(pick){
+ const source=pick.querySelector('.multi-pick-source');
  const ticked=[...pick.querySelectorAll('.multi-pick-menu input[type=checkbox]')].filter(b=>b.checked).map(b=>b.value);
  [...source.options].forEach(o=>{o.selected=ticked.includes(o.value);});
  const label=o=>o?.textContent||'';
- const summary=ticked.length===0?'None chosen'
+ const summary=ticked.length===0?(pick.dataset.none||'None chosen')
    :ticked.length===1?label([...source.options].find(o=>o.value===ticked[0])):`${ticked.length} chosen`;
  pick.querySelector('.multi-pick-summary').textContent=summary;
  source.dispatchEvent(new Event('input',{bubbles:true}));
+}
+document.addEventListener('change',e=>{
+ const box=e.target.closest?.('.multi-pick-menu input[type=checkbox]');if(!box)return;
+ updateMultiPick(box.closest('.multi-pick'));
+});
+// The entry row at the end of a list that offers one (Items Delivered): typing a value and Add,
+// or Enter, ticks it. A value already in the list is ticked rather than duplicated.
+function addMultiPickEntry(addRow){
+ const input=addRow.querySelector('input'),v=String(input.value||'').trim();if(!v)return;
+ const pick=addRow.closest('.multi-pick'),source=pick.querySelector('.multi-pick-source');
+ const existing=[...pick.querySelectorAll('.multi-pick-menu input[type=checkbox]')].find(b=>b.value===v);
+ if(existing){existing.checked=true;}
+ else{
+  if(![...source.options].some(o=>o.value===v)){const opt=document.createElement('option');opt.value=v;opt.textContent=v;source.appendChild(opt);}
+  const lab=document.createElement('label');lab.className='multi-pick-option';
+  const box=document.createElement('input');box.type='checkbox';box.value=v;box.checked=true;
+  const span=document.createElement('span');span.textContent=v;
+  lab.append(box,span);
+  pick.querySelector('.multi-pick-empty')?.remove();
+  addRow.before(lab);
+ }
+ input.value='';
+ updateMultiPick(pick);
+}
+document.addEventListener('click',e=>{const btn=e.target.closest?.('.multi-pick-add-btn');if(btn)addMultiPickEntry(btn.closest('.multi-pick-add'));});
+document.addEventListener('keydown',e=>{if(e.key!=='Enter')return;const row=e.target.closest?.('.multi-pick-add');if(row){e.preventDefault();addMultiPickEntry(row);}});
+// The button opens the checkbox list; a click anywhere else closes any open list.
+document.addEventListener('click',e=>{
+ const pickBtn=e.target.closest?.('.multi-pick-button');
+ if(pickBtn){
+  const pick=pickBtn.closest('.multi-pick'),menu=pick.querySelector('.multi-pick-menu'),wasOpen=!menu.hidden;
+  closeMultiPicks();
+  if(!wasOpen){
+   // Opened as a fixed layer under the button: in Table view the cell sits inside a scroll box,
+   // and an absolutely placed list was clipped by it, showing one option cut in half.
+   menu.hidden=false;pickBtn.setAttribute('aria-expanded','true');
+   // Positions are measured on screen but set in CSS pixels; the root carries zoom (ui-scale.css),
+   // so convert by the measured scale rather than assuming 1.
+   // min-width:100% would resolve against the window once fixed, so the button's width is set first.
+   const r=pickBtn.getBoundingClientRect(),z=(r.width/pickBtn.offsetWidth)||1;
+   menu.style.position='fixed';menu.style.left='0px';menu.style.top='0px';menu.style.minWidth=(r.width/z)+'px';
+   const m=menu.getBoundingClientRect();
+   const mw=m.width,mh=m.height,below=window.innerHeight-r.bottom-8;
+   const left=Math.max(4,Math.min(r.left,window.innerWidth-mw-4)),top=mh>below&&r.top>below?Math.max(4,r.top-mh-2):r.bottom+2;
+   menu.style.left=((left-m.left)/z)+'px';menu.style.top=((top-m.top)/z)+'px';
+  }
+  return;
+ }
+ if(e.target.closest?.('.multi-pick'))return;   // ticking or typing must not close the list
+ closeMultiPicks();
 });
 $('configTabContent').addEventListener('input',e=>applyConfigInput(e.target));
 // Renaming an item ID updates every reference to it (environmental rows, parent systems, item lists).
@@ -2787,17 +2967,9 @@ $('configTabContent').addEventListener('click',e=>{
  const add=e.target.closest('[data-add-row]'),remove=e.target.closest('[data-remove-row]'),view=e.target.closest('[data-config-view]'),duplicate=e.target.closest('[data-duplicate-row]');
  // Checked first, and the card's own buttons are excluded, so Duplicate and Remove sit inside the
  // header without collapsing the card when clicked.
- // Parent System dropdown: the button opens the checkbox list, and a tick writes straight back to
- // the hidden multi-select, which is what everything else reads.
- const pickBtn=e.target.closest('.multi-pick-button');
- if(pickBtn){
-  const pick=pickBtn.closest('.multi-pick'),menu=pick.querySelector('.multi-pick-menu'),wasOpen=!menu.hidden;
-  closeMultiPicks();
-  if(!wasOpen){menu.hidden=false;pickBtn.setAttribute('aria-expanded','true');}
-  return;
- }
- if(e.target.closest('.multi-pick-menu'))return;   // ticking must not close the list
- closeMultiPicks();
+ // Multi-pick dropdowns (Parent System, Items Delivered) are handled by the document-level
+ // delegation near updateMultiPick, so they also work on the Program Intake form.
+ if(e.target.closest('.multi-pick'))return;
  const toggle=e.target.closest('[data-card-toggle]');
  if(toggle&&!duplicate&&!remove){
   const key=toggle.dataset.cardToggle;
@@ -2808,7 +2980,12 @@ $('configTabContent').addEventListener('click',e=>{
  }
  if(view){try{localStorage.setItem('isafConfigView.'+view.dataset.configViewTab,view.dataset.configView);}catch{}renderConfigTabs();return;}
  if(duplicate){const msg=window.intakeUI.duplicateRow(duplicate.dataset.duplicateRow,Number(duplicate.dataset.rowIndex));renderConfigTabs();if($('configRowStatus'))$('configRowStatus').textContent=msg||window.intakeUI.lastMessage?.()||'';return;}
- if(add){const msg=window.intakeUI.addRow(add.dataset.addRow);renderConfigTabs();if(msg&&$('configRowStatus'))$('configRowStatus').textContent=msg;}
+ const kind=e.target.closest('[data-add-kind]');
+ if(kind){const box=$('configAddKind');if(box)box.hidden=true;if(!kind.dataset.addKind)return;
+  const msg=window.intakeUI.addRow('systems',{unit_type:kind.dataset.addKind});renderConfigTabs();
+  if($('configRowStatus'))$('configRowStatus').textContent=msg||`New ${kind.dataset.addKind==='SYSTEM'?'System':'LRU'} added.`;return;}
+ if(add&&add.dataset.askKind){const box=$('configAddKind');if(box){box.hidden=!box.hidden;add.setAttribute('aria-expanded',String(!box.hidden));if(!box.hidden)box.querySelector('button')?.focus();}return;}
+ if(add){const preset=add.dataset.addRow==='systems'&&isLruProgram()?{unit_type:'LRU'}:{};const msg=window.intakeUI.addRow(add.dataset.addRow,preset);renderConfigTabs();if(msg&&$('configRowStatus'))$('configRowStatus').textContent=msg;}
  else if(remove){window.intakeUI.removeRow(remove.dataset.removeRow,Number(remove.dataset.rowIndex));renderConfigTabs();}
 });
 document.addEventListener('click',async e=>{
@@ -2898,9 +3075,14 @@ function enhanceConfigTable(){
  const table=$('configTabContent').querySelector('table');if(!table)return;
  const heads=[...table.querySelectorAll('thead th')],key=activeConfigTab;
  const widths=configColumnWidths[key]||heads.map(h=>Math.max(120,h.getBoundingClientRect().width));configColumnWidths[key]=widths;
+ // The Duplicate/Remove column is as narrow as its two buttons (owner, 19 November 2026): it was held
+ // at the 120 px every other column starts from. It has no resize grip; there is nothing to widen.
+ const actionsAt=heads.findIndex(h=>h.getAttribute('aria-label')==='Row actions');
+ if(actionsAt>=0){const icons=table.querySelector('tbody .row-icon-group'),td=icons?.closest('td');
+  if(icons&&td){const cs=getComputedStyle(td);widths[actionsAt]=Math.ceil(icons.scrollWidth+parseFloat(cs.paddingLeft)+parseFloat(cs.paddingRight)+parseFloat(cs.borderLeftWidth)+parseFloat(cs.borderRightWidth));}}
  const group=document.createElement('colgroup');heads.forEach(()=>group.appendChild(document.createElement('col')));table.prepend(group);table.style.tableLayout='fixed';table.style.minWidth='100%';
  const apply=()=>{[...group.children].forEach((col,i)=>col.style.width=widths[i]+'px');table.style.width=widths.reduce((a,b)=>a+b,0)+'px';};apply();
- heads.forEach((h,i)=>{const grip=document.createElement('span');grip.className='config-resizer';grip.tabIndex=0;grip.setAttribute('role','separator');grip.setAttribute('aria-orientation','vertical');grip.setAttribute('aria-label',`Resize ${h.textContent.trim()} column`);grip.setAttribute('aria-valuemin','100');grip.setAttribute('aria-valuenow',String(Math.round(widths[i])));
+ heads.forEach((h,i)=>{if(i===actionsAt)return;const grip=document.createElement('span');grip.className='config-resizer';grip.tabIndex=0;grip.setAttribute('role','separator');grip.setAttribute('aria-orientation','vertical');grip.setAttribute('aria-label',`Resize ${h.textContent.trim()} column`);grip.setAttribute('aria-valuemin','100');grip.setAttribute('aria-valuenow',String(Math.round(widths[i])));
  const resize=n=>{widths[i]=Math.max(100,Math.min(1600,n));apply();grip.setAttribute('aria-valuenow',String(Math.round(widths[i])));};
  grip.addEventListener('keydown',e=>{if(['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();resize(widths[i]+(e.key==='ArrowRight'?20:-20));}});
  grip.addEventListener('pointerdown',e=>{e.preventDefault();closePopovers();const start=e.clientX,width=widths[i];grip.setPointerCapture(e.pointerId);const move=ev=>resize(width+ev.clientX-start);const up=()=>{grip.removeEventListener('pointermove',move);grip.removeEventListener('pointerup',up);grip.removeEventListener('pointercancel',up);};grip.addEventListener('pointermove',move);grip.addEventListener('pointerup',up);grip.addEventListener('pointercancel',up);});h.appendChild(grip);});
