@@ -108,7 +108,7 @@
   if(path==='program.type'||/^intake\.(software|hardware|supplier)_scope$/.test(path))input.addEventListener('change',render);
   box.append(control);return box;
  }
- // The two brand colours are named-colour dropdowns, so each needs only enough width for a colour
+ // The two brand colors are named-color dropdowns, so each needs only enough width for a color
  // name. They are paired into a single grid cell and sit side by side on one row rather than taking
  // a full column each (owner, 16 November 2026).
  const COLOR_PAIR=['program.brand_color_primary','program.brand_color_accent'];
@@ -120,7 +120,7 @@
   let paired=false;
   fields.forEach(path=>{
    if(pairable&&COLOR_PAIR.includes(path)){
-    if(paired)return;                       // the second colour is drawn inside the pair
+    if(paired)return;                       // the second color is drawn inside the pair
     paired=true;
     const pair=node('div','intake-color-pair');
     COLOR_PAIR.forEach(colorPath=>pair.appendChild(field(colorPath)));
@@ -182,7 +182,7 @@
  }
  // Duplicate a card (owner, v5.3.40): everything that saves typing is copied - parent system, DAL,
  // supplier, language, notes - while the two fields that must be unique are not. The id is derived
- // from the source so the pair is recognisable, and the PN is cleared because it is company
+ // from the source so the pair is recognizable, and the PN is cleared because it is company
  // controlled and no two items may share one. The copy is appended rather than inserted, so the
  // indexes of existing rows, and the open-decision paths that reference them, do not move.
  function duplicateRow(section,index){
@@ -233,8 +233,18 @@
  }
  // A browser Save As window creates the file when the name is chosen. If the save then fails, remove that
  // file while it is still empty, so an empty "workbook" is not left on the computer.
- async function discardEmptyDestination(destination){try{if(destination?.handle&&(await destination.handle.getFile()).size===0)await destination.handle.remove?.();}catch{}}
- async function chooseWorkbookDestination(){
+ async function discardEmptyDestination(destination){try{if(destination?.handle&&!destination.overwrite&&(await destination.handle.getFile()).size===0)await destination.handle.remove?.();}catch{}}
+ // saveAs false (the Save Configuration Workbook buttons): write over the loaded workbook when ISAF knows where it is
+ // (workbookTarget, index.html), with no Save As window (owner, 21 November 2026). saveAs true (File → Save
+ // Configuration…), or nothing known yet: ask for the name and folder.
+ async function chooseWorkbookDestination(saveAs){
+  const known=!saveAs&&typeof workbookTarget!=='undefined'?workbookTarget:null;
+  if(known?.target)return {target:known.target,name:known.name,overwrite:true};
+  if(known?.handle){
+   // A browser asks once per visit before a site may write to a file it opened.
+   let allowed='prompt';try{allowed=await known.handle.queryPermission?.({mode:'readwrite'})||'granted';if(allowed!=='granted')allowed=await known.handle.requestPermission({mode:'readwrite'});}catch{}
+   if(allowed==='granted')return {download:true,handle:known.handle,name:known.handle.name,overwrite:true};
+  }
   const prefix=String(configData?.program?.doc_prefix||'Program').replace(/[^a-zA-Z0-9_-]/g,'_').slice(0,60)||'Program';
   const suggested=workbookName(selectedFile?.name||selectedDemoPath?.split('/').pop(),prefix+'_Config.xlsx');
   if(typeof isHostedService!=='undefined'&&isHostedService)return browserDestination(suggested);
@@ -246,19 +256,65 @@
  async function writeWorkbook(file,destination){
   if(destination.download)return deliverWorkbook(file,destination);
   const named=new File([file],destination.name,{type:file.type||'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}),body=new FormData();
-  body.append('workbook',named);body.append('token',destination.token);
+  body.append('workbook',named);if(destination.target)body.append('target',destination.target);else body.append('token',destination.token);
   const response=await fetch('/api/config-save-file',{method:'POST',headers:authHeaders(),body});
   const result=await response.json().catch(()=>({error:'The saved-workbook response could not be read.'}));
   if(!response.ok||result.error)throw Error(result.error||'The configuration workbook could not be saved.');
+  destination.saved=result.target||null;
   return new File([named],result.filename,{type:named.type});
  }
- async function start(){
+ // Where the saved workbook lives, so the next save writes over it.
+ const savedTarget=(destination,saved)=>destination.handle?{handle:destination.handle,name:saved.name}:destination.saved?{target:destination.saved,name:saved.name}:null;
+ // Program types this app may start: all three, or those of the customer's license (licensedProgramTypes), or the
+ // one Program Type the license fixes (licensedValues). Both come from index.html.
+ function allowedKinds(){
+  const fixed=typeof licensedValues!=='undefined'&&licensedValues['program.type']?String(licensedValues['program.type']).toUpperCase():'';
+  if(fixed)return [fixed];
+  return typeof licensedProgramTypes!=='undefined'&&licensedProgramTypes.length?licensedProgramTypes.map(t=>String(t).toUpperCase()):['AIRCRAFT','SYSTEM','LRU'];
+ }
+ const kindLabel=t=>t==='LRU'?'LRU':configTitle(t.toLowerCase());
+ function kindDialog(){
+  let d=document.getElementById('intakeKindDialog');if(d)return d;
+  d=document.createElement('dialog');d.id='intakeKindDialog';d.style.cssText='margin:auto;width:min(560px,92vw);box-sizing:border-box;border:1px solid #c7d2df;border-radius:8px;padding:1.3rem 1.4rem;';d.setAttribute('aria-labelledby','intakeKindTitle');
+  d.innerHTML='<h3 id="intakeKindTitle" style="margin:0 0 .5rem">Start a new program intake</h3>'
+   +'<p class="hint" id="intakeKindPrompt" style="margin:0 0 .4rem">Choose the program type for the new, blank configuration.</p>'
+   +'<p class="hint" id="intakeKindReplace" style="margin:0 0 .9rem">The configuration loaded now is replaced in this browser: save any edits first. Its saved workbook and its program register are kept.</p>'
+   +'<div id="intakeKindButtons" role="group" aria-label="Program type" style="display:flex;gap:.5rem;flex-wrap:wrap">'
+   +['AIRCRAFT','SYSTEM','LRU'].map(t=>`<button type="button" class="secondary" data-intake-kind="${t}">${kindLabel(t)}</button>`).join('')+'</div>'
+   +'<div id="intakeKindWorking" hidden role="status" aria-live="polite"><p style="margin:.2rem 0 .6rem"></p><progress style="width:100%"></progress></div>';
+  // No Cancel button (as on the Add Item chooser): Escape or a click outside the window closes it, except while
+  // the configuration is being created.
+  d.addEventListener('click',e=>{if(busy)return;const b=e.target.closest('[data-intake-kind]');if(b){newKind=b.dataset.intakeKind;start(true);return;}if(e.target===d)d.close();});
+  d.addEventListener('cancel',e=>{if(busy)e.preventDefault();});
+  document.body.appendChild(d);return d;
+ }
+ // With a program loaded, the inline type picker is not shown (one Program Type per program, owner 16 November
+ // 2026), so Start New Intake and File → New Program Intake always ask for the new program's type here. An app
+ // licensed for one program type has nothing to choose: with nothing loaded it starts at once; with a program
+ // loaded it only asks to replace it (owner, 19 November 2026).
+ function chooseKind(){
   if(busy)return;
-  if(configData&&!confirm('Start a new intake? The currently loaded configuration will be replaced in this browser. Save any edits first. Stored repository documents are retained.'))return;
-  busy=true;message='Creating a blank '+newKind.toLowerCase()+' configuration…';render();
+  const allowed=allowedKinds(),only=allowed.length===1?allowed[0]:'';
+  if(only&&!configData){newKind=only;start(true);return;}
+  const d=kindDialog();
+  d.querySelector('#intakeKindWorking').hidden=true;d.querySelector('#intakeKindButtons').style.display='flex';
+  d.querySelector('#intakeKindPrompt').hidden=!!only;
+  d.querySelector('#intakeKindReplace').hidden=!configData;
+  d.querySelectorAll('[data-intake-kind]').forEach(b=>{const t=b.dataset.intakeKind,ok=allowed.includes(t);
+   b.hidden=!!only&&!ok;b.disabled=!ok;b.textContent=only?`Start a new ${kindLabel(t)} intake`:ok?kindLabel(t):kindLabel(t)+' (not licensed)';});
+  if(!d.open)d.showModal();(d.querySelector(`[data-intake-kind="${newKind}"]:not(:disabled)`)||d.querySelector('[data-intake-kind]:not(:disabled)'))?.focus();
+ }
+ async function start(chosen){
+  if(busy)return;
+  if(chosen!==true){chooseKind();return;}
+  // Creating the blank configuration takes a moment (longer on a hosted app), so the window says so until it is done.
+  const d=kindDialog();d.querySelector('#intakeKindButtons').style.display='none';d.querySelector('#intakeKindPrompt').hidden=true;d.querySelector('#intakeKindReplace').hidden=true;
+  const working=d.querySelector('#intakeKindWorking');working.hidden=false;working.querySelector('p').textContent=`Creating a blank ${kindLabel(newKind)} configuration… On a hosted app this can take a little while.`;
+  if(!d.open)d.showModal();
+  busy=true;message='Creating a blank '+kindLabel(newKind)+' configuration…';render();
   const request=++parseRequestId;window.repoUI?.invalidateSwitch();
   try{const result=await fetch('/api/intake/new',{method:'POST',headers:{...authHeaders(),'Content-Type':'application/json'},body:JSON.stringify({type:newKind})}).then(responseData);if(request!==parseRequestId)return;window.repoWorkbook.apply(fileOf(result),result.data);await window.repoUI?.forConfiguration();step=0;message='Blank configuration created. A and DO-160G are initial defaults; confirm them. Complete each step or keep unresolved inputs as TBD.';}
-  catch(e){message=e.message;}finally{busy=false;render();}
+  catch(e){message=e.message;}finally{busy=false;if(d.open)d.close();render();}
  }
  function collectMods(){
   for(const f of configFields())if(configRequired(f.path)&&String(configAt(f.path)??'').trim()==='')mark(f.path,true);
@@ -266,10 +322,10 @@
   for(const section of Object.keys(configDraftMods._intakeRows||{}))syncRows(section);
   return clone(configDraftMods);
  }
- async function createWorkbook(){
+ async function createWorkbook(saveAs=false){
   if(busy||!configData)return;
-  let destination;try{destination=await chooseWorkbookDestination();}catch(error){message='The Save As window could not be opened: '+error.message;render();return;}
-  if(!destination){message='Save cancelled. Your configuration changes are still in this browser.';render();return;}
+  let destination;try{destination=await chooseWorkbookDestination(saveAs===true);}catch(error){message='The Save As window could not be opened: '+error.message;render();return;}
+  if(!destination){message='Save canceled. Your configuration changes are still in this browser.';render();return;}
   const mods=collectMods(),source=selectedFile,sourceDemo=selectedDemoPath,dataRef=configData,request=parseRequestId;
   busy=true;message='Creating the config workbook…';render();
   try{
@@ -279,7 +335,7 @@
    const body=new FormData();body.append('workbook',file);body.append('modifications',JSON.stringify(mods));
    const result=await fetch('/api/intake/workbook',{method:'POST',headers:authHeaders(),body}).then(responseData);
    const saved=await writeWorkbook(fileOf(result),destination);
-   if(dataRef===configData&&request===parseRequestId){window.repoWorkbook.apply(saved,result.data);await window.repoUI?.forConfiguration();message='Saved and loaded '+saved.name+'. The Build tab now uses this workbook. '+(openDecisionList().length?`${openDecisionList().length} TBD decisions remain; resolve them before building.`:'Review Config Data and the applicable engineering evidence before building.');}
+   if(dataRef===configData&&request===parseRequestId){window.repoWorkbook.apply(saved,result.data,savedTarget(destination,saved));await window.repoUI?.forConfiguration();message=(destination.overwrite?'Saved over ':'Saved and loaded ')+saved.name+'. The Build tab now uses this workbook. '+(openDecisionList().length?`${openDecisionList().length} TBD decisions remain; resolve them before building.`:'Review Config Data and the applicable engineering evidence before building.');}
   }catch(e){message=e.message;await discardEmptyDestination(destination);}finally{busy=false;render();}
  }
  function reviewNotes(){
@@ -303,33 +359,26 @@
   if(!host)return;syncApprovalBasis();host.replaceChildren();
   const heading=node('div','intake-heading'),text=node('div');text.appendChild(node('h2','','Program Intake'));text.appendChild(node('p','hint','Set up your program, record its approval path and collect the program and people information used by the config workbook. Enter systems, items, suppliers, tools and environmental data in Config Data. Answers are shared with Config Data. Save a workbook to keep your progress.'));
   heading.appendChild(text);const actions=node('div','intake-actions');
-  // A program carries ONE boundary (owner, 16 November 2026). This picker chooses what a NEW intake
-  // will be, so it only belongs on an empty screen: once a program exists the single setting is the
-  // Program Type field in step 1. Shown alongside it, the two disagreed the moment either changed -
-  // setting the field to LRU left this reading SYSTEM.
-  if(!configData){
-   const select=document.createElement('select');select.setAttribute('aria-label','New program boundary');
-   for(const type of ['LRU','SYSTEM','AIRCRAFT'])select.add(new Option(type==='LRU'?'LRU':configTitle(type.toLowerCase()),type));
-   select.value=newKind;select.disabled=busy;select.onchange=()=>newKind=select.value;
-   actions.append(select,button('Start New Intake',start));
-  } else {
-   actions.appendChild(button('Start New Intake',start));
-  }actions.appendChild(button('Load Existing Config',()=>{switchMainTab('build');$('fileInput').click();}));actions.appendChild(button('Save Configuration Workbook',createWorkbook,false));actions.lastChild.disabled=busy||!configData;heading.appendChild(actions);host.appendChild(heading);
+  // A program carries ONE boundary (owner, 16 November 2026): once a program exists the setting is the Program
+  // Type field in step 1. A NEW intake always asks for its type in the chooser (chooseKind), whether or not a
+  // program is loaded; the inline picker that sat beside this button was easy to miss (owner, 19 November 2026).
+  actions.appendChild(button('Start New Intake',start));
+  actions.appendChild(button('Load Existing Config',()=>{switchMainTab('build');openWorkbook();}));actions.appendChild(button('Save Configuration Workbook',()=>createWorkbook(false),false));actions.lastChild.disabled=busy||!configData;heading.appendChild(actions);host.appendChild(heading);
   const status=node('p','hint intake-status',message);status.setAttribute('role','status');host.appendChild(status);
-  if(!configData){host.appendChild(node('div','intake-empty','Choose Aircraft, System or LRU and start a blank intake, or load a saved workbook.'));return;}
+  if(!configData){host.appendChild(node('div','intake-empty','Select Start New Intake to choose Aircraft, System or LRU and start a blank configuration, or load a saved workbook.'));return;}
   configData.intake??={};for(const key of Object.keys(intakeMeta).filter(k=>!['country','work_countries','outside_us_percent','percentage_basis','oversight_notes'].includes(k)))configData.intake[key]??='';
   const nav=node('nav','intake-steps');nav.setAttribute('aria-label','Intake steps');stages.forEach((name,i)=>{const b=button(`${i+1}. ${name}`,()=>{step=i;message='';render();toTop();});if(step===i)b.setAttribute('aria-current','step');nav.appendChild(b);});host.appendChild(nav);const prog=node('p','intake-progress');prog.id='intakeProgress';host.appendChild(prog);
   if(step===0){host.appendChild(card('Company And Program',['program.customer_name','intake.cage_code','intake.company_address','program.customer_short_name','program.name','program.short_name','program.type','program.doc_prefix','program.doc_revision','intake.survey_owner','intake.product_description','program.no_end_user','program.purchaser_name','program.purchaser_address','program.contract_number','program.export_control_marking','program.distribution_statement','program.document_retention_years']));if(configData.program.type==='AIRCRAFT')host.appendChild(card('Aircraft And Operational Context',['program.mtow_kg','program.passenger_count','program.annual_flight_hours']));host.appendChild(card('Branding',['program.brand_color_primary','program.brand_color_accent','program.logo_path']));}
   if(step===1){host.appendChild(card('Approval And Aircraft Integration',['intake.approval_path','intake.separate_cdp','program.cert_basis_type','program.target_authority_primary','program.target_authority_secondary','program.cert_basis_part','program.tso_category','program.cert_regime','intake.authority_project_reference']));if(/TC|STC/.test(configData.intake.approval_path))host.appendChild(card('Aircraft Applicant And Allocations',['intake.installation_applicant','intake.installation_basis']));host.appendChild(card('Technical Scope',['intake.software_scope','intake.hardware_scope','intake.supplier_scope','program.do160_in_scope','program.do160_revision','program.security_assurance_level']));host.appendChild(card('Safety Inputs',Object.keys(configData.safety||{}).map(k=>'safety.'+k),'Enter allocated classifications, scope and counts from your safety work. Leave unfinished assessment results as TBD.'));host.appendChild(card('Authority Coordination',configObjectEntries(configData.authority||{},'authority').filter(f=>!f.path.startsWith('authority.items')).map(f=>f.path)));}
   if(step===2){for(const [role,person] of Object.entries(configData.personnel||{}))if(person&&typeof person==='object')host.appendChild(card(configTitle(role),['name','email','title','signatory'].map(k=>'personnel.'+role+'.'+k)));host.appendChild(card('Assurance Independence',['personnel.independence_mechanism','personnel.independence_description']));host.appendChild(card('Target Dates',CONFIG_DATE_ORDER.map(k=>'program.'+k),'Use YYYY-MM-DD, TBD, or Not applicable: followed by the reason. Milestone timing is agreed by the program.'));host.appendChild(card('Remaining Intake Notes',['intake.survey_notes']));}
-  const footer=node('div','intake-footer');footer.appendChild(button('Back',()=>{step=Math.max(0,step-1);render();toTop();}));if(step===stages.length-1){footer.appendChild(button('Save Configuration Workbook',createWorkbook));footer.appendChild(button('Continue to Config Data',()=>{switchMainTab('config');renderConfigTabs();toTop(document.getElementById('panel-config'));},false));}else footer.appendChild(button('Continue',()=>{step++;render();toTop();},false));host.appendChild(footer);updateProgress();if(typeof enhanceDateInputs==='function')enhanceDateInputs(host);
+  const footer=node('div','intake-footer');footer.appendChild(button('Back',()=>{step=Math.max(0,step-1);render();toTop();}));if(step===stages.length-1){footer.appendChild(button('Save Configuration Workbook',()=>createWorkbook(false)));footer.appendChild(button('Continue to Config Data',()=>{switchMainTab('config');renderConfigTabs();toTop(document.getElementById('panel-config'));},false));}else footer.appendChild(button('Continue',()=>{step++;render();toTop();},false));host.appendChild(footer);updateProgress();if(typeof enhanceDateInputs==='function')enhanceDateInputs(host);
   if(busy)host.querySelectorAll('button,input,select,textarea').forEach(e=>e.disabled=true);
   if(typeof sizeRowIconButtons==='function')sizeRowIconButtons(host);
  }
  window.addEventListener('beforeunload',event=>{if(Object.keys(configDraftMods).length){event.preventDefault();event.returnValue='';}});
  // File → New Program Intake: open the intake at the top with the program type ready to choose.
- function prepareNew(){if(busy)return;message='Choose Aircraft, System or LRU, then select Start New Intake.';render();toTop();host.querySelector('.intake-actions select')?.focus();}
+ function prepareNew(){if(busy)return;message='';render();toTop();chooseKind();}
  // File → Save Configuration (outside Config Data): the intake save, or a prompt when nothing is loaded.
- function save(){if(busy)return;if(!configData){message='Nothing to save yet. Start a new intake or load a configuration first.';render();toTop();return;}toTop();createWorkbook();}
+ function save(saveAs){if(busy)return;if(!configData){message='Nothing to save yet. Start a new intake or load a configuration first.';render();toTop();return;}toTop();createWorkbook(saveAs===true);}
  window.intakeUI={prepareNew,save,render,chooseWorkbookDestination,deliverWorkbook,discardEmptyDestination,addRow,removeRow,duplicateRow,lastMessage:()=>message,reviewPanel,syncAll,canAddRows:section=>section in templates};render();
 })();

@@ -30,12 +30,12 @@ export const CUSTOMER_OPTIONS = Object.freeze({
 });
 
 /**
- * The requirements import catalogue the Customers tab shows, in the order it shows it.
+ * The requirements import catalog the Customers tab shows, in the order it shows it.
  *  - kind "files": the ReqIF, Excel and CSV import. DOORS exports ReqIF, so a DOORS customer is licensed
  *    through "DOORS ReqIF"; the entry also records that they are a DOORS shop.
  *  - kind "tool": a live connection (jama.js, polarion.js).
  *  - kind "planned": a live connection ISAF does not have yet. Listed so the licensed scope can be agreed
- *    with the customer now, but not selectable, so a licence never records a capability that does not exist.
+ *    with the customer now, but not selectable, so a license never records a capability that does not exist.
  */
 export const REQUIREMENTS_IMPORT = Object.freeze([
   { id: "doors_reqif", label: "DOORS ReqIF", kind: "files", available: true, note: "ReqIF exported from DOORS or DOORS Next" },
@@ -105,7 +105,7 @@ export function starterModifications(customer = {}) {
 // Default values in a customer app's starter configuration and new intakes. Unlike licensed values,
 // the customer can change them.
 export const CUSTOMER_DEFAULTS = Object.freeze({ "program.distribution_statement": "© Copyright - All rights reserved" });
-// Program-type licences are hierarchical (owner decision, v5.3.22): Aircraft includes System and LRU;
+// Program-type licenses are hierarchical (owner decision, v5.3.22): Aircraft includes System and LRU;
 // System includes LRU.
 export function expandProgramTypes(types = []) {
   const set = new Set(types);
@@ -169,8 +169,8 @@ export class CustomerRegister {
     if ((record.program_types || []).includes("Aircraft")) record.do160_in_scope = "Yes"; // Aircraft programs always include DO-160
     if (!record.company) throw Object.assign(new Error("Enter the customer company name."), { status: 400 });
     // A create is any save of the "new" placeholder, and before v5.3.39 each one appended a record
-    // and burned a licence id. A second click on Save, or a retry while the first request was still
-    // in flight, produced two customers with consecutive licence ids and no way to tell them apart.
+    // and burned a license id. A second click on Save, or a retry while the first request was still
+    // in flight, produced two customers with consecutive license ids and no way to tell them apart.
     // Refusing a second customer of the same name closes that for every caller, not just the one
     // button; two genuinely separate records need names that tell them apart anyway.
     if (!existing) {

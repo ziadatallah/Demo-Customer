@@ -103,8 +103,8 @@
     return m;
   }
   // Bookkeeping a DOORS export always carries and ISAF deliberately leaves alone: audit
-  // metadata and the columns the importer synthesises itself. Everything else that is filled
-  // but unmapped is shown to the user, because an unrecognised column is either something to
+  // metadata and the columns the importer synthesizes itself. Everything else that is filled
+  // but unmapped is shown to the user, because an unrecognized column is either something to
   // map or something MX Aero should be told about - never something to swallow silently.
   const KNOWN_UNUSED = [
     /^\(reqif (identifier|object type)\)$/i, /^\(specification\)$/i, /^\(outline level\)$/i,
@@ -219,7 +219,7 @@
     const caps=window.isafImportCapabilities;
     if(Array.isArray(caps)&&caps.length&&window.isafFileImport!==true){
       $('impAdd').classList.add('hidden');
-      $('impAdd').insertAdjacentHTML('afterend','<p class="hint">Importing requirements from a ReqIF, Excel or CSV file is not part of this ISAF licence. MX Aero can add it.</p>');
+      $('impAdd').insertAdjacentHTML('afterend','<p class="hint">Importing requirements from a ReqIF, Excel or CSV file is not part of this ISAF license. MX Aero can add it.</p>');
     }
     loadTools();
     $('impRun').onclick = run;
@@ -458,14 +458,14 @@
       const tv = typeValues(f);
       return `<div class="imp-card" data-uid="${f.uid}"><div class="imp-head"><div><b>${esc(f.name)}</b> <span class="hint">${esc(f.format.toUpperCase())} · ${f.objects.length} rows${f.relations.length ? ` · ${f.relations.length} links` : ''}${f.specifications.length > 1 ? ` · ${f.specifications.length} specifications` : ''}${f.deleted ? ` · <span class="imp-deleted">${f.deleted} deleted in DOORS, not imported</span>` : ''}</span></div>
         <div style="display:flex;gap:.5rem;align-items:center;flex-wrap:wrap;">${f.specLevels ? '' : `<label title="The software or hardware item these requirements belong to; they go into that item's documents. Used for rows whose Item column is empty, or for every row when no Item column is mapped. Leave empty when they apply to all items.">Item <input data-f="item" list="impItemList" placeholder="All items" value="${esc(f.item || '')}" style="width:10rem;"></label>`}${f.specLevels ? '' : `<label>Level <select data-f="level">${Object.entries(levels).map(([k, v]) => `<option value="${k}" ${f.level === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>`}<button type="button" class="secondary" data-f="remove">Remove</button></div></div>
-        ${f.specLevels ? '' : `<p class="hint imp-level-help"><b>Level</b> is where these requirements sit in the certification hierarchy, and it decides which trace checks run: high-level requirements (DO-178C 5.1) are expected to trace up to system requirements, low-level requirements (DO-178C 5.2) to high-level ones, hardware requirements (DO-254) to system requirements, and verification cases to whatever they verify. Labelling a file as the wrong level changes every trace finding. <b>Item</b> is the LRU, software item or hardware item whose documents these belong in; leave it empty when they apply to every item.</p>`}
+        ${f.specLevels ? '' : `<p class="hint imp-level-help"><b>Level</b> is where these requirements sit in the certification hierarchy, and it decides which trace checks run: high-level requirements (DO-178C 5.1) are expected to trace up to system requirements, low-level requirements (DO-178C 5.2) to high-level ones, hardware requirements (DO-254) to system requirements, and verification cases to whatever they verify. Labeling a file as the wrong level changes every trace finding. <b>Item</b> is the LRU, software item or hardware item whose documents these belong in; leave it empty when they apply to every item.</p>`}
         ${f.specLevels ? `<div class="imp-map"><span class="hint" style="grid-column:1/-1;">This file holds several specifications, so each one gets its own level and item instead of one setting for the whole file. <b>Level</b> decides which trace checks run against that specification: high-level requirements (DO-178C 5.1) are expected to trace up to system requirements, low-level requirements (DO-178C 5.2) to high-level ones, hardware requirements (DO-254) to system requirements, and verification cases to whatever they verify. <b>Item</b> is the LRU, software item or hardware item whose documents those requirements belong in. Set a specification to “not imported” to leave it out.</span>
           <span class="hint imp-example" style="grid-column:1/-1;">${specExample(f, levels)}</span>
           ${Object.entries(f.specLevels).map(([sp, lv]) => `<div class="imp-spec"><div class="imp-spec-name">${esc(sp)} <span class="hint">${f.objects.filter(o => o['(Specification)'] === sp).length} requirements</span></div><label>Level <select data-spec="${esc(sp)}">${Object.entries(levels).map(([k, v]) => `<option value="${k}" ${lv === k ? 'selected' : ''}>${esc(v)}</option>`).join('')}<option value="" ${lv === '' ? 'selected' : ''}>— not imported —</option></select></label><label>Item <input data-spec-item="${esc(sp)}" list="impItemList" placeholder="All items" value="${esc(f.specItems?.[sp] || '')}" title="The software or hardware item of this specification; its requirements go into that item's documents."></label></div>`).join('')}</div>` : ''}
-        <div class="imp-map"><span class="hint" style="grid-column:1/-1;">Each box asks <b>which column of your file</b> holds that field, so every list shows the same ${f.attributes.length} columns with one of their values beside each. ISAF fills in the names it recognises; leave a field on <i>not used</i> when your file has no column for it. Only ID and Requirement text are required.</span>
+        <div class="imp-map"><span class="hint" style="grid-column:1/-1;">Each box asks <b>which column of your file</b> holds that field, so every list shows the same ${f.attributes.length} columns with one of their values beside each. ISAF fills in the names it recognizes; leave a field on <i>not used</i> when your file has no column for it. Only ID and Requirement text are required.</span>
         ${FIELDS.map(([k, label, req]) => `<label>${esc(label)}${req ? ' *' : ''}<select data-map="${k}">${opts}</select></label>`).join('')}
         ${tv.length ? `<label>Keep only these object types<select data-map="typeValues" multiple size="${Math.min(5, tv.length)}">${tv.map(v => `<option value="${esc(v)}" ${(f.mapping.typeValues || []).includes(v) ? 'selected' : ''}>${esc(v)}</option>`).join('')}</select></label>` : ''}</div>
-        ${(u => u.length ? `<div class="imp-unrecognized"><b>Columns ISAF did not recognise.</b> <span class="hint">They feed no check and no document. If one belongs in a field above, pick it there; otherwise tell MX Aero what it is, so a future version can map it automatically.</span><ul>${u.map(c => `<li><code>${esc(c.name)}</code> <span class="hint">${c.filled} of ${f.objects.length} filled${c.samples.length ? ` — e.g. ${c.samples.map(s => `“${esc(s.length > 42 ? s.slice(0, 42) + '…' : s)}”`).join(', ')}` : ''}</span></li>`).join('')}</ul></div>` : '')(unrecognizedColumns(f))}
+        ${(u => u.length ? `<div class="imp-unrecognized"><b>Columns ISAF did not recognize.</b> <span class="hint">They feed no check and no document. If one belongs in a field above, pick it there; otherwise tell MX Aero what it is, so a future version can map it automatically.</span><ul>${u.map(c => `<li><code>${esc(c.name)}</code> <span class="hint">${c.filled} of ${f.objects.length} filled${c.samples.length ? ` — e.g. ${c.samples.map(s => `“${esc(s.length > 42 ? s.slice(0, 42) + '…' : s)}”`).join(', ')}` : ''}</span></li>`).join('')}</ul></div>` : '')(unrecognizedColumns(f))}
         <p class="hint" data-f="preview"></p></div>`;
     }).join('');
     for (const card of document.querySelectorAll('#impFiles .imp-card')) {
@@ -626,7 +626,7 @@
   function renderDocsMode() {
     const line = $('impDocsMode'); if (!line) return;
     const wf = window.workingFolder, name = wf?.name?.() || '';
-    if (name) line.textContent = `Working folder "${name}": one click rewrites the documents in that folder in place, keeps the previous copies in _ISAF_backup and writes Import_Report.txt beside them.`;
+    if (name) line.textContent = `Working folder "${name}": one click rewrites the documents in that folder in place. The previous copies and the import report are kept with the program on the ISAF server (Admins see them in Program Documents → Support records), so the folder holds documents only.`;
     else if (wf?.supported?.()) line.textContent = 'Choose a working folder and this becomes one click, with the documents rewritten where they are. Without one the updated documents come back as a ZIP that you unpack and put back yourself.';
     else line.textContent = 'This browser cannot write into a folder (Chrome or Edge can), so the updated documents come back as a ZIP that you unpack and put back yourself. Where a rebuild is possible, it is less work.';
   }
@@ -637,6 +637,9 @@
     const fd = new FormData();
     fd.append('review', JSON.stringify(result));
     fd.append('paths', JSON.stringify(docs.map(d => d.path)));
+    // The replaced copies and the report are kept with the loaded program's register (support record).
+    const program = window.repoUI?.current?.();
+    if (program?.id) { fd.append('programId', program.id); fd.append('actor', window.repoUI.actor()); fd.append('title', 'Import update: requirements tables'); }
     for (const d of docs) fd.append('documents', d.file, d.file.name);
     const r = await fetch('/api/import/apply' + (zip ? '?format=zip' : ''), { method: 'POST', headers: auth(), body: fd });
     if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || `The documents could not be updated (${r.status}).`);
@@ -659,13 +662,14 @@
       const want = targets(), found = [];
       for (const d of await wf.documents()) { const id = await wf.identity(d.file); if (id && want.has(id.doc)) found.push({ path: d.path, file: await d.file.arrayBuffer().then(buf => new File([buf], d.file.name)) }); }
       if (!found.length) { st.textContent = `No ISAF documents that take requirements (${[...want].join(', ')}) were found in "${wf.name()}". Build SOI 2 and SOI 3 into the working folder first.`; return; }
-      const results = []; let report = '';
-      for (const [i, group] of batches(found).entries()) { st.textContent = `Updating documents (${Math.min((i + 1) * 40, found.length)} of ${found.length})…`; const r = await applyBatch(group, false); results.push(...r.results); report += (report ? '\n' : '') + r.report; }
+      const results = []; let report = '', kept = true;
+      for (const [i, group] of batches(found).entries()) { st.textContent = `Updating documents (${Math.min((i + 1) * 40, found.length)} of ${found.length})…`; const r = await applyBatch(group, false); results.push(...r.results); report += (report ? '\n' : '') + r.report; if (!r.recordKept && r.results.some(x => x.changed)) kept = false; }
       const changed = results.filter(r => r.changed);
       const bin = b64 => Uint8Array.from(atob(b64), c => c.charCodeAt(0));
-      const saved = await wf.writeFiles([...changed.map(r => ({ path: r.name, data: bin(r.data) })), { path: 'Import_Report.txt', data: report }]);
+      // Kept on the server: no _ISAF_backup copy and no report in the folder. Otherwise (no program register) as before.
+      const saved = await wf.writeFiles([...changed.map(r => ({ path: r.name, data: bin(r.data) })), ...(kept ? [] : [{ path: 'Import_Report.txt', data: report }])], { kept: kept || null });
       const skipped = results.filter(r => !r.changed);
-      st.innerHTML = `${esc(changed.length)} document${changed.length === 1 ? '' : 's'} updated in "${esc(wf.name())}"${saved.backup ? `; previous versions in ${esc(saved.backup)}` : ''}. Details: Import_Report.txt in the folder.${skipped.length ? ` ${skipped.length} not changed (${esc([...new Set(skipped.map(r => r.skipped))].slice(0, 3).join('; '))}).` : ''}${saved.failed.length ? ` <b>${saved.failed.length} could not be written</b> (close them in Word and try again): ${esc(saved.failed.map(f => f.path).join(', '))}.` : ''}`;
+      st.innerHTML = `${esc(changed.length)} document${changed.length === 1 ? '' : 's'} updated in "${esc(wf.name())}"${saved.backup ? `; previous versions in ${esc(saved.backup)}` : ''}.${kept ? ' The previous copies and the report are kept with the program (Program Documents → Support records).' : ' Details: Import_Report.txt in the folder.'}${skipped.length ? ` ${skipped.length} not changed (${esc([...new Set(skipped.map(r => r.skipped))].slice(0, 3).join('; '))}).` : ''}${saved.failed.length ? ` <b>${saved.failed.length} could not be written</b> (close them in Word and try again): ${esc(saved.failed.map(f => f.path).join(', '))}.` : ''}`;
     } catch (e) { st.textContent = e.message; }
     finally { b.disabled = false; }
   }
@@ -684,7 +688,7 @@
       const r = await applyBatch(filtered, true);
       const name = (r.headers.get('Content-Disposition') || '').match(/filename="?([^";]+)"?/)?.[1] || 'ISAF_Import_Documents.zip';
       const url = URL.createObjectURL(await r.blob()), a = document.createElement('a'); a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 60000);
-      st.textContent = `The updated documents are downloading as ${name}, with Import_Report.txt.`;
+      st.textContent = r.headers.get('X-ISAF-Record-Kept') === 'yes' ? `The updated documents are downloading as ${name}. The original copies and the report are kept with the program (Program Documents → Support records).` : `The updated documents are downloading as ${name}, with Import_Report.txt.`;
     } catch (e) { st.textContent = e.message; }
   }
 

@@ -21,7 +21,13 @@ export function hasPermission(role, permission) {
   return permissions.includes("*") || permissions.includes(permission);
 }
 
+// The name recorded with a register action. A verified identity wins over the name the browser sends:
+// single sign-on, an Admin app account (v6.0.0), or the named user whose personal access key made the request. Otherwise (installed
+// app with no key, or a company-wide key) the browser's User Information name is used.
 export function requestActor(req, fallback = "") {
   if (req?.auth?.mode === "oidc") return String(req.auth.displayName || req.auth.email || req.auth.subject || "").trim();
+  if (req?.auth?.mode === "account") return String(req.auth.displayName || "").trim();
+  const keyUser = req?.auth?.mode === "api-key" ? String(req.auth.user?.name || "").trim() : "";
+  if (keyUser) return keyUser;
   return String(fallback || "").trim();
 }

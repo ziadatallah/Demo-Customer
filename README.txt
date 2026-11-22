@@ -1,6 +1,6 @@
 ISAF — Certification Document Generation Engine
 ================================================
-Version 5.3.44
+Version 6.0.2
 
 ISAF generates a structured set of certification document templates from a
 populated configuration workbook. Each document is placed in the milestone
@@ -32,7 +32,7 @@ GETTING STARTED — MAC
 4. In Program Intake, start a new Aircraft, System or LRU intake, or load a config
 5. Complete the steps and click Save Configuration Workbook to create and load a versioned XLSX
 6. Review Config Data and resolve required values and TBD decisions
-7. Enter Program Focal, select Build, choose phases/output, and click Build
+7. Select Build, choose phases/output, and click Build
 8. Open Program Documents for the register and Certification preparation checklist
    Step-by-step instructions: select Help (top right) in the app to open the User Guide.
 
@@ -44,7 +44,7 @@ GETTING STARTED — WINDOWS
 4. In Program Intake, start a new Aircraft, System or LRU intake, or load a config
 5. Complete the steps and click Save Configuration Workbook to create and load a versioned XLSX
 6. Review Config Data and resolve required values and TBD decisions
-7. Enter Program Focal, select Build, choose phases/output, and click Build
+7. Select Build, choose phases/output, and click Build
 8. Open Program Documents for the register and Certification preparation checklist
    Step-by-step instructions: select Help (top right) in the app to open the User Guide.
 

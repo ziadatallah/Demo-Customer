@@ -6,7 +6,7 @@ export const REPOSITORY_CONTRACT = Object.freeze([
   "list", "read", "public", "create", "ensure", "saveConfiguration", "roadmap",
   "import", "updateDocument", "link", "checkout", "cancelCheckout", "recoverCheckout",
   "checkinPlan", "checkin", "release", "candidate", "control", "baseline", "adoptBuild",
-  "blob", "bytes", "doc", "version",
+  "blob", "bytes", "doc", "version", "addRecord", "records", "record",
 ]);
 
 // Methods that may perform filesystem, database, or object-storage I/O.

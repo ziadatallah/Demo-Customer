@@ -39,7 +39,7 @@
   <li><b>It only reads.</b> ISAF never creates, changes or deletes anything in your requirements tool.</li>
   <li><b>Your credentials stay with you.</b> They are entered into your own ISAF app and kept by that server. They are never sent to MX Aero, and once saved the app never shows them again.</li>
   <li><b>Your requirements stay with you.</b> They are read into your app for the review and the documents. Nothing is sent to MX Aero.</li>
-  <li><b>You need your own licence</b> for the connected tool, and a user account that may read the project.</li>
+  <li><b>You need your own license</b> for the connected tool, and a user account that may read the project.</li>
 </ul>
 <div class="note"><b>Hosted ISAF sites:</b> if MX Aero hosts your ISAF site, anything you type into it sits on that hosted service, and its disk is temporary, so a saved connection is lost when the site restarts. For a connected requirements tool, use ISAF installed on your own server, and have your administrator set the credentials as environment variables (named under each tool below) rather than typing them into the page.</div>
 
@@ -48,10 +48,10 @@
   <tr><th>Tool</th><th>How it works today</th><th>What you need</th></tr>
   <tr><td><b>Jama Connect</b><br><span class="muted">Jama Software</span></td><td>Live connection, read-only.</td><td>An API client ID and secret, or a user name and password.</td></tr>
   <tr><td><b>Polarion</b><br><span class="muted">Siemens</span></td><td>Live connection, read-only.</td><td>A personal access token.</td></tr>
-  <tr><td><b>IBM DOORS Next</b> and <b>DOORS 9.0</b></td><td>No live connection yet. Requirements come in as a <b>ReqIF</b> export, which DOORS produces natively; on your licence this is <b>DOORS ReqIF</b>.</td><td>Nothing to set up: export and add the file.</td></tr>
-  <tr><td><b>Anything else</b><br><span class="muted">codebeamer, Teamcenter, Excel-based processes</span></td><td>ReqIF, Excel or CSV export.</td><td>Nothing to set up, where the file import is on your licence: export and add the file.</td></tr>
+  <tr><td><b>IBM DOORS Next</b> and <b>DOORS 9.0</b></td><td>No live connection yet. Requirements come in as a <b>ReqIF</b> export, which DOORS produces natively; on your license this is <b>DOORS ReqIF</b>.</td><td>Nothing to set up: export and add the file.</td></tr>
+  <tr><td><b>Anything else</b><br><span class="muted">codebeamer, Teamcenter, Excel-based processes</span></td><td>ReqIF, Excel or CSV export.</td><td>Nothing to set up, where the file import is on your license: export and add the file.</td></tr>
 </table>
-<p class="muted">Your ISAF app shows only what is on your licence. If a tool below is missing from your Import tab, or the file import is, it is not enabled for your company: ask MX Aero to add it. With no requirements import on the licence there is no Import tab at all.</p>
+<p class="muted">Your ISAF app shows only what is on your license. If a tool below is missing from your Import tab, or the file import is, it is not enabled for your company: ask MX Aero to add it. With no requirements import on the license there is no Import tab at all.</p>
 <p class="muted">A tool with no live connection is not a lesser route: ISAF reviews an exported file exactly as it reviews a live pull, and the same findings, checklist evidence and document updates come out. The live connection only saves the export step.</p>
 
 <h2>Polarion (Siemens)</h2>
@@ -82,7 +82,7 @@
 <h3>What to ask your Jama administrator for</h3>
 <ol>
   <li><b>The REST address.</b> Jama Cloud uses <code>https://yourcompany.jamacloud.com/rest/v1</code>. A Jama you host yourself often uses <code>https://yourhost/contour/rest/v1</code>.</li>
-  <li><b>An API client</b>, if your Jama licence allows it (API access is a licensed feature in some Jama plans), and <b>that the API client's user may read the project</b>.</li>
+  <li><b>An API client</b>, if your Jama license allows it (API access is a licensed feature in some Jama plans), and <b>that the API client's user may read the project</b>.</li>
 </ol>
 <h3>What you do</h3>
 <ol>
@@ -108,7 +108,7 @@
   <li><b>The header row</b> is found automatically: the first row with at least two filled cells. A title block, a logo or notes above the table are skipped.</li>
   <li><b>CSV</b> (<code>.csv</code>, <code>.txt</code>): comma, semicolon and tab separated files are all read, as is the UTF-8 that Excel writes, so a European semicolon export needs no conversion.</li>
   <li>Empty rows are ignored, two columns with the same name are numbered apart, and at most 50,000 rows are read from one file.</li>
-  <li>Merged cells, colours, filters and formulas are irrelevant: ISAF reads the values.</li>
+  <li>Merged cells, colors, filters and formulas are irrelevant: ISAF reads the values.</li>
 </ul>
 <h3>What the columns must contain</h3>
 <p>Two columns are needed. Everything else is optional and only adds checks, so start with what you have.</p>
@@ -121,11 +121,11 @@
   <tr><td>Verification method</td><td>Optional</td><td>Requirements with no verification method, and the test coverage per level.</td></tr>
   <tr><td>Validation method, Validation conclusion</td><td>Optional</td><td>The system-level validation checks (ARP4754A).</td></tr>
   <tr><td>Assumption, Safety related, DAL, Source</td><td>Optional</td><td>Assumptions recorded, safety requirements without a DAL, an invalid DAL, and system requirements with no identified source.</td></tr>
-  <tr><td>Title, Heading</td><td>Optional</td><td>A heading row is recognised as a heading and not reviewed as a requirement.</td></tr>
+  <tr><td>Title, Heading</td><td>Optional</td><td>A heading row is recognized as a heading and not reviewed as a requirement.</td></tr>
   <tr><td>Item</td><td>Optional</td><td>The software or hardware item each requirement belongs to, when one module covers several. ISAF puts each requirement in that item’s documents. Without this column every row takes the Item set on the file card. An item that is not in your program is reported as an error rather than dropped, because its requirements would otherwise reach no document.</td></tr>
 </table>
 <h3>Column names</h3>
-<p>Name them however your process names them. ISAF suggests the mapping and you correct it on the card before running the review; the choice is remembered for the next file with the same columns. Names it recognises on its own include:</p>
+<p>Name them however your process names them. ISAF suggests the mapping and you correct it on the card before running the review; the choice is remembered for the next file with the same columns. Names it recognizes on its own include:</p>
 <ul>
   <li><b>ID:</b> ID, Req ID, Requirement ID, Identifier, Key, Document Key, Absolute Number, Object Identifier</li>
   <li><b>Requirement text:</b> Requirement Text, Object Text, Requirement, Statement, Text, Description</li>
@@ -164,12 +164,13 @@
 
 <h2>Before you connect: a short checklist</h2>
 <ul>
-  <li>Your own licence for the tool, and a user account that may read the project.</li>
+  <li>Your own license for the tool, and a user account that may read the project.</li>
   <li>ISAF installed where it can reach the tool (same network, or a route to it).</li>
   <li>Credentials created, and the person who will renew them when they expire.</li>
   <li>Agreement on which item or work item types hold requirements, and which fields mean verification method, derived, rationale, safety and DAL.</li>
   <li>A note in your plans (PSAC, SDP, PHAC or equivalent) of where the requirements come from and how they reach the documents, since the authority will ask.</li>
 </ul>
 <p class="muted">An import is an aid, not a review and not a qualified tool: the findings help the reviewer, who still performs, completes and signs the review.</p>
+<script src="help-search.js" defer></script>
 </body>
 </html>

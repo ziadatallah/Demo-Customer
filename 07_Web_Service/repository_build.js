@@ -87,7 +87,7 @@ export async function runRepositoryBuild({store,workbookPath,logoPath,phaseId,ou
  actor=String(actor||'').trim();if(!actor)throw new RepositoryError('Enter your name for the repository activity record.',400);
  const parsed=await exec(process.execPath,[parseScript,workbookPath],{maxBuffer:10*1024*1024});const data=JSON.parse(parsed.stdout);
  const programType=String(data.program?.type||'').toUpperCase();
- if(allowedProgramTypes.length&&!allowedProgramTypes.includes(programType))throw new RepositoryError(`${programType||'This'} programs are not included in your licence. Licensed program types: ${allowedProgramTypes.join(', ')}.`,403);
+ if(allowedProgramTypes.length&&!allowedProgramTypes.includes(programType))throw new RepositoryError(`${programType||'This'} programs are not included in your license. Licensed program types: ${allowedProgramTypes.join(', ')}.`,403);
  const p=await store.ensure({name:data.program.name,company:data.program.customer_name,prefix:data.program.doc_prefix},actor,programId);
  const lock=path.join(store.programPath(p.id),'.build-lock');acquireBuildLock(lock);
  const started=Date.now(),runId=crypto.randomUUID(),work=path.join(store.root,'work',p.id,runId);fs.mkdirSync(work,{recursive:true});
@@ -125,15 +125,25 @@ export async function runRepositoryBuild({store,workbookPath,logoPath,phaseId,ou
   const program=await store.read(p.id);const parent=path.join(path.resolve(outputBase),safeName((program.prefix+'_'+program.name).replace(/[\\/]/g,'_')));fs.mkdirSync(parent,{recursive:true});outDir=path.join(parent,`Build-${snapshot.createdAt.replace(/[:.]/g,'-')}-${snapshot.id.slice(0,8)}`);fs.mkdirSync(outDir);
   // Exports are disposable copies. Repository bytes and snapshot membership are authoritative.
   for(const e of snapshot.entries){const d=store.doc(program,e.documentId),v=store.version(d,e.versionId);const rel=path.join(safeName(d.milestone||'Other'),safeName(`${d.pn}_${d.title.slice(0,45)}_Rev ${v.label}${path.extname(v.filename)}`));const dest=path.join(outDir,rel);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,await store.bytes(v.hash),{flag:'wx'});}
-  fs.writeFileSync(path.join(outDir,'Snapshot_Record.json'),JSON.stringify(snapshot,null,2),{flag:'wx'});
-  if(includeSourceWorkbook)fs.writeFileSync(path.join(outDir,'Source_Workbook.xlsx'),await store.bytes(snapshot.workbook.hash),{flag:'wx'});
-  fs.copyFileSync(path.join(generated,'build_report.txt'),path.join(outDir,'Generation_Report.txt'));
-  if(requirementsSummary)fs.writeFileSync(path.join(outDir,'Requirements_Report.txt'),importReportText(requirementsSummary.results,requirements),{flag:'wx'});
-  if(snapshot.refresh?.length||reuse.unmatched.length)fs.writeFileSync(path.join(outDir,'Refresh_Report.txt'),refreshReportText(snapshot.refresh.map(r=>({pn:r.pn,name:r.origin?.name||`working version ${r.origin?.label||''}`.trim(),how:r.origin?.how||'',summary:r.summary,flagged:r.flagged,notPlaced:r.notPlaced,label:r.label,candidate:r.candidate,reused:r.reused})),reuse.unmatched),{flag:'wx'});
   } catch(error) { throw new RepositoryError(`Snapshot ${snapshot.name} was saved, but its folder export failed: ${error.message}. Download the saved snapshot from Program Documents.`,500); }
+  // The export (folder, ZIP, working folder) holds documents only (owner, 22 November 2026). The build record,
+  // source workbook and reports are kept with the program as a support record that Admins see in Program
+  // Documents, together with a copy of every edited document supplied with this build (working folder or Reuse
+  // edited documents) that the register does not already hold: those are the files this build replaces in the
+  // user's folder, kept here instead of in an _ISAF_backup folder.
+  const knownHashes=new Set((await store.read(p.id)).documents.flatMap(d=>d.versions.map(v=>v.hash)));
+  const recordFiles=[{name:'Snapshot_Record.json',bytes:Buffer.from(JSON.stringify(snapshot,null,2))}];
+  if(includeSourceWorkbook)recordFiles.push({name:'Source_Workbook.xlsx',bytes:await store.bytes(snapshot.workbook.hash)});
+  recordFiles.push({name:'Generation_Report.txt',bytes:fs.readFileSync(path.join(generated,'build_report.txt'))});
+  if(requirementsSummary)recordFiles.push({name:'Requirements_Report.txt',bytes:Buffer.from(importReportText(requirementsSummary.results,requirements))});
+  if(snapshot.refresh?.length||reuse.unmatched.length)recordFiles.push({name:'Refresh_Report.txt',bytes:Buffer.from(refreshReportText(snapshot.refresh.map(r=>({pn:r.pn,name:r.origin?.name||`working version ${r.origin?.label||''}`.trim(),how:r.origin?.how||'',summary:r.summary,flagged:r.flagged,notPlaced:r.notPlaced,label:r.label,candidate:r.candidate,reused:r.reused})),reuse.unmatched))});
+  for(const f of previous||[])if(f?.bytes&&!knownHashes.has(digest(f.bytes)))recordFiles.push({name:`Replaced documents/${f.name}`,bytes:f.bytes,role:'replaced'});
+  let recordWarning='';
+  try{await store.addRecord(p.id,{kind:'build',title:snapshot.name,actor,buildId:snapshot.id,files:recordFiles});}
+  catch(error){recordWarning=`The support record of ${snapshot.name} could not be kept: ${error.message}`;}
   fs.rmSync(work,{recursive:true,force:true});
   const reusedCount=snapshot.entries.filter(e=>e.reused).length;const generatedCount=snapshot.entries.length-reusedCount;
   const refreshed=snapshot.refresh||[];
-  return {program:{name:data.program?.name||'',short_name:data.program?.short_name||'',doc_prefix:data.program?.doc_prefix||'',type:data.program?.type||''},refresh:{documents:refreshed.length,flagged:refreshed.reduce((n,r)=>n+(r.summary?.flagged||0),0),candidates:refreshed.filter(r=>r.candidate).length,supplied:previous?.length||0,unused:reuse.unmatched},programId:p.id,buildId:snapshot.id,buildName:snapshot.name,outputDir:outDir,docCount:snapshot.entries.length,generatedCount,reusedCount,failCount:0,elapsed:((Date.now()-started)/1000).toFixed(1),phase:phaseId,warnings:snapshot.warnings,requirements:requirementsSummary&&{documents:requirementsSummary.documents,blocks:requirementsSummary.blocks,rows:requirementsSummary.rows,skipped:requirementsSummary.skipped,imported:requirementsSummary.imported,sources:requirements?.meta?.sources||[]},log:`Repository snapshot: ${snapshot.name}\n${generatedCount} new versions; ${reusedCount} reused versions.\n${requirementsSummary?`${requirementsSummary.imported} imported requirements written into ${requirementsSummary.documents} documents (Requirements_Report.txt).\n`:''}${refreshed.length?`${refreshed.length} edited documents refreshed with the configuration (Refresh_Report.txt).\n`:''}${snapshot.warnings.join('\n')}`};
+  return {program:{name:data.program?.name||'',short_name:data.program?.short_name||'',doc_prefix:data.program?.doc_prefix||'',type:data.program?.type||''},refresh:{documents:refreshed.length,flagged:refreshed.reduce((n,r)=>n+(r.summary?.flagged||0),0),candidates:refreshed.filter(r=>r.candidate).length,supplied:previous?.length||0,unused:reuse.unmatched},programId:p.id,buildId:snapshot.id,buildName:snapshot.name,outputDir:outDir,docCount:snapshot.entries.length,generatedCount,reusedCount,failCount:0,elapsed:((Date.now()-started)/1000).toFixed(1),phase:phaseId,warnings:recordWarning?[...(snapshot.warnings||[]),recordWarning]:snapshot.warnings,recordKept:!recordWarning,requirements:requirementsSummary&&{documents:requirementsSummary.documents,blocks:requirementsSummary.blocks,rows:requirementsSummary.rows,skipped:requirementsSummary.skipped,imported:requirementsSummary.imported,sources:requirements?.meta?.sources||[]},log:`Repository snapshot: ${snapshot.name}\n${generatedCount} new versions; ${reusedCount} reused versions.\n${requirementsSummary?`${requirementsSummary.imported} imported requirements written into ${requirementsSummary.documents} documents (Requirements_Report.txt).\n`:''}${refreshed.length?`${refreshed.length} edited documents refreshed with the configuration (Refresh_Report.txt).\n`:''}${snapshot.warnings.join('\n')}`};
  }finally{fs.rmSync(lock,{recursive:true,force:true});}
 }

@@ -48,7 +48,7 @@
 <body>
 <header class="guide-head">
   <h1>ISAF User Guide</h1>
-  <p>Integrated Standards Assurance Framework — Customer Edition, version 5.3.44. Step-by-step instructions for preparing your configuration and generating your certification documents.</p>
+  <p>Integrated Standards Assurance Framework — Customer Edition, version 6.0.2. Step-by-step instructions for preparing your configuration and generating your certification documents.</p>
 </header>
 <div class="wrap">
 <div class="toolbar"><button type="button" onclick="window.print()">Print or save as PDF</button></div>
@@ -65,7 +65,7 @@
     <li><a href="#config">Config Data: complete every section</a></li>
     <li><a href="#checks">Fix problems before you build</a></li>
     <li><a href="#build">Build your documents</a></li>
-    <li><a href="#program">Program Focal and the program register</a></li>
+    <li><a href="#program">The program register</a></li>
     <li><a href="#documents">Program Documents and document control</a></li>
     <li><a href="#pns">Document PNs</a></li>
     <li><a href="#roadmap">Roadmap and Administration</a></li>
@@ -79,7 +79,7 @@
 <p>ISAF generates the plans, standards, checklists, records and reports your program needs for certification (DO-178C, DO-254, ARP4754B and related standards) from one <b>configuration workbook</b>. You describe your program once; ISAF fills every document with your company, program, people, items, levels and dates, phase by phase.</p>
 <div class="flow"><span>Unlock</span><i>→</i><span>Program Intake</span><i>→</i><span>Config Data</span><i>→</i><span>Save workbook</span><i>→</i><span>Build</span><i>→</i><span>Manage documents</span></div>
 <p class="note"><b>Using the web app hosted by MX Aero?</b>Open <a href="user-guide-hosted.html">the Web App Guide</a> instead; the web app's Help button opens it automatically.</p>
-<p>Your app is licensed to your company. Some values (company, program type, authority, certification basis and others) come from your licence and are locked. Only the program phases in your licence can be built.</p>
+<p>Your app is licensed to your company. Some values (company, program type, authority, certification basis and others) come from your license and are locked. Only the program phases in your license can be built.</p>
 <div class="note"><b>ISAF is not a qualified tool</b>ISAF is a document generation aid. It is not a qualified tool under DO-178C section 12.2.1 or DO-330, and no certification credit comes from using it. DO-178C requires a tool to be qualified only where its output is <i>not</i> verified; ISAF's output is verified, because you review and approve every document before it becomes life cycle data. That is what keeps ISAF outside the qualification requirement, so the review is not a formality. The cover of every document ISAF generates carries this notice, so a DER or an authority reviewing your data sees it too. ISAF does generate the DO-330 qualification documents (TQP, TOR, TVCP, TVR, TQAS) for <b>your own</b> tools; that is a different thing from ISAF being qualified.</div>
 <table>
   <tr><th></th><th>Installed app (on your computer or network)</th><th>Hosted trial (web link from MX Aero)</th></tr>
@@ -96,7 +96,7 @@
   <li>The app is locked until you enter your company's access key. Type it in the <span class="ui">Access key</span> box and select <span class="ui">Unlock</span>.</li>
   <li>When the key is accepted, the yellow box disappears and the app opens with your starter configuration loaded. A wrong key shows "That access key was not accepted. Check it and try again."; check the key with your ISAF administrator.</li>
 </ol>
-<figure><img src="img/user-guide/01-access-key.jpg" alt="Access key box above the locked app"><figcaption>Figure 1. The app is greyed out until the access key is accepted. The File, Help and account menus in the top bar work even while the app is locked.</figcaption></figure>
+<figure><img src="img/user-guide/01-access-key.jpg" alt="Access key box above the locked app"><figcaption>Figure 1. The app is grayed out until the access key is accepted. The File, Help and account menus in the top bar work even while the app is locked.</figcaption></figure>
 <div class="tip"><b>The key is remembered in this browser tab</b>Reloading the page does not ask again. To lock the app on a shared computer, choose <span class="ui">Logout…</span> in your account menu (your company name, top right).</div>
 
 <h2 id="screen">3. The screen at a glance</h2>
@@ -104,18 +104,17 @@
 <ul>
   <li><b>Banner</b> — your company name and the ISAF version.</li>
   <li><b>Top bar</b> — the menus <span class="ui">File</span>, <span class="ui">Edit</span>, <span class="ui">Build</span>, <span class="ui">Documents</span>, <span class="ui">View</span>, <span class="ui">Tools</span> and <span class="ui">Help</span> (User Guide, About) on the left (see "Menus and keyboard shortcuts" below), and on the right your account menu, shown with your name (User Information, User Level, Change Password, Logout).</li>
-  <li><b>Program bar</b> (installed app) — the <span class="ui">Repository program</span> and <span class="ui">Program Focal</span> used by Program Documents (section 10).</li>
   <li><b>Main tabs</b> — <span class="ui">Program Intake</span>, <span class="ui">Config Data</span>, <span class="ui">Build</span>, <span class="ui">Import</span>, <span class="ui">Document PNs</span>, <span class="ui">Program Documents</span>, <span class="ui">Roadmap</span> and <span class="ui">Administration</span>. <span class="ui">Reset</span> (right) clears the loaded workbook from the app; it never deletes files or documents.</li>
 </ul>
-<figure><img src="img/user-guide/02-about.jpg" alt="About panel listing licence details"><figcaption>Figure 2. Help → About shows who the app is licensed to, the licence ID, the ISAF version, the edition, the licensed program types and phases, and where your data is kept.</figcaption></figure>
-<figure><img src="img/user-guide/03-file-menu.jpg" alt="Top bar with the File, Edit, Build, Documents, View, Tools and Help menus, and the File menu open"><figcaption>Figure 3. The File menu. New Program Intake opens Program Intake ready for you to choose the program type; Load Configuration opens your saved configuration workbook, and Save Configuration saves your changes to a workbook. Exit asks for confirmation, then closes the window (if the browser keeps it open, you can close the tab yourself).</figcaption></figure>
+<figure><img src="img/user-guide/02-about.jpg" alt="About panel listing license details"><figcaption>Figure 2. Help → About shows who the app is licensed to, the license ID, the ISAF version, the edition, the licensed program types and phases, and where your data is kept.</figcaption></figure>
+<figure><img src="img/user-guide/03-file-menu.jpg" alt="Top bar with the File, Edit, Build, Documents, View, Tools and Help menus, and the File menu open"><figcaption>Figure 3. The File menu. New Program Intake asks for the program type (Aircraft, System or LRU) and starts a blank configuration; Create Program creates the program register (section 10); Load Configuration opens your saved configuration workbook, and Save Configuration saves your changes to a workbook. Exit asks for confirmation, then closes the window (if the browser keeps it open, you can close the tab yourself).</figcaption></figure>
 <figure><img src="img/user-guide/03b-account-menu.jpg" alt="Account menu open showing User Information, User Level, Change Password and Logout"><figcaption>Figure 4. The account menu, shown with your name (or your company name when your app uses a company key). User Information lists your name, company, the Intake Owner of the loaded configuration, your user level and how you sign in. Change Password arrives with individual user accounts; until then everyone is an Admin user. Logout asks for confirmation, then locks the app until the access key is entered again.</figcaption></figure>
 
 <h3 id="menus">Menus and keyboard shortcuts</h3>
 <p>The menus show only what applies to your app.</p>
 <table>
   <tr><th>Menu</th><th>What it contains</th></tr>
-  <tr><td>File</td><td>New Program Intake, Load Configuration, Save Configuration, Reset and Exit.</td></tr>
+  <tr><td>File</td><td>New Program Intake, Create Program (installed app), Load Configuration, Save Configuration, Reset and Exit.</td></tr>
   <tr><td>Edit</td><td>Find in Configuration (searches Config Data), Go to Next Missing Field (repeat it to move through every missing field and blocking check) and Discard Unsaved Changes (loads your workbook again without your edits, after asking).</td></tr>
   <tr><td>Build</td><td>Check Configuration, Build, Build New Template Drafts, Working Folder, Reuse Edited Documents and Open Output Folder.</td></tr>
   <tr><td>Documents</td><td>Program Documents, Find Document, Import Document, Establish Baseline, Import Requirements, Document PNs and Roadmap.</td></tr>
@@ -126,10 +125,10 @@
 <p>Every field has a small <span class="ui">i</span> button: select it for an explanation of the field and what to enter. Required fields are marked with a red <span class="ui">*</span>.</p>
 
 <h2 id="starter">4. Your starter configuration and licensed fields</h2>
-<p>When the app opens, it loads a <b>starter configuration</b> prepared from your licence. It already contains your company name and address, program type, primary authority, certification regime and basis, DO-160 scope and revision, and your requirements tool type.</p>
+<p>When the app opens, it loads a <b>starter configuration</b> prepared from your license. It already contains your company name and address, program type, primary authority, certification regime and basis, DO-160 scope and revision, and your requirements tool type.</p>
 <ul>
-  <li>Licensed fields show <span class="ui">(licensed)</span> next to their name and are greyed out. They cannot be changed in the app, and editing them in Excel has no effect: the app restores them whenever it loads, saves or builds a workbook.</li>
-  <li>If a licensed value is wrong (for example, your address has changed), contact MX Aero. MX Aero corrects your licence and sends an updated app; your saved workbooks keep all your other entries.</li>
+  <li>Licensed fields show <span class="ui">(licensed)</span> next to their name and are grayed out. They cannot be changed in the app, and editing them in Excel has no effect: the app restores them whenever it loads, saves or builds a workbook.</li>
+  <li>If a licensed value is wrong (for example, your address has changed), contact MX Aero. MX Aero corrects your license and sends an updated app; your saved workbooks keep all your other entries.</li>
   <li>Your job is to complete everything else, then save it as <b>your own workbook</b> (section 6). From then on, open your own workbook, not the starter.</li>
 </ul>
 
@@ -137,15 +136,15 @@
 <p>Program Intake guides you through the program-level questions in three steps. Required fields that are still empty are <b>outlined in red</b>; the red disappears as soon as you fill them. The line under the step tabs counts how many required fields are complete.</p>
 <h3>Step 1 — Program</h3>
 <ol class="steps">
-  <li>Select the <span class="ui">Program Intake</span> tab. The starter configuration is already open; you do not need <span class="ui">Start New Intake</span> unless you want a blank program.</li>
+  <li>Select the <span class="ui">Program Intake</span> tab. The starter configuration is already open; you do not need <span class="ui">Start New Intake</span> unless you want a blank program. If you do, it asks for the program type (Aircraft, System or LRU) and replaces the loaded configuration in the browser; your saved workbook is kept.</li>
   <li>In <b>Company And Program</b>, enter the <span class="ui">Company Short Name</span>, <span class="ui">Program Name</span>, <span class="ui">Program Short Name</span>, the <span class="ui">Document Revision</span> and, optionally, CAGE code, document prefix, intake owner and a short product description.</li>
-  <li>In <b>Branding And Document Control</b>, choose brand colours, select <span class="ui">Browse…</span> to pick your company logo (SVG, PNG or JPEG), select <span class="ui">Choose ECCN</span> to set the export control marking, and enter the document retention period. The distribution statement starts as "© Copyright - All rights reserved"; change it if your company uses another.</li>
+  <li>In <b>Branding And Document Control</b>, choose brand colors, select <span class="ui">Browse…</span> to pick your company logo (SVG, PNG or JPEG), select <span class="ui">Choose ECCN</span> to set the export control marking, and enter the document retention period. The distribution statement starts as "© Copyright - All rights reserved"; change it if your company uses another.</li>
   <li>Select <span class="ui">Continue</span>. Each step opens at the top of the page.</li>
 </ol>
-<figure><img src="img/user-guide/05-intake-step1.jpg" alt="Program Intake step 1 with licensed and red required fields"><figcaption>Figure 5. Step 1 — Program. Company Name, Address and Program Type are licensed (grey). Empty required fields are outlined in red.</figcaption></figure>
+<figure><img src="img/user-guide/05-intake-step1.jpg" alt="Program Intake step 1 with licensed and red required fields"><figcaption>Figure 5. Step 1 — Program. Company Name, Address and Program Type are licensed (gray). Empty required fields are outlined in red.</figcaption></figure>
 <h3>Step 2 — Approval &amp; Scope</h3>
 <ol class="steps">
-  <li>Choose the <span class="ui">Approval Path</span> (for example, FAA TSO authorization). Only paths that fit your program type and licence can be chosen; others are marked "(not for LRU programs)" or "(not in your licence)".</li>
+  <li>Choose the <span class="ui">Approval Path</span> (for example, FAA TSO authorization). Only paths that fit your program type and license can be chosen; others are marked "(not for LRU programs)" or "(not in your license)".</li>
   <li>Complete the certification basis: <span class="ui">Certification Regulations / Basis</span>, <span class="ui">Applicable TSO / ETSO</span> (if no TSO applies, enter <code>Not applicable:</code> followed by the reason), any secondary authority and the authority project reference.</li>
   <li>Answer the scope questions: software, hardware, external suppliers and DO-160 in scope; the aircraft and system FHA classifications and failure-condition counts; and whether CCA, ZSA, PRA and DO-254 Appendix B apply.</li>
   <li>Enter your primary authority contact and any partnering arrangement, means-of-compliance issues or other issues.</li>
@@ -165,10 +164,11 @@
 <h2 id="save">6. Save your configuration workbook</h2>
 <p>Your answers live in the browser until you save them. Save often.</p>
 <ol class="steps">
-  <li>Select <span class="ui">Save Configuration Workbook</span> (in Program Intake or Config Data).</li>
-  <li><b>Installed app:</b> choose a folder and file name. <b>Hosted trial:</b> your browser asks where to save, or downloads the file.</li>
-  <li>The saved copy is loaded straight away and becomes the workbook used by <span class="ui">Build</span>. Each save creates a new version of the file, so earlier versions are kept.</li>
-  <li>Next time, open your own workbook from the Build tab (section 9, step 2) or with <span class="ui">Load Existing Config</span> in Program Intake.</li>
+  <li>Select <span class="ui">Save Configuration Workbook</span> (in Program Intake or Config Data). It saves over the workbook you loaded, with no Save window.</li>
+  <li>The first time a workbook is saved (a new intake, a sample, or a file the app could not locate), the app asks for a folder and file name once. After that, the button saves over that file. <b>Hosted trial:</b> in Chrome or Edge the browser may ask once to allow saving to the file; in other browsers each save downloads a copy.</li>
+  <li>To save a new, separate workbook (for example a dated version), use <span class="ui">File → Save Configuration…</span>, which always asks for a folder and file name. The new file becomes the loaded workbook.</li>
+  <li>The saved copy is loaded straight away and becomes the workbook used by <span class="ui">Build</span>.</li>
+  <li>Next time, open your own workbook with <span class="ui">File → Load Configuration…</span>, from the Build tab (section 9, step 2) or with <span class="ui">Load Existing Config</span> in Program Intake. Opening it this way lets the app save over it.</li>
 </ol>
 <div class="tip"><b>Keep your workbook safe</b>The workbook is your program's master data. Store it where your company keeps program records (and in your configuration management system). In a hosted trial, nothing is kept on the server.</div>
 
@@ -207,7 +207,7 @@
   <li>Select the <span class="ui">Build</span> tab.</li>
   <li>Choose the workbook to build from: your loaded workbook is shown in the green box. To open another, drag the <code>.xlsx</code> file onto the box or select it and choose the file. <span class="ui">Your starter configuration</span> reloads the starter.</li>
   <li>Leave <span class="ui">Build source</span> on <span class="ui">Standard build</span> (see the <span class="ui">i</span> button for <span class="ui">New template drafts</span>).</li>
-  <li>Under <span class="ui">Program phases</span>, tick the milestone(s) to build, for example <span class="ui">SOI 1</span>. Each phase generates the documents first needed at that gate. <span class="ui">All</span> selects every licensed phase. Phases outside your licence are greyed out.</li>
+  <li>Under <span class="ui">Program phases</span>, tick the milestone(s) to build, for example <span class="ui">SOI 1</span>. Each phase generates the documents first needed at that gate. <span class="ui">All</span> selects every licensed phase. Phases outside your license are grayed out.</li>
   <li><b>Installed app:</b> check the <span class="ui">Output folder</span>; select <span class="ui">Browse…</span> to change it and <span class="ui">Open Folder</span> to view it. Optionally choose a <span class="ui">Program logo</span> for this build.</li>
   <li>Look under the <span class="ui">Build</span> button. "✓ Configuration checks passed" means you can build. If it lists problems, select a link to go to the field (section 8).</li>
   <li>Select <span class="ui">Build</span>. A progress bar and timer show the build running; <span class="ui">Stop build</span> cancels it.</li>
@@ -218,7 +218,7 @@
 <figure><img src="img/user-guide/16-build-ready.jpg" alt="Build status showing checks passed"><figcaption>Figure 15. Ready to build.</figcaption></figure>
 <figure><img src="img/user-guide/18-build-running.jpg" alt="Build running with progress bar and Stop build"><figcaption>Figure 16. Build running. Stop build appears only while a build runs.</figcaption></figure>
 <figure><img src="img/user-guide/19-build-complete.jpg" alt="Build log showing completed build"><figcaption>Figure 17. Build log after a successful SOI 1 build.</figcaption></figure>
-<div class="tip"><b>Build again after changes</b>After changing the configuration, save the workbook and build again. In documents your team has edited and checked in to Program Documents, a standard build updates the configuration values you did not change and keeps your text (see "Reuse your edited documents" below). Under document control the updated version is saved as a candidate for review.</div>
+<div class="tip"><b>Build again after changes</b>After changing the configuration, save the workbook and build again. In documents your team has edited and checked in to Program Documents, a standard build updates the configuration values you did not change and keeps your text (see "Reuse your edited documents" below). Under document control the updated version is saved for review (shown as Pending review).</div>
 
 <h3 id="reuse">Reuse your edited documents</h3>
 <p>Use this when you have edited generated documents in Word and then change the configuration, or when you start a new program from a previous program's documents.</p>
@@ -227,17 +227,17 @@
   <li>Build as usual. ISAF matches each document to the document it builds: by document number for the same program, or by document type and item for a new program.</li>
   <li>In each matched document, the configuration values you did not change are updated: names, part numbers, people, dates and references to other documents. Your own text, tables and formatting are kept.</li>
   <li>Where you changed a value and the configuration value has also changed, your text is kept and a Word comment by "ISAF refresh" marks it. Review it, update it if needed and delete the comment.</li>
-  <li>Open <code>Refresh_Report.txt</code> in the output. It lists each refreshed document, every flagged value and any file that was not used.</li>
+  <li>The output holds documents only. The refresh report (each refreshed document, every flagged value and any file that was not used) is kept with the program; Admins find it under <span class="ui">Program Documents</span> → <span class="ui">Support records</span>.</li>
 </ol>
 <figure><img src="img/user-guide/20-reuse-edited-documents.jpg" alt="Reuse edited documents with two Word documents selected"><figcaption>Figure 18. Reuse edited documents on the Build tab.</figcaption></figure>
-<div class="note"><b>Good to know</b>This works with documents generated by ISAF 5.3.26 or later. Documents checked in to Program Documents are refreshed automatically, so you need this only for files kept outside the app. New content that has no place in your edited document, such as sections for a newly added item, is not inserted; the report lists it, and <span class="ui">New template drafts</span> gives you the complete new document to compare.</div>
+<div class="note"><b>Good to know</b>This works with documents generated by ISAF 5.3.26 or later. Documents checked in to Program Documents are refreshed automatically, so you need this only for files kept outside the app. New content that has no place in your edited document, such as sections for a newly added item, is not inserted; the refresh report lists it, and <span class="ui">New template drafts</span> gives you the complete new document to compare.</div>
 
 <h3 id="working-folder">Work in a folder instead of ZIP files</h3>
 <p>In Chrome or Edge (and the ISAF desktop app) you can choose a folder on your computer for the program's documents. ISAF then reads your edited documents from it and saves each build into it, so you no longer collect documents from ZIP files after every build.</p>
 <ol class="steps">
   <li>On the <span class="ui">Build</span> tab, under <span class="ui">Working folder</span>, select <span class="ui">Choose working folder…</span> (or <span class="ui">Build</span> → <span class="ui">Working Folder…</span>), pick or create a folder, and allow ISAF to view and save files there when the browser asks.</li>
   <li>Keep <span class="ui">Read edited documents from this folder and save the build into it</span> selected and build as usual. The documents you edited in the folder are reused (see "Reuse your edited documents"), and the new documents are saved into the folder in one subfolder per phase (for example <code>SOI-2</code>).</li>
-  <li>Before ISAF replaces a file, it copies the previous version to <code>_ISAF_backup</code> in the folder, in a subfolder named with the date and time. A document saved under a new name (for example a new revision) moves the older file there too, so the folder holds one current file per document.</li>
+  <li>The folder holds your documents only, one current file per document. When a build replaces a file (or a document saved under a new name, for example a new revision, replaces an older file), the previous copy is kept with the program in the register, not in the folder. Admins find the copies of edited documents under <span class="ui">Program Documents</span> → <span class="ui">Support records</span>. Only a file ISAF could not send with the build (larger than 10 MB) is still copied to <code>_ISAF_backup</code> in the folder first.</li>
   <li>The browser remembers the folder. It may ask again for permission the next time you build. Select <span class="ui">Stop using this folder</span> to go back to the usual output.</li>
 </ol>
 <div class="note"><b>Good to know</b>Close documents in Word before building or updating; a file that is open may not be replaced, and ISAF lists it. Other browsers (Safari, Firefox) cannot save into a folder; there ISAF keeps the ZIP download.</div>
@@ -265,19 +265,20 @@
   <li>Check each file's <span class="ui">Item</span>: the software or hardware item its requirements belong to (filled in when the program has only one). A ReqIF file with several specifications has an item for each.</li>
   <li>Select <span class="ui">Use these requirements in every build</span>, then build. A build writes the requirements attached when it ran; ISAF does not re-read your requirements tool during a build.</li>
   <li>Import again whenever the requirements change and build again: ISAF replaces the tables and evidence it inserted (marked "ISAF import" in Word) and keeps everything else, including the reviewer's notes next to the evidence. If someone edited an inserted table in Word, it is still replaced, and a Word comment says so; change requirements in the requirements tool.</li>
-  <li><b>Documents that were already generated (ISAF Admin only).</b> Use this block when you want to change <b>only</b> the requirements tables in documents you already have: a build regenerates the whole document from the current configuration, while this edits the blocks marked "ISAF import" and leaves the rest exactly as it was issued. With a working folder (see "Work in a folder instead of ZIP files") it is one click: ISAF rewrites the documents in that folder in place, keeps the previous copies in <code>_ISAF_backup</code> and writes <code>Import_Report.txt</code> beside them. Without one &mdash; in a browser that cannot write into a folder &mdash; the updated documents come back as a ZIP for you to unpack and put back yourself, and where a rebuild is possible it is less work. The block says which of the two you will get.</li>
+  <li><b>Documents that were already generated (ISAF Admin only).</b> Use this block when you want to change <b>only</b> the requirements tables in documents you already have: a build regenerates the whole document from the current configuration, while this edits the blocks marked "ISAF import" and leaves the rest exactly as it was issued. With a working folder (see "Work in a folder instead of ZIP files") it is one click: ISAF rewrites the documents in that folder in place. The previous copies and the import report are kept with the loaded program's register (<span class="ui">Program Documents</span> → <span class="ui">Support records</span>, Admins only), so the folder holds documents only. Without one &mdash; in a browser that cannot write into a folder &mdash; the updated documents come back as a ZIP for you to unpack and put back yourself, and where a rebuild is possible it is less work. The block says which of the two you will get.</li>
 </ol>
 <div class="note"><b>Good to know</b>Checklist questions that can be answered from the data (identification, wording, units, verification method, trace) show "No findings" or "Findings" with evidence; questions that need engineering judgment (accuracy, consistency, compatibility with the target, algorithms) are marked "Reviewer". Your files are read and deleted at once; nothing is kept in Program Documents.</div>
 
-<h2 id="program">10. Program Focal and the program register</h2>
+<h2 id="program">10. The program register</h2>
 <p>In the installed app, each program has a <b>register</b> that records every generated or imported document, its versions, check-outs, releases and baselines.</p>
 <ol class="steps">
-  <li>In the program bar, type your name in <span class="ui">Program Focal</span>. Every action you record (build, check-in, release) is labelled with this name. Each person uses their own name.</li>
-  <li>With your workbook loaded, select <span class="ui">Create program</span>. Check the company, program name and document prefix, then select <span class="ui">Create program</span>. (If you skip this, the first build creates the register automatically.)</li>
-  <li>From then on, choose the program in <span class="ui">Repository program</span> when you work on it.</li>
+  <li>Load your configuration workbook. ISAF opens the register of the program it describes (same company, program name and document prefix). If the program has no register yet, the first build creates it.</li>
+  <li>To create the register before the first build, for example to import documents you already have, choose <span class="ui">File</span> → <span class="ui">Create Program…</span>. Check the company, program name and document prefix, then select <span class="ui">Create program</span>.</li>
+  <li>The top of the <span class="ui">Program Documents</span> tab shows whether document control is on for the register. The register reloads each time you open that tab.</li>
+  <li>Every action recorded in the register (build, import, check-out, check-in, release) is labeled with your user name, as shown in your account menu under <span class="ui">User Information</span>. With your own access key or single sign-on, that is your name; each person uses their own key.</li>
 </ol>
 <figure><img src="img/user-guide/17a-create-program-dialog.jpg" alt="Create program window"><figcaption>Figure 19. Create program.</figcaption></figure>
-<figure><img src="img/user-guide/17-program-created.jpg" alt="Program bar after the program is created"><figcaption>Figure 20. The program bar after the program is created.</figcaption></figure>
+<figure><img src="img/user-guide/17-program-created.jpg" alt="Top of the Program Documents tab after the program is created"><figcaption>Figure 20. The top of Program Documents after the program is created: the register exists and document control is off.</figcaption></figure>
 
 <h2 id="documents">11. Program Documents and document control</h2>
 <p><span class="ui">Program Documents</span> (installed app) lists every document in the program register with its document PN, title, owner, milestone, working version, released version and check-out status.</p>
@@ -287,7 +288,10 @@
   <li>To edit a document: in its details, choose <span class="ui">Check out and download</span>, edit the file in Word, then use <span class="ui">Check in edited file</span> with a short change summary. While it is checked out, others cannot check it in.</li>
   <li>Select <span class="ui">Import document</span> to add a document you already have (for example a supplier plan).</li>
   <li>When your program is ready for formal control, select <span class="ui">Enable document control</span>. From then on, builds use checked-in documents, and releases and reviews are recorded.</li>
-  <li>At a milestone, select <span class="ui">Establish baseline</span> to freeze the exact set of released documents; <span class="ui">Download exact set</span> retrieves it later.</li>
+  <li>Version names: every working version is a draft of the next revision, numbered in order (<code>A-draft.1</code>, <code>A-draft.2</code>, …). A version that ISAF will not put in place by itself, because it could overwrite someone's edits, is marked <b>Pending review</b> in the version history: download it, compare it with the working version, then select <span class="ui">Accept as working draft</span> or <span class="ui">Reject</span>.</li>
+  <li>To release a document: accept any version pending review, then in its details set the status to <b>In review</b> and, once reviewed, to <b>Ready for release</b>. The document must not be checked out, and the documents it depends on must be released. Select <span class="ui">Record reviewed release</span> and enter the review or approval reference. ISAF changes the cover revision from the draft name (for example <code>A-draft.3</code>) to the released revision (<code>A</code>). The next change starts at <code>B-draft.1</code>.</li>
+  <li>At a milestone, select <span class="ui">Establish baseline</span> to freeze the exact set of released documents; <span class="ui">Download exact set</span> retrieves the documents later.</li>
+  <li><b>Support records (Admins only).</b> Each build's record, source workbook and reports, and the copies of documents that a build or an Import update replaced in a working folder, are kept here for problem investigation instead of in users' folders. Open <span class="ui">Support records</span> at the bottom of the tab to download a file or a record. To ask MX Aero for support, select <span class="ui">Download support bundle</span> and send the ZIP.</li>
   <li>Open <b>Certification preparation</b> (top of the tab) to work through the checklist of records to review before an authority submission.</li>
 </ol>
 <div class="note"><b>Your company's procedure</b>The <code>Document_Configuration_Control.docx</code> procedure supplied with the app explains authoring, review, release and baseline responsibilities in detail. Adopt or adapt it as your company procedure.</div>
@@ -302,7 +306,7 @@
 <figure><img src="img/user-guide/20-document-pns.jpg" alt="Document PNs tab"><figcaption>Figure 22. Document PNs.</figcaption></figure>
 
 <h2 id="roadmap">13. Roadmap and Administration</h2>
-<p><span class="ui">Roadmap</span> shows document actions across the program: owners, target dates and dependencies, with filters for documents waiting on others, overdue, or assigned to you. Owners and dates are set in each document's register entry.</p>
+<p><span class="ui">Roadmap</span> shows document actions across the program: owners, target dates and dependencies, with filters for documents waiting on others, overdue, or assigned to you. Owners and dates are set in each document's register entry. Each document shows its PN and name on one line; drag the right edge of a column heading to make a column wider or narrower (the app remembers the widths in your browser).</p>
 <figure><img src="img/user-guide/22-roadmap.jpg" alt="Roadmap tab"><figcaption>Figure 23. Roadmap.</figcaption></figure>
 <p><span class="ui">Administration</span> shows the app edition, hosting mode, recent build activity and service status. Most users do not need it.</p>
 
@@ -328,9 +332,9 @@
   <tr><td>Red tabs, or "problems must be fixed in Config Data before building"</td><td>Open each red tab and select each problem to go to the field (section 8).</td></tr>
   <tr><td>"Select Save Configuration Workbook before generating documents"</td><td>You have unsaved edits. Save the workbook, then build.</td></tr>
   <tr><td>"Could not load &lt;file&gt;" on the Build tab</td><td>The message gives the reason. Make sure the file is an <code>.xlsx</code> configuration workbook saved by ISAF, then open it again. If it keeps failing, send the message to MX Aero.</td></tr>
-  <tr><td>A field shows "(licensed)" and cannot be edited</td><td>It comes from your licence. Contact MX Aero to change it.</td></tr>
-  <tr><td>An approval path is marked "(not in your licence)"</td><td>Choose a path that matches your licence, or contact MX Aero.</td></tr>
-  <tr><td>A phase is greyed out on the Build tab</td><td>It is not in your licence.</td></tr>
+  <tr><td>A field shows "(licensed)" and cannot be edited</td><td>It comes from your license. Contact MX Aero to change it.</td></tr>
+  <tr><td>An approval path is marked "(not in your license)"</td><td>Choose a path that matches your license, or contact MX Aero.</td></tr>
+  <tr><td>A phase is grayed out on the Build tab</td><td>It is not in your license.</td></tr>
   <tr><td>A build takes long or you started the wrong one</td><td>Select <span class="ui">Stop build</span>, correct the selection and build again.</td></tr>
   <tr><td>Hosted trial is slow to open</td><td>Trial sites sleep when unused; the first page can take up to a minute.</td></tr>
 </table>
@@ -338,11 +342,12 @@
 <h2 id="help">16. Getting help</h2>
 <ul>
   <li>Select the <span class="ui">i</span> button next to any field for guidance on that field.</li>
-  <li>Open <span class="ui">Help → About</span> to find your licence ID and ISAF version.</li>
-  <li>Contact your ISAF representative at MX Aero LLC. Include the licence ID, the version, what you were doing and the exact message (a screenshot helps).</li>
+  <li>Open <span class="ui">Help → About</span> to find your license ID and ISAF version.</li>
+  <li>Contact your ISAF representative at MX Aero LLC. Include the license ID, the version, what you were doing and the exact message (a screenshot helps).</li>
 </ul>
 
 <footer>Copyright © 2026 MX Aero LLC. All rights reserved. Screens show a sample company (Example Avionics Inc.) and sample data.</footer>
 </div>
+<script src="help-search.js" defer></script>
 </body>
 </html>

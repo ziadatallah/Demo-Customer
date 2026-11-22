@@ -207,6 +207,7 @@ for (const method of [
   "public", "audit", "blob", "bytes", "doc", "version", "addVersion", "newDoc",
   "import", "updateDocument", "checkout", "verifyCheckout", "cancelCheckout", "recoverCheckout",
   "checkin", "release", "candidate", "control", "baseline", "adoptBuild", "link", "saveConfiguration",
+  "addRecord", "records", "record",
 ]) {
   Object.defineProperty(PostgresRepositoryStore.prototype, method, {
     value: RepositoryStore.prototype[method], writable: true, configurable: true,

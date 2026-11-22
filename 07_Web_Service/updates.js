@@ -9,7 +9,7 @@
  *    published to the usage collector, which is the service the Customer apps can reach.
  *
  * Customer app side (createUpdateClient):
- *  - EDITION.json carries updates {endpoint, token} (the same licence token as usage). The app asks the collector
+ *  - EDITION.json carries updates {endpoint, token} (the same license token as usage). The app asks the collector
  *    when it starts, every six hours, and whenever a user chooses "Check for updates". Sites hosted by MX Aero
  *    are updated by MX Aero itself, so they show no notice and are never blocked.
  *  - The answer is cached (updates.json) so the notice still shows when the collector is asleep or unreachable.
@@ -20,7 +20,7 @@
  *    period, and never less than three days after the app first learned of the update, so nobody is stopped
  *    without warning. Everything else (reading, Config Data, Documents, the usage report) keeps working.
  *
- * No document, workbook or configuration content is involved: an update check sends the licence ID and the
+ * No document, workbook or configuration content is involved: an update check sends the license ID and the
  * version the app is running, and receives the release details.
  */
 import fs from "node:fs";

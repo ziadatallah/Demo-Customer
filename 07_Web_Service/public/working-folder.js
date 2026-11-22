@@ -2,8 +2,11 @@
    it and save their output into it, and the Import tab updates documents in it, instead of handing out ZIP
    files. Uses the browser's folder access (File System Access API: Chrome, Edge and the ISAF desktop app); the
    browser asks the user to allow it. Other browsers keep the ZIP downloads. Nothing about the folder is sent to
-   the server. Before a file is replaced, the previous version is copied to _ISAF_backup/<date-time>/ in the
-   folder. The chosen folder is remembered in this browser (IndexedDB). */
+   the server. A file that a build or an Import update replaces is kept with the program on the ISAF server (the
+   register holds it, or it was sent with the build and kept in the support record, owner 22 November 2026), so
+   the folder holds documents only. Only a file the server does not hold (for example a document too large to send
+   with the build, or when no program register is available) is still copied to _ISAF_backup/<date-time>/ first.
+   The chosen folder is remembered in this browser (IndexedDB). */
 (() => {
   const BACKUP = '_ISAF_backup';
   const supported = () => typeof window.showDirectoryPicker === 'function';
@@ -91,13 +94,15 @@
     const p = parts(path), dir = await dirFor(p.slice(0, -1), true), fh = await dir.getFileHandle(p.at(-1), { create: true });
     const w = await fh.createWritable(); await w.write(data); await w.close();
   }
-  /** Write files [{path, data}] into the folder; an existing file is copied to _ISAF_backup/<stamp>/ first. */
-  async function writeFiles(files, { backupStamp = stamp() } = {}) {
+  /** Write files [{path, data}] into the folder. kept: the paths whose current file the ISAF server holds (a Set),
+      or true when it holds all of them; any other existing file is copied to _ISAF_backup/<stamp>/ first. */
+  const serverHolds = (kept, path) => kept === true || !!kept?.has?.(parts(path).join('/'));
+  async function writeFiles(files, { backupStamp = stamp(), kept = null } = {}) {
     let written = 0, backedUp = 0; const failed = [];
     for (const f of files) {
       try {
         const old = await existing(f.path);
-        if (old) { await put(`${BACKUP}/${backupStamp}/${parts(f.path).join('/')}`, await old.getFile()); backedUp++; }
+        if (old && !serverHolds(kept, f.path)) { await put(`${BACKUP}/${backupStamp}/${parts(f.path).join('/')}`, await old.getFile()); backedUp++; }
         await put(f.path, f.data); written++;
       } catch (e) { failed.push({ path: f.path, error: e.message }); }
     }
@@ -107,7 +112,7 @@
   /** Unpack a ZIP (a build) into the folder. A Word document that replaces an older file of the same document
       number under another name (a new revision or draft) moves the older file to the backup, so the folder
       holds one current file per document. */
-  async function writeZip(blob, { backupStamp = stamp() } = {}) {
+  async function writeZip(blob, { backupStamp = stamp(), kept = null } = {}) {
     const entries = await zipEntries(blob), files = [];
     for (const e of entries) files.push({ path: e.name, data: await zipRead(blob, e) });
     const incoming = new Map();
@@ -117,10 +122,10 @@
       for (const d of await documents()) {
         const id = await identity(d.file), key = id?.pn && `${id.pn}|${id.doc}`;
         if (!key || !incoming.has(key) || incoming.get(key) === d.path) continue;
-        try { await put(`${BACKUP}/${backupStamp}/${d.path}`, d.file); await remove(d.path); superseded++; } catch {}
+        try { if (!serverHolds(kept, d.path)) { await put(`${BACKUP}/${backupStamp}/${d.path}`, d.file); superseded++; } await remove(d.path); } catch {}
       }
     }
-    const result = await writeFiles(files, { backupStamp });
+    const result = await writeFiles(files, { backupStamp, kept });
     result.superseded = superseded; result.backup = (result.backedUp || superseded) ? `${BACKUP}/${backupStamp}` : '';
     return result;
   }

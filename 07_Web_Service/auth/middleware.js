@@ -2,6 +2,7 @@ import {AuthenticationError, OidcVerifier} from "./oidc.js";
 import {PostgresMembershipStore} from "./postgres_membership.js";
 import {hasPermission} from "./permissions.js";
 import crypto from "node:crypto";
+import {sessionToken} from "./accounts.js";
 
 export function createAuthentication({
   mode = process.env.ISAF_AUTH_MODE || "api-key",
@@ -14,6 +15,9 @@ export function createAuthentication({
   auditStore,
   onKeyRejected, // optional: called when a wrong access key is supplied (not when none is supplied)
   accessKeys = [], // named users of a customer app: [{id, name, sha256}] (EDITION.json access_keys); each key identifies its user
+  accounts = null, // Admin app user accounts (auth/accounts.js, v6.0.0)
+  accountsRequired = () => false, // true once sign-in with an account is enforced (Admin app with accounts, or hosted)
+  accountAdminOnly = () => false, // routes a "user" account may not call (customers, demos, administration)
   env = process.env,
 } = {}) {
   const selected = String(mode || "api-key").trim().toLowerCase();
@@ -26,8 +30,22 @@ export function createAuthentication({
   const requireAuth = async (req, res, next) => {
     try {
       if (selected === "api-key") {
+        // Admin app accounts (v6.0.0): a signed-in session wins. Owners and Admins work as organization
+        // administrators (the Owner-only account actions are checked in account_routes.js); a User works as a
+        // program manager and cannot reach the Admin-only routes.
+        const account = accounts?.session(sessionToken(req));
+        if (account) {
+          if (account.mustChange) return res.status(403).json({error: "Change your temporary password first.", mustChange: true});
+          if (account.role === "user" && accountAdminOnly(req)) return res.status(403).json({error: "This needs an Admin account. Ask the ISAF owner."});
+          req.auth = {mode: "account", subject: "account:" + account.id, role: account.role === "user" ? "program_manager" : "organization_admin", displayName: account.name,
+            user: {id: account.id, name: account.name}, account};
+          return next();
+        }
+        const mustSignIn = accountsRequired();
         const userKeys = (accessKeys || []).filter(k => /^[0-9a-f]{64}$/i.test(k?.sha256 || ""));
+        if (mustSignIn && !req.headers["x-api-key"] && !req.query.key) return res.status(401).json({error: "Sign in to ISAF.", signIn: true});
         if (!apiKey && !apiKeyHash && !userKeys.length) {
+          if (mustSignIn) return res.status(401).json({error: "Sign in to ISAF.", signIn: true});
           req.auth = {mode: "development", subject: "local-development", role: "organization_admin", displayName: "Local user"};
           return next();
         }

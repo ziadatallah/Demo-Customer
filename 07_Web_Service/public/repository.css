@@ -1,8 +1,7 @@
-.repo-bar,.repo-toolbar{display:flex;gap:.65rem;align-items:end;flex-wrap:wrap;margin:.75rem 0}.repo-bar{padding:.8rem;background:#f0f4f8;border:1px solid var(--border);border-radius:6px}.repo-bar label{font-size:.75rem;display:flex;flex-direction:column;gap:.3rem}.repo-bar select{min-width:240px}.repo-bar input,.repo-bar select,.repo-toolbar input,.repo-toolbar select,.repo-form input,.repo-form select,.repo-form textarea{padding:.45rem;border:1px solid var(--border);border-radius:4px;font:inherit;max-width:100%;box-sizing:border-box}.repo-table-wrap{overflow:auto}.repo-table{width:100%;border-collapse:collapse;font-size:.78rem}.repo-table th,.repo-table td{padding:.55rem;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}.repo-table th{background:#f3f6f9;white-space:nowrap}.repo-table button{font-size:.72rem;padding:.25rem .5rem}.repo-muted{color:var(--text-muted);font-size:.8rem}.repo-warning{color:#875c13;background:#fff8e7;padding:.7rem;border-radius:4px}.repo-error{color:#a22424;white-space:pre-wrap}.repo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem}.repo-form label{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem}.repo-form textarea{min-height:70px}.repo-dialog{width:min(1100px,94vw);max-height:90vh;border:1px solid #c7d2df;border-radius:8px;padding:1.3rem;overflow:auto}.repo-dialog::backdrop{background:#172b4d80}.repo-dialog h3{margin:.2rem 0 .8rem}.repo-dialog .repo-close{float:right}.repo-section{margin:1.2rem 0}.repo-checkbox{display:flex!important;flex-direction:row!important;gap:.5rem;align-items:center}.repo-records{margin-top:1rem}.repo-pill{padding:.2rem .5rem;border-radius:4px;background:#e3ebf3;font-size:.75rem}.repo-note{white-space:pre-wrap}.repo-dialog select[multiple]{min-height:100px}.main-tab-bar .tab-group{flex-wrap:wrap}.repo-empty{padding:1.2rem;background:#f5f7fa;color:var(--text-muted)}
+.repo-toolbar{display:flex;gap:.65rem;align-items:end;flex-wrap:wrap;margin:.75rem 0}.repo-toolbar input,.repo-toolbar select,.repo-form input,.repo-form select,.repo-form textarea{padding:.45rem;border:1px solid var(--border);border-radius:4px;font:inherit;max-width:100%;box-sizing:border-box}.repo-table-wrap{overflow:auto}.repo-table{width:100%;border-collapse:collapse;font-size:.78rem}.repo-table th,.repo-table td{padding:.55rem;text-align:left;border-bottom:1px solid var(--border);vertical-align:top}.repo-table th{background:#f3f6f9;white-space:nowrap}.repo-table button{font-size:.72rem;padding:.25rem .5rem}.repo-muted{color:var(--text-muted);font-size:.8rem}.repo-warning{color:#875c13;background:#fff8e7;padding:.7rem;border-radius:4px}.repo-error{color:#a22424;white-space:pre-wrap}.repo-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:.8rem}.repo-form label{display:flex;flex-direction:column;gap:.25rem;font-size:.8rem}.repo-form textarea{min-height:70px}.repo-dialog{width:min(1100px,94vw);max-height:90vh;border:1px solid #c7d2df;border-radius:8px;padding:1.3rem;overflow:auto}.repo-dialog::backdrop{background:#172b4d80}.repo-dialog h3{margin:.2rem 0 .8rem}.repo-dialog .repo-close{float:right}.repo-section{margin:1.2rem 0}.repo-checkbox{display:flex!important;flex-direction:row!important;gap:.5rem;align-items:center}.repo-records{margin-top:1rem}.repo-pill{padding:.2rem .5rem;border-radius:4px;background:#e3ebf3;font-size:.75rem}.repo-note{white-space:pre-wrap}.repo-dialog select[multiple]{min-height:100px}.main-tab-bar .tab-group{flex-wrap:wrap}.repo-empty{padding:1.2rem;background:#f5f7fa;color:var(--text-muted)}
 
-.repo-scroll{overflow:auto}.repo-bar #repoMessage{flex-basis:100%}
+.repo-scroll{overflow:auto}
 
-.repo-actor-field{width:260px;max-width:100%;min-width:0}.repo-actor-field input{width:100%}.repo-actor-field #repoActorHelp{white-space:normal;overflow-wrap:anywhere}
 
 .repo-build-source{margin-bottom:2rem;padding-bottom:.5rem}
 .repo-build-source-row{column-gap:2rem;row-gap:1rem;align-items:flex-start}
@@ -23,23 +22,19 @@
 .repo-control-status[data-state="on"]{color:#166534;background:#dcfce7;border-color:#72b68a}
 .repo-control-status[data-state="none"]{color:#475569;background:#f1f5f9;border-color:#cbd5e1}
 
-/* Project fields and grouped actions share one baseline. */
-.repo-bar{display:grid;grid-template-columns:minmax(240px,1.3fr) minmax(200px,1fr) auto minmax(max-content,1fr);column-gap:1rem;row-gap:.65rem;align-items:end;padding:1.15rem 1.25rem}
 .repo-header-field{display:flex;flex-direction:column;gap:.5rem;min-width:0;width:auto}
 .repo-field-heading{display:flex;align-items:center;gap:.45rem}
-.repo-bar .repo-field-heading label{font-size:1rem;font-weight:600;margin:0}
-.repo-bar .repo-field-heading .info-btn{width:20px!important;height:20px!important;min-width:20px!important;font-size:.75rem!important}
-.repo-bar input,.repo-bar select{width:100%;min-width:0;height:44px;font-size:1rem;font-weight:400;padding:.5rem .7rem}
 .repo-header-actions{display:inline-flex;height:44px;box-sizing:border-box;border:1px solid #c3cedc;border-radius:6px;overflow:hidden;background:var(--surface);align-items:stretch;justify-self:start}
-.repo-bar .repo-header-actions button{height:100%;box-sizing:border-box;font-size:.95rem;font-weight:500;padding:0 .95rem;white-space:nowrap;margin:0;border:0;border-radius:0;background:transparent;color:var(--brand)}
-.repo-bar .repo-header-actions button+button{border-left:1px solid #c3cedc}
-.repo-bar .repo-header-actions button:hover{background:#e8eef6}
-.repo-bar .repo-header-actions button:focus-visible{outline:2px solid var(--brand);outline-offset:-3px}
-.repo-bar>.repo-control-status{justify-self:end;display:flex;align-items:center;justify-content:flex-end;min-height:44px;font-size:1rem;margin:0}
-.repo-bar>#repoMessage{grid-column:1/-1;margin:0;font-size:.9rem;line-height:1.5}
-.repo-bar>#repoMessage:empty{display:none}
-@media(max-width:1150px){.repo-bar{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.repo-header-actions{grid-column:1}.repo-bar>.repo-control-status{grid-column:2}}
-@media(max-width:680px){.repo-bar{grid-template-columns:minmax(0,1fr);padding:1rem}.repo-header-field,.repo-header-actions,.repo-bar>.repo-control-status{grid-column:1}.repo-bar>.repo-control-status{max-width:100%;font-size:.95rem}}
 
 /* Document details can be resized without extending beyond the browser. */
 .repo-dialog[data-resizable="true"]{resize:both;box-sizing:border-box;min-width:min(420px,94vw);max-width:94vw;min-height:min(280px,90vh);max-height:90vh;overflow:auto}
+/* Document control status at the top of Program Documents (v6.0.0; the program bar above the tabs was removed). */
+.repo-doc-status{display:flex;flex-wrap:wrap;align-items:center;gap:.4rem 1rem;margin:0 0 .8rem}
+.repo-doc-status #repoMessage{margin:0;font-size:.9rem}
+.repo-doc-status #repoMessage:empty{display:none}
+.repo-doc-status .repo-control-status{margin-left:0}
+/* Roadmap (owner, 21 November 2026): one line per document; columns resized from the heading edges. */
+.repo-roadmap-table th{position:relative}
+.repo-roadmap-table th,.repo-roadmap-table td{overflow:hidden}
+.repo-roadmap-table td.repo-roadmap-doc{white-space:nowrap;text-overflow:ellipsis}
+.repo-roadmap-name{margin-left:.4rem}

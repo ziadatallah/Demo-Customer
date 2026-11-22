@@ -22,6 +22,8 @@ import {createReleaseRegister,createUpdateClient} from "./updates.js";
 import {DEFAULT_MAX_ITEMS} from "./jama.js";
 import {createConnectionStore,TOOLS} from "./tool_connections.js";
 import {customerDataDir} from "./customers.js";
+import {createAccountStore, sessionToken} from "./auth/accounts.js";
+import {accountRoutes} from "./auth/account_routes.js";
 import {CustomerRegister,CUSTOMER_OPTIONS,REQUIREMENTS_IMPORT,AVAILABLE_IMPORT_IDS,FILE_IMPORT_IDS,releaseVersions,deliveryRegisterFile,deliveryRow,licenseChanged,starterModifications,appAccessKeys,licensedPhaseIds,licensedProgramTypes,CUSTOMER_DEFAULTS} from "./customers.js";
 import {postprocessOutput, findSoffice} from "./output_postprocess.js";
 import {watermarkText} from "./demo_watermark.js";
@@ -156,6 +158,14 @@ const upload = multer({
 // ---------------------------------------------------------------------------
 
 // Static files (upload page)
+// Admin-only help pages are part of the signed-in Admin app: when sign-in is enforced (v6.0.0) they need a session.
+const ADMIN_ONLY_HELP = new Set(["/help/document-architecture.html", "/help/release-notes.html", "/help/new-customer-setup.html", "/help/usage-tracking-setup.html"]);
+app.use((req, res, next) => {
+  if (!ADMIN_ONLY_HELP.has(req.path) || !accountsRequired()) return next();
+  const account = accountStore.session(sessionToken(req));
+  if (account && account.role !== "user") return next();
+  res.redirect(302, "/");
+});
 app.use(express.static(path.join(__dirname, "public")));
 app.use(express.json({ limit: "10mb" }));
 const repository = await createRepositoryProviderAsync({
@@ -181,7 +191,18 @@ if(updateClient.enabled){
 const requireUpToDate=(req,res,next)=>{const message=updateClient.buildBlockedMessage();if(message)return res.status(426).json({error:message,updateRequired:true});next();};
 const rejectedKeyLog=new Map();
 function logRejectedKey(req){const {ip}=accessClient(req),now=Date.now();if(now-(rejectedKeyLog.get(ip)||0)<60000)return;rejectedKeyLog.set(ip,now);if(rejectedKeyLog.size>500)rejectedKeyLog.clear();accessLog("Wrong access key entered",req);}
+// Admin app user accounts (v6.0.0). Kept beside the customer register (ISAF_ADMIN_DATA_DIR on a hosted Admin's
+// persistent disk). Sign-in is enforced once an account exists, and from the start on a hosted Admin.
+const accountStore = createAccountStore({file: path.join(customerDataDir(), "ISAF_Accounts.json"), eventsFile: path.join(customerDataDir(), "ISAF_Account_Events.jsonl")});
+const accountsEnabled = () => appEdition() === "full" && AUTH_MODE === "api-key";
+const accountsRequired = () => accountsEnabled() && (HOSTED_SERVICE || accountStore.hasAccounts());
+const ACCOUNT_SETUP_CODE = String(process.env.ISAF_SETUP_CODE || crypto.randomBytes(4).toString("hex").toUpperCase().replace(/^(.{4})/, "$1-"));
 const authentication = createAuthentication({
+  accounts: accountsEnabled() ? accountStore : null,
+  accountsRequired,
+  // A User account works on programs only (owner, 21 November 2026): no customers, publishing, app updates, usage
+  // administration, demos or the Administration tab.
+  accountAdminOnly: req => /^\/api\/(admin\/|create-demo|publish-demo|demo-register)/.test(String(req.originalUrl || req.url || "")),
   mode: AUTH_MODE,
   apiKey: API_KEY,
   apiKeyHash: API_KEY_HASH,
@@ -194,15 +215,17 @@ const authentication = createAuthentication({
 });
 const requireAuth = authentication.requireAuth;
 const authorize = authentication.authorize;
+app.use("/api/account", accountRoutes({store: accountStore, enabled: accountsEnabled, required: accountsRequired, setupCode: ACCOUNT_SETUP_CODE}));
+if (accountsEnabled() && !accountStore.hasAccounts()) console.log(`ISAF accounts: no account yet. Create the Owner account in the app${HOSTED_SERVICE ? ` with setup code ${ACCOUNT_SETUP_CODE}` : " (on this computer no setup code is needed; from another computer use setup code " + ACCOUNT_SETUP_CODE + ")"}.`);
 const buildJobs = createBuildJobStore(repository, {
   root: path.join(process.env.ISAF_REPOSITORY_DIR || path.join(__dirname,"repository"), "build-jobs"),
   organizationId: process.env.ISAF_ORGANIZATION_ID,
 });
 const connectors=createConnectorService({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository")});
-const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"5.3.44",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
+const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"6.0.2",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
 
 app.get("/api/session",requireAuth,(req,res)=>res.json({
-  edition:appEdition(), version:"5.3.44", authentication:authentication.mode,
+  edition:appEdition(), version:"6.0.2", authentication:authentication.mode,
   user:{id:req.auth.id||null,subject:req.auth.subject,displayName:req.auth.displayName,email:req.auth.email||null,role:req.auth.role},
   organizationId:req.auth.organizationId||process.env.ISAF_ORGANIZATION_ID||null,
   capabilities:{teamAdministration:authentication.mode==="oidc"&&hasPermission(req.auth.role,"organization.manage"),durableBuilds:!!repository?.metadata?.withTenant,integrationAdministration:hasPermission(req.auth.role,"integration.manage"),hosted:HOSTED_SERVICE},
@@ -227,7 +250,7 @@ const toolFail=(res,error)=>res.status(error.status||502).json({error:error.mess
 // An Admin app offers every tool; a Customer app offers only the ones licensed for that customer
 // (EDITION.json tools, written by Create/Publish). An unlicensed tool is not shown and not reachable.
 // "files" is the ReqIF, Excel and CSV import; the others are live tool connections. All of them are licensed
-// per customer (Customers tab), so a Customer app offers only what its licence names.
+// per customer (Customers tab), so a Customer app offers only what its license names.
 const IMPORT_CAPABILITIES=REQUIREMENTS_IMPORT.filter(o=>o.available).map(o=>o.id);
 const licensedTools=()=>{
   if(appEdition()!=="customer")return IMPORT_CAPABILITIES;
@@ -236,15 +259,15 @@ const licensedTools=()=>{
 };
 // A DOORS customer is licensed for the file import through "DOORS ReqIF"; either file entry switches it on.
 const fileImportLicensed=()=>licensedTools().some(t=>FILE_IMPORT_IDS.includes(t));
-const requireFileImport=(req,res,next)=>fileImportLicensed()?next():res.status(403).json({error:"Importing requirements from a file is not part of this ISAF licence. MX Aero can add it."});
+const requireFileImport=(req,res,next)=>fileImportLicensed()?next():res.status(403).json({error:"Importing requirements from a file is not part of this ISAF license. MX Aero can add it."});
 const toolAllowed=(res,tool)=>{
   if(licensedTools().includes(String(tool)))return true;
-  res.status(403).json({error:`${TOOLS[tool]?.label||"That tool"} is not part of this ISAF licence. Requirements can still be imported as ReqIF, Excel or CSV files, and MX Aero can add the connection to your licence.`});
+  res.status(403).json({error:`${TOOLS[tool]?.label||"That tool"} is not part of this ISAF license. Requirements can still be imported as ReqIF, Excel or CSV files, and MX Aero can add the connection to your license.`});
   return false;
 };
 const toolClient=req=>{
   const connection=toolStore.get(String(req.params.id||""));
-  if(!licensedTools().includes(String(connection.tool)))throw Object.assign(new Error(`${TOOLS[connection.tool]?.label||"That tool"} is not part of this ISAF licence.`),{status:403});
+  if(!licensedTools().includes(String(connection.tool)))throw Object.assign(new Error(`${TOOLS[connection.tool]?.label||"That tool"} is not part of this ISAF license.`),{status:403});
   return toolStore.client(String(req.params.id||""),{log:console.log});
 };
 app.get("/api/tools",requireAuth,authorize("build.run"),(req,res)=>{
@@ -353,7 +376,7 @@ app.post("/api/jobs", requireAuth, authorize("build.run"), requireUpToDate, uplo
     const job=await buildJobs.submit({
       organizationId:req.auth.organizationId||null,programId,requestedBy:req.auth.id||null,
       actor:requestActor(req,req.body.actor),phase:String(req.body.phase||"all").toLowerCase(),
-      engineVersion:"5.3.44",filename:req.file.originalname,
+      engineVersion:"6.0.2",filename:req.file.originalname,
       // The imported requirements are resolved here rather than in the worker: a Postgres-backed
       // repository has no program folder to read a link from, and the job must build with the
       // requirements as they were when it was submitted. They are part of the idempotency key
@@ -601,6 +624,8 @@ app.post("/api/build-demo", requireAuth, authorize("build.run"), requireUpToDate
     try{result = await runRepositoryBuild({store:storage.store,workbookPath:fullPath,phaseId:req.body.phase||'all',outputBase:storage.outputBase,programId:storage.programId,actor:storage.actor,mode:req.body.mode,acknowledge:req.body.acknowledge,buildScript:BUILD_SCRIPT,parseScript:PARSE_SCRIPT,settingsPath:SETTINGS_PATH,phaseMap:PHASE_TO_MILESTONE,includeSourceWorkbook:appEdition()!=="demo",signal:req.buildSignal,allowedProgramTypes:licensedProgramTypesFromEdition(),valueTags:req.body?.valueTags===undefined?undefined:wantFlag(req.body.valueTags),timeZone:req.body?.timeZone||req.query?.timeZone,requirements:buildRequirements(req,storage)});}
     catch(error){storage.fail?.();throw error;}
     storage.cleanup();
+    // A hosted trial keeps nothing on the server, so a working folder keeps its own _ISAF_backup copies there.
+    if(hostedTrial())result.recordKept=false;
     await applyOutputOptions(result,req);
     recordBuildUsage(req,result,result.phase||req.body?.phase||req.query?.phase);
     res.json(registerBuildDownload(result,req.auth));
@@ -663,8 +688,11 @@ app.post("/api/save-config", requireAuth, authorize("configuration.write"), expr
 
   try {
     // Save As: the user chose the exact file name and folder. Otherwise keep the versioned copy beside the original.
-    const saveTarget=req.body?.saveToken?pendingConfigSaveTargets.get(req.body.saveToken):null;
-    if(req.body?.saveToken){pendingConfigSaveTargets.delete(req.body.saveToken);if(!saveTarget||saveTarget.expires<Date.now())return res.status(400).json({error:"The Save As selection expired. Select Save Configuration Workbook again."});}
+    // saveTarget: the workbook already loaded, saved over in place (Save Configuration Workbook).
+    const knownTarget=!HOSTED_SERVICE&&req.body?.saveTarget?configTargetPath(req.body.saveTarget):null;
+    if(req.body?.saveTarget&&!knownTarget)return res.status(400).json({error:"ISAF no longer knows where the loaded workbook is. Use File → Save Configuration… to choose where to save it."});
+    const saveTarget=knownTarget?{path:knownTarget}:req.body?.saveToken?pendingConfigSaveTargets.get(req.body.saveToken):null;
+    if(!knownTarget&&req.body?.saveToken){pendingConfigSaveTargets.delete(req.body.saveToken);if(!saveTarget||saveTarget.expires<Date.now())return res.status(400).json({error:"The Save As selection expired. Select Save Configuration Workbook again."});}
     // Hosted sites: the saved copy goes to a temporary folder and is downloaded by the browser; nothing is kept.
     const destination=saveTarget?path.dirname(saveTarget.path):HOSTED_SERVICE?fs.mkdtempSync(path.join(os.tmpdir(),"isaf-save-")):req.file?req.body.outputDir:path.dirname(path.resolve(fullSource));
     if(!destination||!path.isAbsolute(destination)||!fs.existsSync(destination)||!fs.statSync(destination).isDirectory()) {
@@ -685,6 +713,8 @@ app.post("/api/save-config", requireAuth, authorize("configuration.write"), expr
     const downloadId=crypto.randomUUID();savedConfigDownloads.set(downloadId,result.output);
     if(hostedTrial()||HOSTED_SERVICE){if(req.file)fs.rm(fullSource,{force:true},()=>{});setTimeout(()=>{savedConfigDownloads.delete(downloadId);fs.rm(result.output,{force:true},()=>{});},15*60*1000).unref?.();}
     result.downloadId=downloadId;result.filename=path.basename(result.output);
+    // The saved workbook is now the loaded one, so the next Save Configuration Workbook writes over it.
+    if(!HOSTED_SERVICE&&!hostedTrial())result.target=rememberConfigTarget(result.output);
     console.log(`Config saved: ${result.output} (${result.applied}/${result.total_modifications} fields applied)`);
     res.json(result);
   } catch (err) {
@@ -735,6 +765,63 @@ function safeWorkbookName(value){
   if(!/\.xlsx$/i.test(name))name+=".xlsx";return name||"Program_Config.xlsx";
 }
 
+// Save Configuration Workbook overwrites the workbook that is loaded (owner, 21 November 2026); only File → Save
+// Configuration… asks for a new name. On an installed app the server remembers where each workbook the user opened
+// or saved through these windows lives, under an id the page keeps, so the next save can write over the same file.
+// The ids last while the server runs; after a restart the first save asks where to save once.
+const configSaveTargets=new Map();
+function rememberConfigTarget(file){
+  const resolved=path.resolve(file);
+  for(const [id,known] of configSaveTargets)if(known===resolved)return id;
+  const id=crypto.randomUUID();configSaveTargets.set(id,resolved);return id;
+}
+function configTargetPath(id){
+  const known=configSaveTargets.get(String(id||""));
+  return known&&fs.existsSync(path.dirname(known))&&fs.statSync(path.dirname(known)).isDirectory()?known:null;
+}
+let lastConfigFolder="";
+
+// Native Open window for a configuration workbook (installed app). A browser's file window does not tell the page
+// where the file is, so without this the loaded workbook could not be saved over.
+app.get("/api/config-open",requireAuth,authorize("filesystem.local"),(req,res)=>{
+  const start=lastConfigFolder&&fs.existsSync(lastConfigFolder)?lastConfigFolder:path.resolve(__dirname,"..");
+  let selectedPath=null;
+  try{
+    if(process.platform==="darwin"){
+      const script='on run argv\nset startFolder to POSIX file (item 1 of argv) as alias\nset chosenFile to choose file with prompt "Open configuration workbook:" of type {"xlsx", "xlsm", "org.openxmlformats.spreadsheetml.sheet", "org.openxmlformats.spreadsheetml.sheet.macroenabled"} default location startFolder\nreturn POSIX path of chosenFile\nend run';
+      const result=spawnSync("osascript",["-e",script,"--",start],{encoding:"utf8",timeout:300000});
+      if(result.status===0&&result.stdout.trim())selectedPath=result.stdout.trim();
+      else if(result.status!==0&&!/-128/.test(result.stderr||""))return res.status(500).json({error:(result.stderr||"The Open window could not be shown.").trim()});
+    }else if(process.platform==="win32"){
+      const quote=value=>String(value).replace(/'/g,"''"),ps=[
+        "Add-Type -AssemblyName System.Windows.Forms;",
+        "$f = New-Object System.Windows.Forms.OpenFileDialog;",
+        "$f.Title = 'Open configuration workbook';",
+        "$f.Filter = 'Excel workbook (*.xlsx;*.xlsm)|*.xlsx;*.xlsm';",
+        `$f.InitialDirectory = '${quote(start)}';`,
+        "if ($f.ShowDialog() -eq 'OK') { $f.FileName }",
+      ].join(" ");
+      const result=spawnSync("powershell",["-NoProfile","-Command",ps],{encoding:"utf8",timeout:300000});
+      if(result.error)throw result.error;
+      if(result.status===0&&result.stdout.trim())selectedPath=result.stdout.trim();
+    }else{
+      const result=spawnSync("zenity",["--file-selection","--file-filter=Excel workbook | *.xlsx *.xlsm",`--filename=${start}${path.sep}`,"--title=Open configuration workbook"],{encoding:"utf8",timeout:300000});
+      if(result.error)throw result.error;
+      if(result.status===0&&result.stdout.trim())selectedPath=result.stdout.trim();
+    }
+  }catch(error){return res.status(500).json({error:"The Open window could not be shown: "+error.message});}
+  if(!selectedPath)return res.json({cancelled:true});
+  selectedPath=path.resolve(selectedPath);
+  if(!/\.xls[xm]$/i.test(selectedPath)||!fs.existsSync(selectedPath))return res.status(400).json({error:"Choose an Excel workbook (.xlsx)."});
+  lastConfigFolder=path.dirname(selectedPath);
+  res.json({target:rememberConfigTarget(selectedPath),filename:path.basename(selectedPath)});
+});
+app.get("/api/config-open-file",requireAuth,authorize("filesystem.local"),(req,res)=>{
+  const file=configTargetPath(req.query.target);
+  if(!file||!fs.existsSync(file))return res.status(404).json({error:"The workbook is no longer at the place it was opened from."});
+  res.sendFile(file,{headers:{"Cache-Control":"no-store"}});
+});
+
 // Native workbook Save As picker. It starts in the folder of the running ISAF package,
 // so a newly extracted release does not inherit an older browser download directory.
 app.get("/api/config-save-as",requireAuth,authorize("filesystem.local"),(req,res)=>{
@@ -763,17 +850,22 @@ app.get("/api/config-save-as",requireAuth,authorize("filesystem.local"),(req,res
     }
   }catch(error){return res.status(500).json({error:"Save As could not be opened: "+error.message});}
   if(!selectedPath)return res.json({cancelled:true});
-  selectedPath=path.resolve(path.dirname(selectedPath),safeWorkbookName(path.basename(selectedPath)));
+  selectedPath=path.resolve(path.dirname(selectedPath),safeWorkbookName(path.basename(selectedPath)));lastConfigFolder=path.dirname(selectedPath);
   const token=crypto.randomUUID();pendingConfigSaveTargets.set(token,{path:selectedPath,expires:Date.now()+5*60*1000});
   setTimeout(()=>pendingConfigSaveTargets.delete(token),5*60*1000).unref?.();
   res.json({token,filename:path.basename(selectedPath)});
 });
 app.post("/api/config-save-file",requireAuth,authorize("filesystem.local"),upload.single("workbook"),(req,res)=>{
-  const target=pendingConfigSaveTargets.get(req.body?.token);pendingConfigSaveTargets.delete(req.body?.token);
+  // A Save As selection (token, used once) or the workbook already loaded (target: Save Configuration Workbook).
+  const known=req.body?.target?configTargetPath(req.body.target):null;
+  const target=known?{path:known,expires:Infinity}:pendingConfigSaveTargets.get(req.body?.token);pendingConfigSaveTargets.delete(req.body?.token);
   try{
+    if(req.body?.target&&!known)return res.status(400).json({error:"ISAF no longer knows where the loaded workbook is. Use File → Save Configuration… to choose where to save it."});
     if(!req.file||!target||target.expires<Date.now())return res.status(400).json({error:"The Save As selection expired. Select Save Configuration Workbook again."});
     if(!fs.existsSync(path.dirname(target.path))||!fs.statSync(path.dirname(target.path)).isDirectory())return res.status(400).json({error:"The selected save folder is no longer available."});
-    fs.copyFileSync(req.file.path,target.path);res.json({filename:path.basename(target.path)});
+    const partial=target.path+".isaf-saving";
+    try{fs.copyFileSync(req.file.path,partial);fs.renameSync(partial,target.path);}finally{fs.rmSync(partial,{force:true});}
+    res.json({filename:path.basename(target.path),target:rememberConfigTarget(target.path)});
   }catch(error){res.status(500).json({error:"The configuration workbook could not be saved: "+error.message});}
   finally{if(req.file)fs.rm(req.file.path,{force:true},()=>{});}
 });
@@ -901,7 +993,7 @@ app.get("/api/health", (_req, res) => {
   // pdfAvailable lets the Build tab say LibreOffice is missing BEFORE a build rather than after
   // one: the conversion runs on the exported folder, so without this the user waits out a full
   // build (1312 documents on an aircraft program) to be told the box they ticked could not run.
-  res.json({ status: "ok", version: "5.3.44", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
+  res.json({ status: "ok", version: "6.0.2", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
 });
 
 app.get("/api/demo-register", requireAuth, authorize("demo.manage"), async(_req,res)=>{
@@ -973,7 +1065,7 @@ const customerRegister=new CustomerRegister();
 // Usage collected from Customer apps (usage.js). Settings come from the Admin computer's or the collector's
 // environment and are never stored in the repository:
 //   ISAF_USAGE_ENDPOINT          collector base URL built into new Customer apps (for example https://isaf-usage.onrender.com)
-//   ISAF_USAGE_COLLECTOR_SECRET  signs each licence's token (the same value on the collector and on the Admin computer)
+//   ISAF_USAGE_COLLECTOR_SECRET  signs each license's token (the same value on the collector and on the Admin computer)
 //   ISAF_USAGE_COLLECTOR_KEY     lets the Admin app download collected usage (Sync usage)
 const usageStore=createUsageStore(path.join(customerDataDir(),"usage"));
 // On the Admin computer the three values can also be saved from the Customers tab (Usage collector settings) to
@@ -988,7 +1080,7 @@ function usageAppSettings(customer){
   const {endpoint:base,secret}=usageSettings();
   return base&&secret&&customer?.license_id?{endpoint:base+"/api/usage/ingest",token:usageToken(secret,customer.license_id)}:{};
 }
-// App updates built into a new Customer app: where to ask whether a newer version is offered. Same licence
+// App updates built into a new Customer app: where to ask whether a newer version is offered. Same license
 // token as usage, and the same collector service (updates.js).
 function updateAppSettings(customer){
   const {endpoint:base,secret}=usageSettings();
@@ -1008,7 +1100,7 @@ function toolsAppSettings(customer){
 // The releases offered to customers (Customers tab → App updates). On the Admin computer the register is the
 // owner's; on the usage collector it is the copy the Admin app published and the one Customer apps read.
 const releaseRegister=createReleaseRegister(path.join(customerDataDir(),"ISAF_Update_Releases.json"));
-// Collector: a Customer app asks whether a newer version is offered (its licence token, no sign-in).
+// Collector: a Customer app asks whether a newer version is offered (its license token, no sign-in).
 app.get("/api/updates/check",(req,res)=>{
   const secret=process.env.ISAF_USAGE_COLLECTOR_SECRET||"";
   if(appEdition()!=="full"||!secret)return res.status(404).json({error:"This server does not answer update checks."});
@@ -1024,7 +1116,7 @@ app.put("/api/updates/register",express.json({limit:"1mb"}),(req,res)=>{
   const saved=releaseRegister.replace(req.body||{});
   res.json({ok:true,releases:saved.releases.length});
 });
-// Collector: Customer apps send their events here (no user sign-in; each request carries its licence token).
+// Collector: Customer apps send their events here (no user sign-in; each request carries its license token).
 app.post("/api/usage/ingest",express.json({limit:"2mb"}),(req,res)=>{
   const secret=process.env.ISAF_USAGE_COLLECTOR_SECRET||"";
   if(appEdition()!=="full"||!secret)return res.status(404).json({error:"This server does not collect usage."});
@@ -1197,7 +1289,7 @@ async function buildCustomerArchive(customer,{watermark,text}){
     const builderArgs=[builder,"--source",source,"--out",tmp,"--edition","customer","--skip-bundle","--no-github","--customer-name",customer.company,"--license-id",String(customer.license_id||""),"--starter-workbook",starter.output,"--licensed-phases",licensedPhaseIds(customer).join(","),"--licensed-values-file",path.join(starterDir,"licensed_values.json")];
     if(customer.deployment_model==="Hosted by MX Aero")builderArgs.push("--hosted-trial");
     if(customer.access_key_sha256)builderArgs.push("--access-key-sha256",customer.access_key_sha256);
-    // Named users and the usage collector (see usage.js). The collector token lets the app add usage records for this licence only.
+    // Named users and the usage collector (see usage.js). The collector token lets the app add usage records for this license only.
     fs.writeFileSync(path.join(starterDir,"app_settings.json"),JSON.stringify({access_keys:appAccessKeys(customer),usage:usageAppSettings(customer),updates:updateAppSettings(customer),tools:toolsAppSettings(customer)}));builderArgs.push("--app-settings-file",path.join(starterDir,"app_settings.json"));
     fs.writeFileSync(path.join(starterDir,"licensed_values.json"),JSON.stringify(starterModifications(customer)));
     if(licensedProgramTypes(customer).length)builderArgs.push("--licensed-program-types",licensedProgramTypes(customer).join(","));
@@ -1388,18 +1480,29 @@ app.post("/api/import/apply",requireAuth,authorize("build.run"),requireUpToDate,
     let paths=[];try{paths=JSON.parse(String(req.body?.paths||"[]"));}catch{}
     const results=files.map((f,i)=>{const name=String((Array.isArray(paths)&&typeof paths[i]==="string"&&paths[i])||f.originalname||"document.docx");try{return {name,...applyRequirementsImport(f.buffer,review)};}catch(error){return {name,changed:false,bytes:f.buffer,report:{blocks:[],edited:[],skipped:""},error:`could not be read (${error.message})`};}});
     const report=importReportText(results,review);
+    // The copies of the documents this update replaces, and its report, are kept with the program as a support
+    // record (owner, 22 November 2026) instead of an _ISAF_backup folder and Import_Report.txt in the user's folder.
+    // Without a program register (hosted trial, or none loaded) the browser keeps its local copies as before.
+    let recordKept=false;
+    const programId=String(req.body?.programId||"");
+    if(programId&&!hostedTrial()){
+      try{
+        const changed=results.filter(r=>r.changed),original=new Map(files.map((f,i)=>[results[i],f.buffer]));
+        if(changed.length){await repository.addRecord(programId,{kind:"import",title:String(req.body?.title||"Import update").slice(0,200),actor:requestActor(req,req.body?.actor)||"ISAF user",files:[{name:"Import_Report.txt",bytes:Buffer.from(report)},...changed.map(r=>({name:`Replaced documents/${r.name}`,bytes:original.get(r),role:"replaced"}))]});recordKept=true;}
+      }catch(error){accessLog(`Import update record not kept: ${error.message}`,req);}
+    }
     if(String(req.query.format||req.body?.format||"")==="zip"){
-      res.attachment(`ISAF_Import_Documents_${new Date().toISOString().slice(0,10)}.zip`);
+      res.attachment(`ISAF_Import_Documents_${new Date().toISOString().slice(0,10)}.zip`);res.set("X-ISAF-Record-Kept",recordKept?"yes":"no");
       const archive=archiver("zip",{zlib:{level:6}});archive.on("error",error=>{if(!res.headersSent)res.status(500).json({error:error.message});else res.destroy(error);});
       archive.pipe(res);
       for(const r of results)if(r.changed)archive.append(r.bytes,{name:r.name.replace(/\\/g,"/").split("/").filter(p=>p&&p!=="."&&p!=="..").join("/")||"document.docx"});
-      archive.append(report,{name:"Import_Report.txt"});
+      if(!recordKept)archive.append(report,{name:"Import_Report.txt"});
       return archive.finalize();
     }
-    res.json({report,results:results.map(r=>({name:r.name,changed:r.changed,code:r.report.code,item:r.report.item,blocks:r.report.blocks,rows:r.report.rows,edited:r.report.edited,skipped:r.report.skipped||r.error||"",data:r.changed?Buffer.from(r.bytes).toString("base64"):undefined}))});
+    res.json({report,recordKept,results:results.map(r=>({name:r.name,changed:r.changed,code:r.report.code,item:r.report.item,blocks:r.report.blocks,rows:r.report.rows,edited:r.report.edited,skipped:r.report.skipped||r.error||"",data:r.changed?Buffer.from(r.bytes).toString("base64"):undefined}))});
   }catch(error){res.status(500).json({error:error.message});}
 });
-app.use("/api/intake",intakeRoutes({requireAuth,authorize,serviceDir:__dirname,parseScript:PARSE_SCRIPT,licensedValues,licensedProgramTypes:licensedProgramTypesFromEdition,newDefaults:()=>appEdition()==="customer"?CUSTOMER_DEFAULTS:null}));
+app.use("/api/intake",intakeRoutes({requireAuth,authorize,serviceDir:__dirname,parseScript:PARSE_SCRIPT,licensedValues,licensedProgramTypes:licensedProgramTypesFromEdition,newDefaults:()=>appEdition()==="customer"?CUSTOMER_DEFAULTS:null,warmNew:!process.env.ISAF_NO_INTAKE_WARM}));
 
 // Configuration check: runs the build engine's validator on the configuration shown in the browser, so Config
 // Data and the Build tab can show blocking problems before a build starts (same rules as the build).
@@ -1657,6 +1760,8 @@ app.post("/api/build", requireAuth, authorize("build.run"), requireUpToDate, upl
     try{result = await runRepositoryBuild({store:storage.store,workbookPath:workbookFile.path,logoPath:logoFile?.path,phaseId:req.body.phase||req.query.phase||'all',outputBase:storage.outputBase,programId:storage.programId,actor:storage.actor,mode:req.body.mode,acknowledge:req.body.acknowledge,buildScript:BUILD_SCRIPT,parseScript:PARSE_SCRIPT,settingsPath:SETTINGS_PATH,phaseMap:PHASE_TO_MILESTONE,includeSourceWorkbook:appEdition()!=="demo",signal:req.buildSignal,allowedProgramTypes:licensedProgramTypesFromEdition(),valueTags:req.body?.valueTags===undefined?undefined:wantFlag(req.body.valueTags),timeZone:req.body?.timeZone||req.query?.timeZone,requirements:buildRequirements(req,storage),previous:previousFiles.map(f=>({name:path.basename(f.originalname),bytes:fs.readFileSync(f.path)}))});}
     catch(error){storage.fail?.();throw error;}
     storage.cleanup();
+    // A hosted trial keeps nothing on the server, so a working folder keeps its own _ISAF_backup copies there.
+    if(hostedTrial())result.recordKept=false;
     await applyOutputOptions(result,req);
     recordBuildUsage(req,result,result.phase||req.body?.phase||req.query?.phase);
     res.json(registerBuildDownload(result,req.auth));

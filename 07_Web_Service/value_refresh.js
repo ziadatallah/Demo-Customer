@@ -36,11 +36,16 @@ const BLOCK_KEY_PREFIX = '#block:';
 const INNER_SDT = /<w:sdt\b[^>]*>((?:(?!<w:sdt\b)[\s\S])*?)<\/w:sdt>/g;
 const sdtTag = inner => { const m = inner.match(/<w:sdtPr>(?:(?!<\/w:sdtPr>)[\s\S])*?<w:tag w:val="([^"]*)"/); return m ? xmlUnesc(m[1]) : null; };
 
-// Values ISAF manages itself (revision, dates, status and the like). They always take the new value; a
+// Values ISAF manages itself (revision, dates and the like). They always take the new value; a
 // difference there is not the customer's content.
-export const MANAGED_KEYS = new Set(['rev', 'revision', 'revision_description', 'issue_date', 'release_date', 'original_date', 'approval_date', 'initial_approval_date', 'initial_release_reference', 'status', 'issue', 'copyright_year', 'doc_id', 'abbr', 'definition']);
+// issue, status and release_date were removed (owner, 19 November 2026): the only fields with those names
+// are Table 2-2's columns, which describe a SUPPLIER's document and are the customer's to fill. As
+// managed keys they were silently overwritten on every refresh (SUPPLIER_TABLE_REFRESH_DEFECT.md).
+// tests/managed-keys-regression.mjs fails if a template reuses a managed name outside its known places.
+export const MANAGED_KEYS = new Set(['rev', 'revision', 'revision_description', 'issue_date', 'original_date', 'approval_date', 'initial_approval_date', 'initial_release_reference', 'copyright_year', 'doc_id', 'abbr', 'definition']);
 const leafKey = key => key.slice(key.lastIndexOf('.') + 1);
-const isPrompt = text => /^\[[^\]]*\]$/.test(String(text || '').trim());
+// A [bracketed prompt] or the empty-configuration prompt (FILL_CONFIG_ITEM in value_tags.js): text the customer replaces.
+const isPrompt = text => { const t = String(text || '').trim(); return /^\[[^\]]*\]$/.test(t) || t === '<fill config item>'; };
 
 const xmlEsc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const xmlUnesc = s => String(s).replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&amp;/g, '&');
@@ -303,7 +308,7 @@ export function refreshReportText(entries, unmatched = []) {
     const s = e.summary || {};
     lines.push(`${e.pn}  ${e.label ? 'Rev ' + e.label + '  ' : ''}(from ${e.name}${e.how ? ', matched by ' + e.how : ''})`);
     if (e.reused) lines.push('  Already refreshed from this document with this configuration; the earlier refreshed version is used.');
-    if (e.candidate) lines.push('  Saved as a candidate: review and accept it in Program Documents.');
+    if (e.candidate) lines.push('  Saved for review (Pending review): accept or reject it in Program Documents.');
     lines.push(`  ${s.updated || 0} values updated, ${s.kept || 0} of your changes kept, ${s.flagged || 0} flagged.`);
     for (const c of e.flagged || []) lines.push(`  FLAGGED ${c.key}: your text "${short(c.text)}"; configuration now "${short(c.generated)}"`);
     if (s.notPlaced) lines.push(`  ${s.notPlaced} new values have no place in your document (for example rows for a new item). Compare with a new template draft: ${(e.notPlaced || []).join(', ')}${s.notPlaced > (e.notPlaced || []).length ? ', …' : ''}`);

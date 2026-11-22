@@ -194,7 +194,16 @@ def main():
         output_path = os.path.join(destination, os.path.basename(data['output_name']))
     else:
         output_path = find_next_version(os.path.join(destination, os.path.basename(data.get('output_name') or source_path)) if destination else source_path)
-    wb.save(output_path)
+    # Write a temporary copy first and then replace the file, so a save that fails part-way (Save
+    # Configuration Workbook overwrites the loaded workbook, owner 21 November 2026) never leaves a
+    # damaged workbook in place of the user's file.
+    partial = output_path + '.isaf-saving'
+    try:
+        wb.save(partial)
+        os.replace(partial, output_path)
+    finally:
+        if os.path.exists(partial):
+            os.remove(partial)
 
     print(json.dumps({
         "output": output_path,

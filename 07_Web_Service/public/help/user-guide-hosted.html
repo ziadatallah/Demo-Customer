@@ -48,7 +48,7 @@
 <body>
 <header class="guide-head">
   <h1>ISAF User Guide — Web (Hosted) App</h1>
-  <p>Integrated Standards Assurance Framework, version 5.3.44. Step-by-step instructions for the ISAF web app hosted by MX Aero: prepare your configuration and download your certification documents.</p>
+  <p>Integrated Standards Assurance Framework, version 6.0.2. Step-by-step instructions for the ISAF web app hosted by MX Aero: prepare your configuration and download your certification documents.</p>
 </header>
 <div class="wrap">
 <div class="toolbar"><button type="button" onclick="window.print()">Print or save as PDF</button></div>
@@ -78,7 +78,7 @@
 <h2 id="overview">1. What the web app does</h2>
 <p>ISAF generates the plans, standards, checklists, records and reports your program needs for certification (DO-178C, DO-254, ARP4754B and related standards) from one <b>configuration workbook</b>. You describe your program once; ISAF fills every document with your company, program, people, items, levels and dates, phase by phase.</p>
 <div class="flow"><span>Unlock</span><i>→</i><span>Program Intake</span><i>→</i><span>Config Data</span><i>→</i><span>Save workbook</span><i>→</i><span>Build</span><i>→</i><span>Download ZIP</span></div>
-<p>The web app runs in your browser at the address MX Aero gave you; there is nothing to install. It is licensed to your company: some values (company, program type, authority, certification basis and others) come from your licence and are locked, and only the program phases in your licence can be built.</p>
+<p>The web app runs in your browser at the address MX Aero gave you; there is nothing to install. It is licensed to your company: some values (company, program type, authority, certification basis and others) come from your license and are locked, and only the program phases in your license can be built.</p>
 <div class="note"><b>ISAF is not a qualified tool</b>ISAF is a document generation aid. It is not a qualified tool under DO-178C section 12.2.1 or DO-330, and no certification credit comes from using it. DO-178C requires a tool to be qualified only where its output is <i>not</i> verified; ISAF's output is verified, because you review and approve every document before it becomes life cycle data. That is what keeps ISAF outside the qualification requirement, so the review is not a formality. The cover of every document ISAF generates carries this notice, so a DER or an authority reviewing your data sees it too. ISAF does generate the DO-330 qualification documents (TQP, TOR, TVCP, TVR, TQAS) for <b>your own</b> tools; that is a different thing from ISAF being qualified.</div>
 
 <h2 id="data">2. Your data in the web app</h2>
@@ -96,7 +96,7 @@
   <li>The app is locked until you enter your company's access key. Type it in the <span class="ui">Access key</span> box and select <span class="ui">Unlock</span>.</li>
   <li>When the key is accepted, the yellow box disappears and the app opens with your starter configuration loaded. A wrong key shows "That access key was not accepted. Check it and try again."; check the key with your ISAF administrator.</li>
 </ol>
-<figure><img src="img/user-guide-hosted/01-access-key.jpg" alt="Access key box above the locked app"><figcaption>Figure 1. The app is greyed out until the access key is accepted. The File, Help and account menus in the top bar work even while it is locked.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/01-access-key.jpg" alt="Access key box above the locked app"><figcaption>Figure 1. The app is grayed out until the access key is accepted. The File, Help and account menus in the top bar work even while it is locked.</figcaption></figure>
 <div class="tip"><b>The key is remembered in this browser tab</b>Reloading the page does not ask again. On a shared computer, choose <span class="ui">Logout…</span> in your account menu (your company name, top right) when you finish.</div>
 
 <h2 id="screen">4. The screen at a glance</h2>
@@ -105,8 +105,8 @@
   <li><b>Top bar</b> — the menus <span class="ui">File</span>, <span class="ui">Edit</span>, <span class="ui">Build</span>, <span class="ui">Documents</span>, <span class="ui">View</span>, <span class="ui">Tools</span> and <span class="ui">Help</span> (User Guide, About) on the left (see "Menus and keyboard shortcuts" below), and on the right your account menu, shown with your name (User Information, User Level, Change Password, Logout).</li>
   <li><b>Main tabs</b> — <span class="ui">Program Intake</span>, <span class="ui">Config Data</span>, <span class="ui">Build</span>, <span class="ui">Import</span>, <span class="ui">Document PNs</span>, <span class="ui">Roadmap</span> and <span class="ui">Administration</span>. <span class="ui">Reset</span> (right) clears the loaded workbook from the app; it does not delete anything on your computer.</li>
 </ul>
-<figure><img src="img/user-guide-hosted/02-about.jpg" alt="About panel listing licence details"><figcaption>Figure 2. Help → About shows who the app is licensed to, the licence ID, the ISAF version, the edition, the licensed program types and phases, and where your data is kept.</figcaption></figure>
-<figure><img src="img/user-guide-hosted/03-file-menu.jpg" alt="Top bar with the File, Edit, Build, Documents, View, Tools and Help menus, and the File menu open"><figcaption>Figure 3. The File menu. New Program Intake opens Program Intake ready for you to choose the program type; Load Configuration opens your saved configuration workbook, and Save Configuration saves your changes to a workbook. Exit asks for confirmation, then closes the window (if the browser keeps it open, you can close the tab yourself).</figcaption></figure>
+<figure><img src="img/user-guide-hosted/02-about.jpg" alt="About panel listing license details"><figcaption>Figure 2. Help → About shows who the app is licensed to, the license ID, the ISAF version, the edition, the licensed program types and phases, and where your data is kept.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/03-file-menu.jpg" alt="Top bar with the File, Edit, Build, Documents, View, Tools and Help menus, and the File menu open"><figcaption>Figure 3. The File menu. New Program Intake asks for the program type (Aircraft, System or LRU) and starts a blank configuration; Load Configuration opens your saved configuration workbook, and Save Configuration saves your changes to a workbook. Exit asks for confirmation, then closes the window (if the browser keeps it open, you can close the tab yourself).</figcaption></figure>
 <figure><img src="img/user-guide-hosted/03b-account-menu.jpg" alt="Account menu open showing User Information, User Level, Change Password and Logout"><figcaption>Figure 4. The account menu, shown with your name (or your company name when your app uses a company key). User Information lists your name, company, the Intake Owner of the loaded configuration, your user level and how you sign in. Change Password arrives with individual user accounts; until then everyone is an Admin user. Logout asks for confirmation, then locks the app until the access key is entered again.</figcaption></figure>
 
 <h3 id="menus">Menus and keyboard shortcuts</h3>
@@ -124,10 +124,10 @@
 <p>Every field has a small <span class="ui">i</span> button: select it for an explanation of the field and what to enter. Required fields are marked with a red <span class="ui">*</span>.</p>
 
 <h2 id="starter">5. Your starter configuration and licensed fields</h2>
-<p>When the app opens, it loads a <b>starter configuration</b> prepared from your licence: company name and address, program type, primary authority, certification regime and basis, DO-160 scope and revision, and requirements tool type.</p>
+<p>When the app opens, it loads a <b>starter configuration</b> prepared from your license: company name and address, program type, primary authority, certification regime and basis, DO-160 scope and revision, and requirements tool type.</p>
 <ul>
-  <li>Licensed fields show <span class="ui">(licensed)</span> and are greyed out. They cannot be changed in the app, and editing them in Excel has no effect: the app restores them whenever it loads, saves or builds a workbook.</li>
-  <li>If a licensed value is wrong, contact MX Aero. MX Aero corrects your licence and updates the web app; your saved workbooks keep all your other entries.</li>
+  <li>Licensed fields show <span class="ui">(licensed)</span> and are grayed out. They cannot be changed in the app, and editing them in Excel has no effect: the app restores them whenever it loads, saves or builds a workbook.</li>
+  <li>If a licensed value is wrong, contact MX Aero. MX Aero corrects your license and updates the web app; your saved workbooks keep all your other entries.</li>
   <li>Complete everything else, then save it as <b>your own workbook</b> (section 7). From then on, open your own workbook, not the starter.</li>
 </ul>
 
@@ -137,13 +137,13 @@
 <ol class="steps">
   <li>Select the <span class="ui">Program Intake</span> tab. The starter configuration is already open.</li>
   <li>In <b>Company And Program</b>, enter the <span class="ui">Company Short Name</span>, <span class="ui">Program Name</span>, <span class="ui">Program Short Name</span>, the <span class="ui">Document Revision</span> and, optionally, CAGE code, document prefix, intake owner and a short product description.</li>
-  <li>In <b>Branding And Document Control</b>, choose brand colours, select <span class="ui">Choose ECCN</span> to set the export control marking, and enter the document retention period. The distribution statement starts as "© Copyright - All rights reserved"; change it if your company uses another. (Your logo is chosen on the Build tab; see section 11.)</li>
+  <li>In <b>Branding And Document Control</b>, choose brand colors, select <span class="ui">Choose ECCN</span> to set the export control marking, and enter the document retention period. The distribution statement starts as "© Copyright - All rights reserved"; change it if your company uses another. (Your logo is chosen on the Build tab; see section 11.)</li>
   <li>Select <span class="ui">Continue</span>. Each step opens at the top of the page.</li>
 </ol>
-<figure><img src="img/user-guide-hosted/04-intake-step1.jpg" alt="Program Intake step 1"><figcaption>Figure 5. Step 1 — Program. Company Name, Address and Program Type are licensed (grey). Empty required fields are outlined in red.</figcaption></figure>
+<figure><img src="img/user-guide-hosted/04-intake-step1.jpg" alt="Program Intake step 1"><figcaption>Figure 5. Step 1 — Program. Company Name, Address and Program Type are licensed (gray). Empty required fields are outlined in red.</figcaption></figure>
 <h3>Step 2 — Approval &amp; Scope</h3>
 <ol class="steps">
-  <li>Choose the <span class="ui">Approval Path</span> (for example, FAA TSO authorization). Only paths that fit your program type and licence can be chosen; others are marked "(not for LRU programs)" or "(not in your licence)".</li>
+  <li>Choose the <span class="ui">Approval Path</span> (for example, FAA TSO authorization). Only paths that fit your program type and license can be chosen; others are marked "(not for LRU programs)" or "(not in your license)".</li>
   <li>Complete the certification basis: <span class="ui">Certification Regulations / Basis</span>, <span class="ui">Applicable TSO / ETSO</span> (if no TSO applies, enter <code>Not applicable:</code> followed by the reason), any secondary authority and the authority project reference.</li>
   <li>Answer the scope questions: software, hardware, external suppliers and DO-160 in scope; the aircraft and system FHA classifications and failure-condition counts; and whether CCA, ZSA, PRA and DO-254 Appendix B apply.</li>
   <li>Enter your primary authority contact and any partnering arrangement, means-of-compliance issues or other issues, then select <span class="ui">Continue</span>.</li>
@@ -162,9 +162,10 @@
 <h2 id="save">7. Save your configuration workbook</h2>
 <p>Your answers live only in the browser until you save them. Save every time you stop working.</p>
 <ol class="steps">
-  <li>Select <span class="ui">Save Configuration Workbook</span> (in Program Intake or Config Data).</li>
-  <li><b>Chrome or Edge:</b> a Save window opens; choose a folder and file name and select <span class="ui">Save</span>. <b>Safari or Firefox:</b> type a file name when asked and select <span class="ui">OK</span>; the workbook downloads to your Downloads folder (move it to your program folder).</li>
-  <li>The app confirms "Saved and loaded &lt;file name&gt;". The saved workbook is now the one used by <span class="ui">Build</span>, and the server copy is deleted.</li>
+  <li>Select <span class="ui">Save Configuration Workbook</span> (in Program Intake or Config Data). In Chrome or Edge it saves over the workbook you opened, with no Save window (the browser may ask once to allow saving to the file).</li>
+  <li>The first time a workbook is saved (a new intake, or a file opened in Safari or Firefox), a Save window opens in Chrome or Edge; choose a folder and file name and select <span class="ui">Save</span>. After that, the button saves over that file. <b>Safari or Firefox:</b> type a file name when asked and select <span class="ui">OK</span>; the workbook downloads to your Downloads folder (move it to your program folder). These browsers cannot save over a file, so each save downloads a copy.</li>
+  <li>To save a new, separate workbook, use <span class="ui">File → Save Configuration…</span>, which always asks for a file name.</li>
+  <li>The app confirms the save. The saved workbook is now the one used by <span class="ui">Build</span>, and the server copy is deleted.</li>
 </ol>
 <figure><img src="img/user-guide-hosted/07-saved.jpg" alt="Saved and loaded message after saving"><figcaption>Figure 8. After saving, the app confirms the file name and how many TBD decisions remain.</figcaption></figure>
 <div class="tip"><b>Use a new file name for each important version</b>For example <code>PCU-450_Config_2026-11-05.xlsx</code>. Keep the workbooks with your program records and in your configuration management system.</div>
@@ -212,7 +213,7 @@
   <li>Select the <span class="ui">Build</span> tab. The yellow notice reminds you that nothing is kept on the server.</li>
   <li>Check that your saved workbook is shown in the green box (section 8).</li>
   <li>Leave <span class="ui">Build source</span> on <span class="ui">Standard build</span>.</li>
-  <li>Under <span class="ui">Program phases</span>, tick the milestone(s) to build, for example <span class="ui">SOI 1</span>. Each phase generates the documents first needed at that gate. <span class="ui">All</span> selects every licensed phase. Phases outside your licence are greyed out.</li>
+  <li>Under <span class="ui">Program phases</span>, tick the milestone(s) to build, for example <span class="ui">SOI 1</span>. Each phase generates the documents first needed at that gate. <span class="ui">All</span> selects every licensed phase. Phases outside your license are grayed out.</li>
   <li>Under <span class="ui">Program logo</span>, select <span class="ui">Choose File</span> and pick your company logo (SVG, PNG or JPEG) if you want it on the documents. The web app cannot read a logo path stored on your computer. The <span class="ui">Output folder</span> is not used: documents are delivered as a ZIP download.</li>
   <li>Look under the <span class="ui">Build</span> button. "✓ Configuration checks passed" means you can build. If it lists problems, select a link to go to the field (section 10).</li>
   <li>Select <span class="ui">Build</span>. A progress bar and timer show the build running; a one-phase build can take a few minutes. <span class="ui">Stop build</span> cancels it.</li>
@@ -232,10 +233,10 @@
   <li>Build as usual. Your documents are sent with the build and matched to the documents it generates: by document number for the same program, or by document type and item for a new program.</li>
   <li>In each matched document, the configuration values you did not change are updated: names, part numbers, people, dates and references to other documents. Your own text, tables and formatting are kept.</li>
   <li>Where you changed a value and the configuration value has also changed, your text is kept and a Word comment by "ISAF refresh" marks it. Review it, update it if needed and delete the comment.</li>
-  <li>Download the ZIP. It contains the refreshed documents and <code>Refresh_Report.txt</code>, which lists each refreshed document, every flagged value and any file that was not used. As with every build, nothing is kept on the server.</li>
+  <li>Download the ZIP. It contains the refreshed documents; each flagged value carries a Word comment. As with every build, nothing is kept on the server.</li>
 </ol>
 <figure><img src="img/user-guide-hosted/19-reuse-edited-documents.jpg" alt="Reuse edited documents with two Word documents selected"><figcaption>Figure 19. Reuse edited documents on the Build tab.</figcaption></figure>
-<div class="note"><b>Good to know</b>This works with documents generated by ISAF 5.3.26 or later. New content that has no place in your edited document, such as sections for a newly added item, is not inserted; the report lists it. Build without the documents to get the complete new document to compare.</div>
+<div class="note"><b>Good to know</b>This works with documents generated by ISAF 5.3.26 or later. New content that has no place in your edited document, such as sections for a newly added item, is not inserted. Build without the documents to get the complete new document to compare.</div>
 
 <h3 id="working-folder">Work in a folder instead of ZIP files</h3>
 <p>In Chrome or Edge you can choose a folder on your computer for the program's documents. ISAF then reads your edited documents from it and saves each build into it, so you no longer download and unpack a ZIP after every build.</p>
@@ -301,9 +302,9 @@
   <tr><td>Red tabs, or "problems must be fixed in Config Data before building"</td><td>Open each red tab and select each problem to go to the field (section 10).</td></tr>
   <tr><td>"Select Save Configuration Workbook before generating documents"</td><td>You have unsaved edits. Save the workbook, then build.</td></tr>
   <tr><td>"Could not load &lt;file&gt;" on the Build tab</td><td>The message gives the reason. Make sure the file is the <code>.xlsx</code> workbook saved by ISAF, then open it again.</td></tr>
-  <tr><td>"Save cancelled" or no file appears after saving</td><td>Save again and choose a name; in Safari or Firefox look in your Downloads folder.</td></tr>
-  <tr><td>A field shows "(licensed)" and cannot be edited</td><td>It comes from your licence. Contact MX Aero to change it.</td></tr>
-  <tr><td>A phase is greyed out on the Build tab</td><td>It is not in your licence.</td></tr>
+  <tr><td>"Save canceled" or no file appears after saving</td><td>Save again and choose a name; in Safari or Firefox look in your Downloads folder.</td></tr>
+  <tr><td>A field shows "(licensed)" and cannot be edited</td><td>It comes from your license. Contact MX Aero to change it.</td></tr>
+  <tr><td>A phase is grayed out on the Build tab</td><td>It is not in your license.</td></tr>
   <tr><td>The build stops with an error or the page reloads during a build</td><td>Build again with fewer phases at a time (one phase per build). If it keeps failing, send the message to MX Aero.</td></tr>
   <tr><td>Documents have no logo</td><td>Choose the logo file under Program logo on the Build tab before building.</td></tr>
 </table>
@@ -311,11 +312,12 @@
 <h2 id="help">16. Getting help</h2>
 <ul>
   <li>Select the <span class="ui">i</span> button next to any field for guidance on that field.</li>
-  <li>Open <span class="ui">Help → About</span> to find your licence ID and ISAF version.</li>
-  <li>Contact your ISAF representative at MX Aero LLC. Include the licence ID, the version, what you were doing and the exact message (a screenshot helps).</li>
+  <li>Open <span class="ui">Help → About</span> to find your license ID and ISAF version.</li>
+  <li>Contact your ISAF representative at MX Aero LLC. Include the license ID, the version, what you were doing and the exact message (a screenshot helps).</li>
 </ul>
 
 <footer>Copyright © 2026 MX Aero LLC. All rights reserved. Screens show a sample company (Example Avionics Inc.) and sample data.</footer>
 </div>
+<script src="help-search.js" defer></script>
 </body>
 </html>

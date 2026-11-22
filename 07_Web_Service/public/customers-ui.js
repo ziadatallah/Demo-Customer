@@ -42,7 +42,7 @@
  }
 
  // The owner sets the order of this list; sort_order lives on the customer record so it survives a
- // new browser. Records without one keep the old alphabetical behaviour, after those that have one.
+ // new browser. Records without one keep the old alphabetical behavior, after those that have one.
  const orderOf=c=>Number.isFinite(Number(c.sort_order))?Number(c.sort_order):Number.MAX_SAFE_INTEGER;
  const inOrder=()=>[...state.customers].sort((a,b)=>orderOf(a)-orderOf(b)||String(a.company||'').localeCompare(String(b.company||'')));
 
@@ -102,8 +102,8 @@
  }
  const sel=(key,label,opts,value)=>`<label>${label}<select data-key="${key}">${opts.map(o=>`<option ${o===value?'selected':''}>${esc(o)}</option>`).join('')}</select></label>`;
  const txt=(key,label,value,type='text',extra='')=>`<label>${label}<input type="${type}" data-key="${key}" value="${esc(value)}" ${extra}></label>`;
- // Requirements import is stored as ids; the catalogue from the server carries the names, and which entries
- // are a live connection ISAF does not have yet (listed for the licence discussion, but not selectable).
+ // Requirements import is stored as ids; the catalog from the server carries the names, and which entries
+ // are a live connection ISAF does not have yet (listed for the license discussion, but not selectable).
  const toolChecks=(values)=>{
   const list=state.importOptions||[];
   if(!list.length)return '';
@@ -163,7 +163,7 @@
   $('customerWatermarkText').addEventListener('input',e=>{draft.watermark_text=e.target.value;});
   // Every Aircraft program includes DO-160: lock "DO-160 in scope" to Yes while Aircraft is licensed.
   const syncAircraftDo160=()=>{const d=host.querySelector('[data-key="do160_in_scope"]');if(!d)return;const aircraft=(draft.program_types||[]).includes('Aircraft');if(aircraft){d.value='Yes';draft.do160_in_scope='Yes';}d.disabled=aircraft;d.title=aircraft?'Aircraft programs always include DO-160.':'';};
-  // Program-type licences are hierarchical: Aircraft includes System and LRU; System includes LRU.
+  // Program-type licenses are hierarchical: Aircraft includes System and LRU; System includes LRU.
   const syncProgramTypes=()=>{const boxes=[...host.querySelectorAll('[data-list="program_types"]')],get=v=>boxes.find(b=>b.value===v);if(!boxes.length)return;
    const aircraft=get('Aircraft')?.checked,system=get('System')?.checked;
    for(const b of boxes){const included=(b.value!=='Aircraft'&&aircraft)||(b.value==='LRU'&&system);if(included)b.checked=true;b.disabled=!!included;b.title=included?`Included with ${aircraft?'Aircraft':'System'}`:'';}
@@ -217,7 +217,7 @@
   $('customerUsageSettings').addEventListener('toggle',e=>{if(e.target.open)renderUsageSettings();});
   $('customerUsageSync').onclick=async()=>{try{const r=await api('/api/admin/usage/sync',{method:'POST'});status(`Usage synced: ${r.added} new event${r.added===1?'':'s'}.`);loadUsage();}catch(e){status(e.message,true);}};
   $('customerUsageImport').onclick=()=>$('customerUsageFile').click();
-  $('customerUsageFile').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{const r=await fetch('/api/admin/customers/'+encodeURIComponent(selected.id)+'/usage/import',{method:'POST',headers:{...authHeaders(),'Content-Type':'text/plain'},body:await f.text()});const d=await r.json();if(!r.ok)throw Error(d.error||'Import failed.');status(`Usage report imported: ${d.added} new event${d.added===1?'':'s'}${d.skipped?`, ${d.skipped} already recorded or not valid`:''}${d.otherLicence?` (${d.otherLicence} belong to another licence and were not imported)`:''}.`);loadUsage();}catch(err){status(err.message,true);}};
+  $('customerUsageFile').onchange=async e=>{const f=e.target.files?.[0];e.target.value='';if(!f)return;try{const r=await fetch('/api/admin/customers/'+encodeURIComponent(selected.id)+'/usage/import',{method:'POST',headers:{...authHeaders(),'Content-Type':'text/plain'},body:await f.text()});const d=await r.json();if(!r.ok)throw Error(d.error||'Import failed.');status(`Usage report imported: ${d.added} new event${d.added===1?'':'s'}${d.skipped?`, ${d.skipped} already recorded or not valid`:''}${d.otherLicence?` (${d.otherLicence} belong to another license and were not imported)`:''}.`);loadUsage();}catch(err){status(err.message,true);}};
   $('customerUsageCsv').onclick=async()=>{try{const r=await fetch('/api/admin/customers/'+encodeURIComponent(selected.id)+'/usage.csv',{headers:authHeaders()});if(!r.ok)throw Error('Export failed.');const name=(r.headers.get('Content-Disposition')||'').match(/filename="?([^";]+)"?/)?.[1]||'ISAF_Usage.csv',url=URL.createObjectURL(await r.blob()),a=document.createElement('a');a.href=url;a.download=name;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);}catch(e){status(e.message,true);}};
  }
  // Usage collector settings: the collector address, secret and key, saved on this computer (ISAF_Usage_Settings.json

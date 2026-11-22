@@ -111,7 +111,7 @@
     button.reset-btn { background: var(--error) !important; color: white !important; border: 1px solid var(--error) !important; border-radius: 6px !important; padding: 0.35rem 0.9rem !important; font-size: 0.85rem !important; font-weight: 500 !important; }
     button.reset-btn:hover:not(:disabled) { background: #8B1A1A !important; border-color: #8B1A1A !important; }
 
-    /* Fix: info button — perfect soft grey circle, overrides global button */
+    /* Fix: info button — perfect soft gray circle, overrides global button */
     button.info-btn { background: #E8ECF0 !important; color: #8A97A8 !important; border: none !important; border-radius: 50% !important; width: 16px !important; height: 16px !important; min-width: 16px !important; padding: 0 !important; font-size: 0.65rem !important; font-weight: 700 !important; line-height: 1 !important; flex-shrink: 0 !important; aspect-ratio: 1 !important; }
     button.info-btn:hover:not(:disabled) { background: var(--brand) !important; color: white !important; }
 
@@ -148,7 +148,7 @@
     .config-cards { display:grid; gap:1rem; }
     .config-card { border:1px solid var(--border); border-radius:8px; background:var(--surface); }
     .config-card-head { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.6rem .9rem; border-bottom:1px solid var(--border); background:var(--bg); border-radius:8px 8px 0 0; }
-    /* Explicit colour: an h4 here inherits a light colour from the panel styles and the title
+    /* Explicit color: an h4 here inherits a light color from the panel styles and the title
        rendered almost white on the header's light background. */
     .config-card-head h4 { margin:0; font-size:.95rem; display:flex; align-items:baseline; gap:.5rem; min-width:0; color:var(--text); }
     .config-card-actions {display:inline-flex;gap:.4rem;margin-left:auto;flex-wrap:wrap;justify-content:flex-end;}
@@ -525,7 +525,7 @@
 .build-advanced > summary {font-size:1.12rem;font-weight:650;color:#294563;cursor:pointer;list-style-position:inside;}
 .build-advanced[open] > summary {margin-bottom:.5rem;}
 /* App update notice (update-notice.js): a newer ISAF version is available. Critical updates are red and
-   cannot be dismissed; "up to date" answers use the quiet grey style. */
+   cannot be dismissed; "up to date" answers use the quiet gray style. */
 .update-notice {display:flex;flex-wrap:wrap;gap:.6rem 1rem;align-items:center;justify-content:space-between;margin:0 0 1rem;padding:.7rem 1rem;border:1px solid #9cc2e8;border-left:5px solid #2d6da3;border-radius:9px;background:#eef6fd;font-size:.92rem;color:#1e3a52;}
 /* .hidden is declared earlier in this stylesheet, so a later single-class rule that sets a
    display beats it. Every component here that sets a display and is toggled with .hidden
@@ -550,7 +550,7 @@
 .update-notice-actions a:hover {filter:brightness(1.08);}
 .update-notice-actions button {padding:.38rem .8rem;font-size:.88rem;}
 @media print {.update-notice {display:none;}}
-/* A requirements import entry ISAF cannot do yet: shown for the licence discussion, not selectable. */
+/* A requirements import entry ISAF cannot do yet: shown for the license discussion, not selectable. */
 .customer-check-off {opacity:.6;background:#f2f4f7;}
 .customer-soon {font-size:.78rem;color:#8a6d1f;background:#fff8e1;border:1px solid #e3c766;border-radius:4px;padding:.02rem .3rem;margin-left:.25rem;}
 .access-callout {margin:0 0 1rem;padding:1rem 1.1rem;border:2px solid #d4a017;border-radius:10px;background:#fff8e1;}
@@ -614,6 +614,8 @@
 #intakeHost .intake-review-list {padding-left:1.25rem;color:#435264;font-size:.9rem;line-height:1.6;}
 /* Responsive application shell; wide tables scroll within their own panel. */
 header {gap:1rem;}
+body.role-user #tab-create-demo,body.role-user #tab-customers,body.role-user #tab-administration,body.role-user #buildOutputOptions,
+body.role-user #topMenuArchitecture,body.role-user #topMenuReleaseNotes{display:none!important}
 header h1 {min-width:0;overflow-wrap:anywhere;}
 header .version {flex-shrink:0;}
 header .version-block {flex-shrink:0;}
@@ -665,7 +667,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 <header id="mainHeader">
   <h1 id="headerTitle">ISAF (Integrated Standards Assurance Framework) — &lt;Company&gt;</h1>
   <span class="version-block">
-    <span class="version" id="appVersion">v5.3.44</span>
+    <span class="version" id="appVersion">v6.0.2</span>
     <!-- The clock that dates generated documents. Read-only on purpose: it reflects
          program.time_zone, so if it disagrees with the wall clock the documents are
          already going to be dated wrong, and the fix is the field, not this display. -->
@@ -680,6 +682,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
       <button type="button" id="topFileBtn" class="top-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="topFileMenu">File</button>
       <div id="topFileMenu" class="top-menu hidden" role="menu" aria-label="File">
         <button type="button" role="menuitem" id="topFileNew">New Program Intake</button>
+        <button type="button" role="menuitem" id="topFileCreateProgram">Create Program…</button>
         <button type="button" role="menuitem" id="topFileLoad">Load Configuration…<span class="top-kbd" data-kbd="O"></span></button>
         <button type="button" role="menuitem" id="topFileSave">Save Configuration…<span class="top-kbd" data-kbd="S"></span></button>
         <div class="top-menu-sep" role="separator"></div>
@@ -756,6 +759,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
         <!-- Admin only: owner-internal reference. Hidden below unless the edition is 'full', and
              stripped from Customer and Demo packages in scripts/make_edition.py. -->
         <a role="menuitem" href="help/document-architecture.html" target="_blank" rel="noopener" id="topMenuArchitecture" class="hidden">Document Architecture</a>
+        <a role="menuitem" href="help/release-notes.html" target="_blank" rel="noopener" id="topMenuReleaseNotes" class="hidden">Release Notes</a>
         <button type="button" role="menuitem" id="topMenuUpdates">Check for Updates…</button>
         <button type="button" role="menuitem" id="topMenuAbout">About</button>
       </div>
@@ -769,6 +773,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
         <div class="top-menu-note" id="topUserLevel">User Level: Admin</div>
         <div class="top-menu-sep" role="separator"></div>
         <button type="button" role="menuitem" id="topUserPassword" disabled aria-disabled="true" title="Coming with user accounts">Change Password <span class="top-menu-later">(coming later)</span></button>
+        <button type="button" role="menuitem" id="topUserAccounts" class="hidden">Accounts…</button>
         <div class="top-menu-sep hidden" role="separator" id="topUserLogoutSep"></div>
         <button type="button" role="menuitem" id="topUserLogout" class="hidden">Logout…</button>
       </div>
@@ -792,13 +797,6 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
     </section>
 
   <!-- Project-wide program context -->
-  <div class="repo-bar">
-    <div class="repo-header-field repo-program-field"><div class="repo-field-heading"><label for="repoProgram">Repository program</label><span class="popover-wrap"><button type="button" class="info-btn" aria-label="Information about Repository program" aria-expanded="false" aria-controls="repoProgramHelp" onclick="toggleInfoPopover(event,'repoProgramHelp')">i</button><span class="popover" id="repoProgramHelp" role="note">Select a saved program to load its configuration and document register. Create program starts a new register; Build generates the documents.</span></span></div><select id="repoProgram" aria-describedby="repoProgramHelp"><option value="">New program from loaded workbook</option></select></div>
-    <div class="repo-header-field repo-actor-field"><div class="repo-field-heading"><label for="repoActor">Program Focal</label><span class="popover-wrap"><button type="button" class="info-btn" aria-label="Information about Program Focal" aria-expanded="false" aria-controls="repoActorHelp" onclick="toggleInfoPopover(event,'repoActorHelp')">i</button><span class="popover" id="repoActorHelp" role="note">Enter the person coordinating this program. This name is currently used for program setup and activity records in this browser. Other team members should use their own names for their actions.</span></span></div><input id="repoActor" placeholder="Enter focal’s name" aria-describedby="repoActorHelp"></div>
-    <div class="repo-header-actions" role="group" aria-label="Program actions"><button id="repoRefresh" class="secondary" type="button">Refresh</button><button id="repoCreate" class="secondary" type="button">Create program</button></div>
-    <span id="repoControlState" class="repo-pill repo-control-status" data-state="none" role="status" aria-live="polite">No program selected</span>
-    <p id="repoMessage" role="status" class="repo-muted"></p>
-  </div>
 
   <!-- Main tab bar -->
   <div class="main-tab-bar">
@@ -819,7 +817,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
     </div>
   </div>
 
-  <div class="tab-panel hidden" id="panel-documents"><div id="certPackageHost"></div><h3>Program document register</h3><p class="repo-muted">Certification and internal documents, protected versions, build snapshots and released baselines. Names are activity labels, not authenticated individual accounts.</p><div class="repo-toolbar"><input id="repoSearch" placeholder="Search documents" aria-label="Search documents"><select id="repoCategory" aria-label="Category"><option value="">All categories</option><option>Certification support</option><option>Engineering</option><option>Company process</option><option>Supplier</option><option>Meeting</option><option>Other</option></select><button id="repoImport">Import document</button><button id="repoControl">Enable document control</button><button id="repoBaseline">Establish baseline</button></div><p id="repoDocumentCount" class="repo-muted"></p><div id="repoDocuments" class="repo-scroll"></div><div id="repoRecords"></div></div>
+  <div class="tab-panel hidden" id="panel-documents"><!-- Document control status and register messages (the program bar above the tabs was removed, owner 21 November 2026; the register reloads each time this tab or Roadmap opens, so no Refresh button). --><div class="repo-doc-status"><span id="repoControlState" class="repo-pill repo-control-status" data-state="none" role="status" aria-live="polite">No program selected</span><p id="repoMessage" role="status" class="repo-muted"></p></div><div id="certPackageHost"></div><h3>Program document register</h3><p class="repo-muted">Certification and internal documents, protected versions, build snapshots and released baselines. Names are activity labels, not authenticated individual accounts.</p><div class="repo-toolbar"><input id="repoSearch" placeholder="Search documents" aria-label="Search documents"><select id="repoCategory" aria-label="Category"><option value="">All categories</option><option>Certification support</option><option>Engineering</option><option>Company process</option><option>Supplier</option><option>Meeting</option><option>Other</option></select><button id="repoImport">Import document</button><button id="repoControl">Enable document control</button><button id="repoBaseline">Establish baseline</button></div><p id="repoDocumentCount" class="repo-muted"></p><div id="repoDocuments" class="repo-scroll"></div><div id="repoRecords"></div></div>
   <div class="tab-panel hidden" id="panel-roadmap"><h3>Document roadmap</h3><p class="repo-muted">Assign owners, target dates and dependencies in each document's register entry.</p><div class="repo-toolbar"><input id="repoRoadmapSearch" placeholder="Search roadmap" aria-label="Search roadmap"><select id="repoRoadmapFilter" aria-label="Roadmap filter"><option value="">All documents</option><option value="blocked">Waiting for dependencies</option><option value="overdue">Overdue</option><option value="mine">Assigned to me</option></select></div><div id="repoRoadmap" class="repo-scroll"></div></div>
   <div class="tab-panel hidden" id="panel-customers" aria-labelledby="tab-customers">
     <div class="customers-heading"><h2>Customers</h2> <label class="privacy-switch" for="customerPrivacyToggle" title="Hide every customer except the demo customer, for showing the app to a prospect"><input type="checkbox" id="customerPrivacyToggle"><span class="privacy-switch-track" aria-hidden="true"></span><span class="privacy-switch-label">Demo view</span></label> <button type="button" class="secondary" id="customerSetupHelp" onclick="window.open('help/new-customer-setup.html','isafCustomerSetupHelp','width=900,height=820,scrollbars=yes,resizable=yes')">Setup New Customer Help</button> <button type="button" class="secondary" id="customerUsageHelp" onclick="window.open('help/usage-tracking-setup.html','_blank','noopener')">Usage Tracking Setup</button></div>
@@ -836,7 +834,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
     <h2>Create a Demo App</h2>
     <p class="repo-muted">Create a limited, watermarked Demo App for a colleague or prospective customer. Choose a program type and phase for a personalized local ZIP. The included document types and whether each repeats for every configured item are read from <strong>09-User Demos / Demo_Preview_Selections.xlsx</strong> each time.</p>
     <div class="create-demo-form">
-      <label for="demoUserName">User name<input id="demoUserName" name="demoUserName" autocomplete="name" placeholder="Name shown as the Program Focal"></label>
+      <label for="demoUserName">User name<input id="demoUserName" name="demoUserName" autocomplete="name" placeholder="Name shown as the user"></label>
       <label for="demoCompanyName">User company<input id="demoCompanyName" name="demoCompanyName" autocomplete="organization" placeholder="Company shown in the Demo banner"></label>
       <label for="demoProgramType">Program type<select id="demoProgramType" name="demoProgramType"><option value="Aircraft">Aircraft</option><option value="System">System</option><option value="LRU" selected>LRU</option></select></label>
       <label for="demoPhase">Program phase<select id="demoPhase" name="demoPhase"><option value="codr">CoDR</option><option value="srr">SRR</option><option value="pdr">PDR</option><option value="soi1" selected>SOI 1</option><option value="cdr">CDR</option><option value="soi2">SOI 2</option><option value="soi3">SOI 3</option><option value="trr">TRR</option><option value="soi4">SOI 4</option><option value="tia">TIA</option></select></label>
@@ -862,7 +860,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
   <div class="tab-panel hidden" id="panel-administration" aria-labelledby="tab-administration">
     <section id="usageReportBox" class="build-section hidden" aria-labelledby="usageReportTitle" style="margin-bottom:1rem;">
       <span class="build-section-title" id="usageReportTitle">Usage report</span>
-      <p class="hint">Your ISAF licence records who opened the app and which programs were built (date, user, program name, phases and document counts; never workbook or document contents). If this computer cannot reach the internet, download the report and send it to MX Aero when asked.</p>
+      <p class="hint">Your ISAF license records who opened the app and which programs were built (date, user, program name, phases and document counts; never workbook or document contents). If this computer cannot reach the internet, download the report and send it to MX Aero when asked.</p>
       <button type="button" class="secondary" id="usageReportBtn">Download usage report</button> <span class="hint" id="usageReportStatus" role="status"></span>
     </section>
     <div id="hostedAdminHost"></div>
@@ -876,7 +874,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
       <div class="build-setup-title">Build setup</div>
       <section class="repo-build-source" aria-label="Document source">
         <div class="repo-toolbar repo-build-source-row">
-          <div class="repo-build-source-control"><label class="repo-build-source-choice" for="repoBuildMode">Build source</label><span class="popover-wrap repo-build-source-info"><button type="button" class="info-btn" aria-label="Information about Build source" aria-expanded="false" aria-controls="repoBuildSourceHelp" onclick="toggleInfoPopover(event,'repoBuildSourceHelp')">i</button><div id="repoBuildSourceHelp" class="popover" role="note"><strong>Standard build</strong><p>With Document Control on, use the program’s saved documents where available. A document not yet in the repository starts from an ISAF master. With Document Control off, documents are generated from ISAF masters.</p><strong>New template drafts</strong><p>Create separate candidates from ISAF master templates for review. This does not replace or change the program’s saved documents.</p><strong>To compare a draft</strong><p>After the build, open Program Documents, select the document, and download both the candidate and current saved version from Details / History. Compare them in Word using Review → Compare, then return to the document record to accept or reject the candidate.</p></div><select id="repoBuildMode" aria-describedby="repoBuildModeNote" disabled><option value="normal">Standard build</option><option value="template-candidates">New template drafts</option></select><span id="repoBuildModeAvailability" class="repo-build-source-availability">Only available when a Config file is selected.</span></div>
+          <div class="repo-build-source-control"><label class="repo-build-source-choice" for="repoBuildMode">Build source</label><span class="popover-wrap repo-build-source-info"><button type="button" class="info-btn" aria-label="Information about Build source" aria-expanded="false" aria-controls="repoBuildSourceHelp" onclick="toggleInfoPopover(event,'repoBuildSourceHelp')">i</button><div id="repoBuildSourceHelp" class="popover" role="note"><strong>Standard build</strong><p>With Document Control on, use the program’s saved documents where available. A document not yet in the repository starts from an ISAF master. With Document Control off, documents are generated from ISAF masters.</p><strong>New template drafts</strong><p>Create separate versions from ISAF master templates for review (shown as Pending review). This does not replace or change the program’s saved documents.</p><strong>To compare a draft</strong><p>After the build, open Program Documents, select the document, and download both the pending version and the current saved version from Details / History. Compare them in Word using Review → Compare, then return to the document record to accept or reject the pending version.</p></div><select id="repoBuildMode" aria-describedby="repoBuildModeNote" disabled><option value="normal">Standard build</option><option value="template-candidates">New template drafts</option></select><span id="repoBuildModeAvailability" class="repo-build-source-availability">Only available when a Config file is selected.</span></div>
           <div id="repoAcknowledgeArea" class="repo-build-ack hidden"><label for="repoAcknowledge"><input type="checkbox" id="repoAcknowledge" aria-describedby="repoAcknowledgeHelp"> Keep saved documents unchanged</label><p id="repoAcknowledgeHelp" class="repo-muted">Allow this build even if the config or templates have changed. Those changes will not be applied to the saved documents.</p></div>
         </div>
         <p id="repoBuildModeNote" class="repo-muted" aria-live="polite"></p>
@@ -938,7 +936,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 
     <div id="workingFolderRow" class="build-section">
       <span class="build-section-title" id="workingFolderTitle">Working folder</span>
-      <div class="hint" style="margin-bottom:0.4rem;">Optional: choose a folder on your computer for this program's documents. Builds then read your edited documents from it (as Reuse edited documents below) and save the new documents into it instead of a ZIP download, and the Import tab updates the documents in it. Before a file is replaced, its previous version is copied to <code>_ISAF_backup</code> in the folder. The folder stays on your computer.</div>
+      <div class="hint" style="margin-bottom:0.4rem;">Optional: choose a folder on your computer for this program's documents. Builds then read your edited documents from it (as Reuse edited documents below) and save the new documents into it instead of a ZIP download, and the Import tab updates the documents in it. The folder holds documents only: a file a build replaces is kept with the program on the ISAF server (Admins see it under Program Documents → Support records). The folder stays on your computer.</div>
       <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;" role="group" aria-labelledby="workingFolderTitle">
         <button type="button" class="secondary" id="wfChoose">Choose working folder…</button>
         <button type="button" class="secondary hidden" id="wfForget">Stop using this folder</button>
@@ -949,7 +947,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 
     <div id="reuseDocsRow" class="build-section">
       <span class="build-section-title" id="reuseDocsTitle">Reuse edited documents</span>
-      <div class="hint" id="reuseDocsHint" style="margin-bottom:0.4rem;">Optional: add Word documents you edited from an earlier build of this program, or from a previous program. Each one is matched to the document it belongs to. Values you did not change are updated from the configuration, your own text is kept, and values where your text differs from a changed configuration value are flagged with a Word comment. See Refresh_Report.txt in the output. Works with documents generated by ISAF 5.3.26 or later.</div>
+      <div class="hint" id="reuseDocsHint" style="margin-bottom:0.4rem;">Optional: add Word documents you edited from an earlier build of this program, or from a previous program. Each one is matched to the document it belongs to. Values you did not change are updated from the configuration, your own text is kept, and values where your text differs from a changed configuration value are flagged with a Word comment (search the document for the comments). Works with documents generated by ISAF 5.3.26 or later.</div>
       <div style="display:flex;gap:0.5rem;align-items:center;flex-wrap:wrap;" role="group" aria-labelledby="reuseDocsTitle">
         <button type="button" class="secondary" id="reuseDocsFilesBtn">Choose files…</button>
         <button type="button" class="secondary" id="reuseDocsFolderBtn">Choose folder…</button>
@@ -1141,7 +1139,7 @@ function doReset() {
   $('configSearchResults').replaceChildren();
   $('configSearchCount').textContent='';
   const el = $('configFilePath'); if (el) el.textContent = '';
-  selectedFile = null; selectedDemoPath = null; selectedDemoProgramType = null; selectedLogoFile = null; configData = null;
+  selectedFile = null; selectedDemoPath = null; selectedDemoProgramType = null; selectedLogoFile = null; configData = null; workbookTarget = null;
   $('hostedLogoInput').value='';$('hostedLogoStatus').textContent='No logo selected.';
   $('repoBuildMode').value = 'normal'; $('repoBuildMode').disabled = true;
   $('repoBuildModeAvailability').hidden = false;
@@ -1177,7 +1175,7 @@ const FHA_CLASSIFICATION_LABELS = {CAT:'Catastrophic (CAT)', HAZ:'Hazardous (HAZ
 const FIELD_META = {
   // The keys stay purchaser_* - renaming them would mean a workbook migration and an engine change
   // for no gain - but the owner calls this entity the End User, which is clearer than "purchaser"
-  // sitting beside a field labelled Company Name (owner, 16 November 2026).
+  // sitting beside a field labeled Company Name (owner, 16 November 2026).
   no_end_user: { label: 'No End User', desc: null, options: null, isColor: false },
   purchaser_name: { label: 'End User Name', desc: null, options: null, isColor: false },
   purchaser_address: { label: 'End User Address', desc: null, options: null, isColor: false },
@@ -1229,11 +1227,12 @@ let licensedPhaseSet = new Set(); // customer-specific app: only these phases ca
 let starterWorkbook = '';
 let licensedValues = {};
 let hostedTrial = false;
-let licensedProgramTypes = [];   // customer app: program types its licence covers (AIRCRAFT, SYSTEM, LRU); others are unavailable          // customer app hosted by MX Aero: Document Control off, builds downloaded, nothing kept on the server          // customer-specific app: fields set by the license, shown read-only        // customer-specific app: starter configuration preloaded when the app opens // customer-specific Customer app: banner shows the licensed company, not the workbook company
+let licensedProgramTypes = [];   // customer app: program types its license covers (AIRCRAFT, SYSTEM, LRU); others are unavailable          // customer app hosted by MX Aero: Document Control off, builds downloaded, nothing kept on the server          // customer-specific app: fields set by the license, shown read-only        // customer-specific app: starter configuration preloaded when the app opens // customer-specific Customer app: banner shows the licensed company, not the workbook company
 if (!isAdminEdition) {$('tab-create-demo').classList.add('hidden');$('tab-customers').classList.add('hidden');$('buildOutputOptions').classList.add('hidden');}
 // The Document Architecture reference is owner-internal. It starts hidden in the markup so a
 // Customer app never shows it even for the instant before the edition resolves below.
 if (isAdminEdition) $('topMenuArchitecture').classList.remove('hidden');
+if (isAdminEdition) $('topMenuReleaseNotes').classList.remove('hidden');
 window.isafEditionReady=(async () => {
   let h={edition:document.body.dataset.edition||'full'};
   try {
@@ -1251,7 +1250,7 @@ window.isafEditionReady=(async () => {
       hostedTrial = h.hostedTrial === true;
       licensedProgramTypes = Array.isArray(h.licensedProgramTypes) ? h.licensedProgramTypes.map(String) : [];
       if (hostedTrial) {
-        { const bar=document.querySelector('.repo-bar'); if (bar) bar.style.display='none'; }
+        $('topFileCreateProgram')?.classList.add('hidden');
         $('tab-documents')?.classList.add('hidden');
         const note = document.createElement('div'); note.className = 'trial-note';
         note.innerHTML = '<b>Hosted trial.</b> No documents or workbooks are kept on this server: download each build and save your configuration workbook to your computer. Do not upload export-controlled data. Document Control is available when ISAF is installed on your company network.';
@@ -1259,12 +1258,10 @@ window.isafEditionReady=(async () => {
       }
       if (licensedPhaseSet.size) { selectedPhases = fullPhaseSelection(); renderPhases(); }
       if (starterWorkbook) { const hint=document.querySelector('#samples-section > .hint'); if (hint) hint.textContent = 'Your starter configuration (from your license; complete it in Program Intake and Config Data, then save it as your own workbook):'; }
-      $('mainHeader').style.background = '#1A7A3A';
     }
     if (h.edition === 'demo') {
       isDemoEdition = true;
       $('tab-import').classList.add('hidden');$('workingFolderRow')?.classList.add('hidden');
-      $('mainHeader').style.background = '#673AB7';
       demoGeneric = h.demoProfile?.generic === true;
       demoPreviewMatrix = h.demoProfile?.previewMatrix || {};
       demoSamples = h.demoProfile?.samples || [];
@@ -1285,6 +1282,7 @@ window.isafEditionReady=(async () => {
     $('tab-create-demo').classList.toggle('hidden',!isAdminEdition);$('tab-customers').classList.toggle('hidden',!isAdminEdition);
     $('buildOutputOptions').classList.toggle('hidden',!isAdminEdition);$('buildPdfRow').classList.toggle('hidden',!!h.hosted);
     $('topMenuArchitecture').classList.toggle('hidden',!isAdminEdition);
+    $('topMenuReleaseNotes').classList.toggle('hidden',!isAdminEdition);
     // PDF copies are converted by LibreOffice after the build. Say so here rather than letting the
     // user wait out a whole build to find the option could not run.
     {
@@ -1295,8 +1293,8 @@ window.isafEditionReady=(async () => {
         note.classList.toggle('hidden',ready);
       }
     }
-    // Read live version from server
-    if (h.version) $('appVersion').textContent = ((h.edition||'full') === 'full' ? 'Admin ' : '') + 'v' + h.version;
+    // Read live version from server; the banner shows the signed-in role (applyRoleView).
+    roleView.edition=h.edition||'full';if(h.version)roleView.version=h.version;applyRoleView();
     if(isHostedService){
       $('outputDir').value='Hosted ZIP download';$('outputDir').disabled=true;
       $('browseOutputBtn').disabled=true;$('openOutputBtn').disabled=true;
@@ -1317,6 +1315,22 @@ function updateHeaderCustomer(name) {
 
 // Admin-only Demo App packaging form. The ZIP is returned as a browser download;
 // no output folder is selected or written by the user.
+// Admin and User look different (owner, 21 November 2026): an Admin-level account gets a darker banner in its
+// edition's color and "Admin" beside the version; a User sees the normal banner and the version only, and in the
+// Admin app works on programs only (body.role-user hides Create Demo, Customers, Administration, the Admin-only
+// build options and Help pages; the server refuses those routes too). Owner and Admin look the same. An Admin app
+// without accounts yet counts as Admin; Customer apps have no Admin-level accounts until customer accounts arrive.
+const roleView={edition:'full',version:''};
+const ROLE_BANNER={full:['#1F3A5F','#0E1E33'],customer:['#1A7A3A','#0D4F24'],demo:['#673AB7','#673AB7']};
+function roleIsAdmin(){const a=window.isafAccount;if(roleView.edition==='full')return !a||a.role!=='user';return !!a&&a.role==='customer_admin';}
+function applyRoleView(){
+  const admin=roleIsAdmin(),colors=ROLE_BANNER[roleView.edition]||ROLE_BANNER.full;
+  $('mainHeader').style.background=admin?colors[1]:colors[0];
+  if(roleView.version)$('appVersion').textContent=(admin?'Admin ':'')+'v'+roleView.version;
+  document.body.classList.toggle('role-user',!!window.isafAccount&&window.isafAccount.role==='user');
+  if(document.body.classList.contains('role-user')&&['create-demo','customers','administration'].some(t=>!$('panel-'+t)?.classList.contains('hidden')))switchMainTab('intake');
+}
+window.isafApplyRoleView=applyRoleView;
 function updateDemoBannerPreview() {
   const company=$('demoCompanyName').value.trim();
   $('demoBannerPreview').textContent='ISAF — DEMO — '+(company||'Company');
@@ -1496,6 +1510,11 @@ loadDefaultOutput();
 
 // ── Workbook loading ───────────────────────────────────────────────────────
 let selectedFile = null, selectedDemoPath = null, selectedDemoProgramType = null, selectedLogoFile = null, configData = null, parseRequestId = 0;
+// Where the loaded workbook lives, so Save Configuration Workbook can write over it (owner, 21 November 2026):
+// {target,name} on an installed app (a file the server opened or saved through its windows), {handle,name} on a
+// hosted site in a browser that gives file access (Chrome, Edge), or null (a sample, a new intake, or a file the
+// browser did not give access to). With null the first save asks where to save, and later saves write over that.
+let workbookTarget = null;
 // Edited Word documents to refresh with this build (Build tab, Reuse edited documents).
 let reuseDocs = [];
 let activeConfigTab = 'program';
@@ -1521,8 +1540,6 @@ function lockLicensedFields(){
       el.closest('.intake-field')?.classList.add('licensed-field');
     });
   }
-  const type = licensedValues['program.type'];
-  if (type) document.querySelectorAll('select[aria-label="New program boundary"]').forEach(sel => { sel.value = type; sel.disabled = true; sel.title = 'Program type set by your ISAF license.'; });
 }
 function watchLicensedFields(){
   let queued = false;
@@ -1539,10 +1556,11 @@ function watchLicensedFields(){
 }
 // Every Aircraft program includes DO-160 (owner decision, v5.3.26): DO-160 In Scope is Yes and read-only
 // whenever Program Type is Aircraft. The validator blocks an Aircraft build with DO-160 set to No (V143).
-// Customer app: program types outside the licence cannot be chosen (Program Intake boundary and Program Type).
+// Customer app: program types outside the license cannot be chosen in Program Type (the new-intake chooser
+// applies the same rule itself, program-intake.js chooseKind).
 function applyLicensedProgramTypes(){
   if(!licensedProgramTypes.length)return;
-  document.querySelectorAll('select[aria-label="New program boundary"], select[data-path="program.type"]').forEach(sel=>{
+  document.querySelectorAll('select[data-path="program.type"]').forEach(sel=>{
     for(const o of sel.options){
       if(!o.value)continue;
       const ok=licensedProgramTypes.includes(String(o.value).toUpperCase());
@@ -1552,7 +1570,6 @@ function applyLicensedProgramTypes(){
       const base=o.textContent.replace(/ \(not licensed\)$/,''),text=ok?base:base+' (not licensed)';
       if(o.textContent!==text)o.textContent=text;
     }
-    if(sel.getAttribute('aria-label')==='New program boundary'&&!licensedProgramTypes.includes(String(sel.value).toUpperCase())){sel.value=licensedProgramTypes[licensedProgramTypes.length-1];sel.dispatchEvent(new Event('change'));}
   });
 }
 // Approval Path lists only the paths that fit the Program Type. A saved path that does not fit stays visible,
@@ -1564,9 +1581,9 @@ function applyApprovalPathFilter(){
     for(const o of sel.options){
       if(!o.value||o.value===CONFIG_TBD_OPTION)continue;
       const typeOk=approvalPathFits(type,o.value),licOk=typeof approvalPathLicensed!=='function'||approvalPathLicensed(o.value),fits=typeOk&&licOk,show=fits||o.value===sel.value;
-      const mark=!typeOk?` (not for ${name} programs)`:' (not in your licence)';
+      const mark=!typeOk?` (not for ${name} programs)`:' (not in your license)';
       if(o.hidden===show)o.hidden=!show;if(o.disabled===show)o.disabled=!show;
-      const base=o.textContent.replace(/ \((?:not for [A-Za-z]+ programs|not in your licence)\)$/,''),text=fits?base:base+mark;
+      const base=o.textContent.replace(/ \((?:not for [A-Za-z]+ programs|not in your license)\)$/,''),text=fits?base:base+mark;
       if(o.textContent!==text)o.textContent=text;
     }
   });
@@ -1638,7 +1655,7 @@ async function loadDemos() {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.samples-row button').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        selectedDemoPath = demo.path; selectedDemoProgramType=demo.programType||null; selectedFile = null;
+        selectedDemoPath = demo.path; selectedDemoProgramType=demo.programType||null; selectedFile = null; workbookTarget = null;
         dropZone.classList.add('uploaded');
         $('drop-zone-icon').textContent = '✓';
         $('drop-zone-text').textContent = demo.file || demo.path.split('/').pop();
@@ -1653,7 +1670,7 @@ async function loadDemos() {
     $('samples-row').innerHTML = `<span class="hint" style="color:var(--error);">Could not load samples (${err.message}). Is the server running?</span>`;
   }
 }
-// Hosted Customer/Demo sites: everything except the access-key box is locked (greyed and inert)
+// Hosted Customer/Demo sites: everything except the access-key box is locked (grayed and inert)
 // until the key is accepted. The server refuses every protected request without the key as well.
 function setAppLocked(locked){
   const main=document.querySelector('main');if(!main)return;
@@ -1753,13 +1770,16 @@ $('accessKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('accessK
 
   // File
   $('topFileNew').addEventListener('click',act(()=>{switchMainTab('intake');window.intakeUI?.prepareNew?.();}));
-  const loadConfiguration=()=>{switchMainTab('build');$('fileInput').click();};
+  // Creates the program's document register (repository-ui.js). Build also creates it automatically.
+  $('topFileCreateProgram').addEventListener('click',act(()=>window.repoUI?.create?.()));
+  const loadConfiguration=()=>{switchMainTab('build');openWorkbook();};
   $('topFileLoad').addEventListener('click',act(loadConfiguration));
   // Save Configuration: on Config Data with a loaded workbook, that tab's save (status shown there); otherwise
-  // the Program Intake save, which also covers a new intake that has no workbook yet.
+  // the Program Intake save, which also covers a new intake that has no workbook yet. The menu item always asks for
+  // the name and folder (a new workbook); the Save Configuration Workbook buttons write over the loaded one.
   const saveConfiguration=()=>{const onConfig=$('tab-config')?.getAttribute('aria-selected')==='true',source=selectedDemoPath||selectedFile;
-    if(onConfig&&source){$('saveConfigBtn').click();return;}
-    switchMainTab('intake');window.intakeUI?.save?.();};
+    if(onConfig&&source){saveConfigWorkbook(true);return;}
+    switchMainTab('intake');window.intakeUI?.save?.(true);};
   $('topFileSave').addEventListener('click',act(saveConfiguration));
   $('topMenuReset').addEventListener('click',()=>{closeMenus();$('reset-btn')?.click();});
   $('topMenuGuide').addEventListener('click',()=>closeMenus());
@@ -1768,7 +1788,7 @@ $('accessKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('accessK
   // Account → Logout: confirm, then forget the access key or sign-in token kept in this browser tab.
   $('topUserLogout').addEventListener('click',async()=>{closeMenus();closeInfo();
     if(!await confirmBox('Log out',`Do you really want to log out? To open the app again you will need to ${signInWord}.`,'Log out',$('topCustomer')))return;
-    try{sessionStorage.removeItem('isaf_key');}catch{}apiKey.value='';location.reload();});
+    try{sessionStorage.removeItem('isaf_key');}catch{}apiKey.value='';if(window.isafAccount){window.isafAccounts.signOut();return;}location.reload();});
   // Exit: confirm, then close the window. A browser only lets a page close a window it opened itself,
   // so when the window stays open the page says it can be closed instead.
   $('topMenuExit').addEventListener('click',async()=>{closeMenus();closeInfo();
@@ -1856,6 +1876,19 @@ $('accessKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('accessK
   window.isafApplyUser=who=>{const name=String(who?.user||'').trim();if(!name)return;window.isafUserName=name;
     $('topCustomerName').textContent=name;$('topAvatar').textContent=name.split(/[^A-Za-z0-9]+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'U';
     $('topCustomer').title=`${name} · ${who.company||window.isafCompanyName||''}`;if(person.rows[0])person.rows[0][1]=name;};
+  // Admin app accounts (v6.0.0, accounts-ui.js): the signed-in person replaces the company on the badge, in
+  // User Information and as the name recorded with register actions.
+  const accountRows=()=>{const a=window.isafAccount;if(!a||!person.rows.length)return;
+    person.rows[0][1]=a.name;person.rows[2][1]=({owner:'Owner',admin:'Admin',user:'User'})[a.role]||'User';person.rows[3][1]=`ISAF account (${a.username})`;
+    person.foot='Your ISAF account. Change your password from this menu; an Owner manages accounts under Accounts.';};
+  window.isafApplyAccount=a=>{if(!a)return;window.isafUserName=a.name;
+    $('topCustomerName').textContent=a.name;$('topAvatar').textContent=a.name.split(/[^A-Za-z0-9]+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'U';
+    $('topCustomer').title=`${a.name} (${a.username}) · account`;$('topUserLevel').textContent=`User Level: ${({owner:'Owner',admin:'Admin',user:'User'})[a.role]||'User'}`;
+    const pw=$('topUserPassword');pw.disabled=false;pw.removeAttribute('aria-disabled');pw.removeAttribute('title');pw.textContent='Change Password…';
+    $('topUserAccounts').classList.toggle('hidden',a.role!=='owner');
+    $('topUserLogout').classList.remove('hidden');$('topUserLogoutSep').classList.remove('hidden');signInWord='sign in again';accountRows();window.isafApplyRoleView?.();};
+  $('topUserPassword').addEventListener('click',()=>{closeMenus();window.isafAccounts?.changePassword();});
+  $('topUserAccounts').addEventListener('click',()=>{closeMenus();window.isafAccounts?.manageAccounts();});
   // User Information is built when opened: the Intake Owner comes from the configuration loaded at that moment.
   $('topUserInfo').addEventListener('click',e=>{e.stopPropagation();const owner=String(configData?.intake?.survey_owner||'').trim();
     const rows=[...person.rows];rows.splice(2,0,['Intake Owner',owner||'— (no configuration loaded, or not set in Program Intake)']);
@@ -1878,13 +1911,14 @@ $('accessKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('accessK
     $('topAvatar').textContent=initials;$('topCustomerName').textContent=company;$('topCustomer').title=`${company} · account`;
     // Logout applies only when the app needs a sign-in (access key or single sign-on).
     if(h.authRequired){$('topUserLogout').classList.remove('hidden');$('topUserLogoutSep').classList.remove('hidden');signInWord=h.authMode==='oidc'?'sign in again':'enter your access key again';}
-    about={rows:[['Licensed to',h.customerName||'—'],['Licence ID',h.licenseId||'—'],['ISAF version','v'+(h.version||'')],['Edition',edition+(h.hostedTrial?' — hosted trial':h.hosted?' — hosted':' — installed')],
+    about={rows:[['Licensed to',h.customerName||'—'],['License ID',h.licenseId||'—'],['ISAF version','v'+(h.version||'')],['Edition',edition+(h.hostedTrial?' — hosted trial':h.hosted?' — hosted':' — installed')],
       ['Program types',(h.licensedProgramTypes||[]).join(', ')||'All'],['Phases',(h.licensedPhases||[]).map(p=>PHASE_NAMES[p]||p).join(', ')||'All'],
       ['Your data',h.hostedTrial?'Nothing is kept on this server. Download your builds and keep your configuration workbook.':'Configuration workbooks and documents stay on your computer or network.']],
       foot:`Need help? Open <a href="${guide}" target="_blank" rel="noopener">the User Guide</a> or contact your ISAF representative at MX Aero LLC.`};
     window.isafCompanyName=company;
     person={rows:[['Name',window.isafUserName||company],['Company',h.customerName||company],['User level',userLevel],['Sign-in',h.authMode==='oidc'?'Single sign-on':h.authRequired?'Access key':'None (installed on this computer)']],
       foot:'Individual user accounts, with personal names, passwords and user levels, are planned. Until then the app shows your company.'};
+    accountRows();if(window.isafAccount)window.isafApplyAccount(window.isafAccount);
   });
 })();
 
@@ -1900,22 +1934,50 @@ window.isafEditionReady.then(health=>{
 const dropZone = $('drop-zone');
 dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
 dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
-dropZone.addEventListener('drop', e => { e.preventDefault(); dropZone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (f) handleFile(f); });
-dropZone.addEventListener('click', () => $('fileInput').click());
+dropZone.addEventListener('drop', async e => { e.preventDefault(); dropZone.classList.remove('dragover'); const f = e.dataTransfer.files[0]; if (!f) return;
+  // Chrome and Edge can give a dropped file's handle, so a hosted site can save over it. An installed app cannot
+  // learn where a dropped file is: its first save asks where to save.
+  let handle=null;try{if(isHostedService)handle=await e.dataTransfer.items?.[0]?.getAsFileSystemHandle?.();}catch{}
+  handleFile(f,handle?.kind==='file'?{handle,name:handle.name}:null); });
+dropZone.addEventListener('click', () => openWorkbook());
+// Load Configuration and the drop zone: an installed app opens the workbook through the server's Open window, which
+// records where the file is; a hosted site uses the browser's file window that gives write access where the browser
+// has one (Chrome, Edge). Otherwise, the plain file window: the workbook loads, and its first save asks where to save.
+async function openWorkbook(){
+  if(!isHostedService){
+    try{
+      const response=await fetch('/api/config-open',{headers:authHeaders()});
+      const result=await response.json().catch(()=>({}));
+      if(response.ok&&result.cancelled)return;
+      if(response.ok&&result.target){
+        const fileResponse=await fetch('/api/config-open-file?target='+encodeURIComponent(result.target),{headers:authHeaders()});
+        if(!fileResponse.ok)throw Error('The workbook could not be read.');
+        const file=new File([await fileResponse.blob()],result.filename,{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'});
+        handleFile(file,/\.xlsx$/i.test(result.filename)?{target:result.target,name:result.filename}:null);return;
+      }
+    }catch{}
+  }
+  if(window.showOpenFilePicker){
+    try{const [handle]=await window.showOpenFilePicker({multiple:false,types:[{description:'Excel workbook',accept:{'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet':['.xlsx'],'application/vnd.ms-excel.sheet.macroEnabled.12':['.xlsm']}}]});
+      handleFile(await handle.getFile(),/\.xlsx$/i.test(handle.name)?{handle,name:handle.name}:null);return;}
+    catch(error){if(error?.name==='AbortError')return;}
+  }
+  $('fileInput').click();
+}
 $('fileInput').addEventListener('change', e => { if (e.target.files[0]) handleFile(e.target.files[0]); });
 
 // A file chosen from the computer is read into memory straight away. Browsers refuse to upload a chosen file
 // that has changed on disk since it was picked (for example after saving over it, or after Excel saved it),
 // which made later saves and builds fail with "Failed to fetch".
 async function memoryCopy(file){const bytes=await file.arrayBuffer();return new File([bytes],file.name,{type:file.type,lastModified:file.lastModified});}
-async function handleFile(chosen) {
+async function handleFile(chosen, target) {
   let file;
   try{file=await memoryCopy(chosen);}catch(e){$('drop-zone-text').textContent=`${chosen.name} could not be read. Close it in Excel and choose it again.`;dropZone.classList.add('load-failed');return;}
   // An Excel workbook is a zip package (starts with "PK"). An empty or damaged file, for example one left by a
   // save that did not complete, is reported plainly instead of as a parser error.
   const head=new Uint8Array(await file.slice(0,2).arrayBuffer());
-  if(file.size===0||head[0]!==0x50||head[1]!==0x4B){selectedFile=null;selectedDemoPath=null;configData=null;$('build-btn').disabled=true;window.intakeUI?.render?.();showParseError(file.name,file.size===0?'This file is empty (0 KB). It may have been left by a save that did not complete. Open an earlier copy of your workbook, or start again from your starter configuration.':'This file is not a valid Excel workbook (.xlsx). It may be damaged or still open in another program. Open an earlier copy, or save it again from Excel as an Excel Workbook.');return;}
-  selectedFile = file; selectedDemoPath = null; selectedDemoProgramType=null;selectedLogoFile=null;
+  if(file.size===0||head[0]!==0x50||head[1]!==0x4B){selectedFile=null;selectedDemoPath=null;configData=null;workbookTarget=null;$('build-btn').disabled=true;window.intakeUI?.render?.();showParseError(file.name,file.size===0?'This file is empty (0 KB). It may have been left by a save that did not complete. Open an earlier copy of your workbook, or start again from your starter configuration.':'This file is not a valid Excel workbook (.xlsx). It may be damaged or still open in another program. Open an earlier copy, or save it again from Excel as an Excel Workbook.');return;}
+  selectedFile = file; selectedDemoPath = null; selectedDemoProgramType=null;selectedLogoFile=null;workbookTarget=target||null;
   $('hostedLogoInput').value='';$('hostedLogoStatus').textContent='No logo selected.';
   document.querySelectorAll('.samples-row button').forEach(b => b.classList.remove('active'));
   dropZone.classList.add('uploaded');
@@ -1998,8 +2060,8 @@ async function parseWorkbook() {
 }
 
 window.repoWorkbook={
- clear(){++parseRequestId;window.configCheck?.loading?.(false);setTimeout(()=>window.configCheck?.schedule(0),0);$('status-panel').classList.add('hidden');$('log-panel').classList.add('hidden');selectedFile=null;selectedDemoPath=null;selectedDemoProgramType=null;configData=null;configDraftMods={};savedConfigResult=null;$('repoBuildMode').value='normal';$('repoBuildMode').disabled=true;$('repoBuildModeAvailability').hidden=false;$('repoBuildModeNote').textContent='';$('configSavedPath').classList.add('hidden');$('configSaveStatus').textContent='';$('configFilePath').textContent='';$('build-btn').disabled=true;document.querySelectorAll('.samples-row button').forEach(b=>b.classList.remove('active'));dropZone.classList.remove('uploaded');$('drop-zone-text').textContent='Load this program’s workbook';$('drop-zone-hint').textContent='No saved configuration selected';$('drop-zone-icon').textContent='⬆';updateHeaderCustomer(null);if(isDemoEdition)syncDemoPhaseSelection();renderConfigTabs();window.intakeUI?.render();},
- apply(file,data){++parseRequestId;setTimeout(()=>window.configCheck?.fresh?.(),0);window.repoUI?.invalidateSwitch();selectedFile=file;selectedDemoPath=null;selectedDemoProgramType=null;configData=data;configDraftMods={};savedConfigResult=null;$('repoBuildMode').disabled=false;$('repoBuildModeAvailability').hidden=true;$('repoBuildModeNote').textContent='';$('configSavedPath').classList.add('hidden');$('configSaveStatus').textContent='';$('configSearch').value='';$('configSearchResults').replaceChildren();$('configSearchCount').textContent='';dropZone.classList.add('uploaded');$('drop-zone-icon').textContent='✓';$('drop-zone-text').textContent=file.name;$('drop-zone-hint').textContent='Loaded configuration workbook';$('configFilePath').textContent='Loaded source: '+file.name;$('build-btn').disabled=false;$('tab-config').disabled=false;updateHeaderCustomer(data?.program?.customer_short_name||data?.program?.short_name||null);if(isDemoEdition)syncDemoPhaseSelection();if(pnReady)setPN(configData.document_pns||legacyPNSettings||pnModule.defaults);renderConfigTabs();window.intakeUI?.render();}
+ clear(){++parseRequestId;window.configCheck?.loading?.(false);setTimeout(()=>window.configCheck?.schedule(0),0);$('status-panel').classList.add('hidden');$('log-panel').classList.add('hidden');selectedFile=null;selectedDemoPath=null;selectedDemoProgramType=null;configData=null;workbookTarget=null;configDraftMods={};savedConfigResult=null;$('repoBuildMode').value='normal';$('repoBuildMode').disabled=true;$('repoBuildModeAvailability').hidden=false;$('repoBuildModeNote').textContent='';$('configSavedPath').classList.add('hidden');$('configSaveStatus').textContent='';$('configFilePath').textContent='';$('build-btn').disabled=true;document.querySelectorAll('.samples-row button').forEach(b=>b.classList.remove('active'));dropZone.classList.remove('uploaded');$('drop-zone-text').textContent='Load this program’s workbook';$('drop-zone-hint').textContent='No saved configuration selected';$('drop-zone-icon').textContent='⬆';updateHeaderCustomer(null);if(isDemoEdition)syncDemoPhaseSelection();renderConfigTabs();window.intakeUI?.render();},
+ apply(file,data,target){++parseRequestId;setTimeout(()=>window.configCheck?.fresh?.(),0);window.repoUI?.invalidateSwitch();selectedFile=file;workbookTarget=target||null;selectedDemoPath=null;selectedDemoProgramType=null;configData=data;configDraftMods={};savedConfigResult=null;$('repoBuildMode').disabled=false;$('repoBuildModeAvailability').hidden=true;$('repoBuildModeNote').textContent='';$('configSavedPath').classList.add('hidden');$('configSaveStatus').textContent='';$('configSearch').value='';$('configSearchResults').replaceChildren();$('configSearchCount').textContent='';dropZone.classList.add('uploaded');$('drop-zone-icon').textContent='✓';$('drop-zone-text').textContent=file.name;$('drop-zone-hint').textContent='Loaded configuration workbook';$('configFilePath').textContent='Loaded source: '+file.name;$('build-btn').disabled=false;$('tab-config').disabled=false;updateHeaderCustomer(data?.program?.customer_short_name||data?.program?.short_name||null);if(isDemoEdition)syncDemoPhaseSelection();if(pnReady)setPN(configData.document_pns||legacyPNSettings||pnModule.defaults);renderConfigTabs();window.intakeUI?.render();}
 };
 
 // ── Config tab rendering ───────────────────────────────────────────────────
@@ -2052,7 +2114,7 @@ function renderConfigTabs() {
   if (!configTabVisible(CONFIG_TABS.find(t => t.id === activeConfigTab) || {})) activeConfigTab = 'program';
   CONFIG_TABS.filter(configTabVisible).forEach(tab => {
     const btn = document.createElement('button');
-    // In an LRU program every row on this sheet is an LRU, so the tab says so. Labelling it
+    // In an LRU program every row on this sheet is an LRU, so the tab says so. Labeling it
     // "Systems" and explaining in prose that the rows are not systems is a workaround, not a
     // design; the two separate registers arrive with the unit hierarchy.
     const label = configTabLabel(tab);
@@ -2155,7 +2217,7 @@ const CONFIG_INDEPENDENCE_OPTIONS=[
  'Automated analysis whose result does not depend on the developer'];
 // One closed dropdown opening a checkbox list, storing its value as an array in a hidden
 // multi-select (see the comment at its first use in makeValueCell). Options are register ids,
-// labelled "id — name"; a chosen value the register does not hold is kept as an option so it is
+// labeled "id — name"; a chosen value the register does not hold is kept as an option so it is
 // visible rather than silently dropped. cfg.freeText, when set, adds an entry row at the end of
 // the list for typing a value the register does not offer.
 function multiPickCell(fullPath,val,ids,names,cfg){
@@ -2494,7 +2556,10 @@ function renderArrayTab(data, tab) {
 
 // ── Save config ────────────────────────────────────────────────────────────
 let savedConfigResult=null;
-$('saveConfigBtn').addEventListener('click', async () => {
+$('saveConfigBtn').addEventListener('click',()=>saveConfigWorkbook(false));
+// saveAs false (the button): write over the loaded workbook when ISAF knows where it is; true (File → Save
+// Configuration…): ask for the name and folder of a new workbook.
+async function saveConfigWorkbook(saveAs){
  const source=selectedDemoPath||(selectedFile?selectedFile.name:'');
  const status=$('configSaveStatus');
  if(!source){status.textContent='Load a workbook on the Build tab first.';return;}
@@ -2502,28 +2567,30 @@ $('saveConfigBtn').addEventListener('click', async () => {
  let hostedDownload=null;
  $('saveConfigBtn').disabled=true;$('saveConfigBtn').textContent='Saving…';status.textContent='Creating a new workbook…';
  try{
-  if(!pnReady)await initPN();
-  let outputDir,saveToken;
-  // Ask for the file name and folder (Save As). Fall back to the folder picker only if Save As is unavailable.
-  status.textContent='Choose the file name and folder for the configuration workbook…';
+  let outputDir,saveToken,saveTarget;
+  // Write over the loaded workbook, or ask for the file name and folder (Save As). Fall back to the folder picker only
+  // if Save As is unavailable. The destination is settled first, while the click still counts as the user's action
+  // (a browser asks for write permission only then).
+  status.textContent=saveAs||!workbookTarget?'Choose the file name and folder for the configuration workbook…':'Saving over '+workbookTarget.name+'…';
   let saveAsError=null;
-  try{const destination=await window.intakeUI.chooseWorkbookDestination();if(!destination){status.textContent='Save cancelled. Your edits are still here.';return;}if(destination.download)hostedDownload=destination;else saveToken=destination.token;}
+  try{const destination=await window.intakeUI.chooseWorkbookDestination(saveAs);if(!destination){status.textContent='Save canceled. Your edits are still here.';return;}if(destination.download)hostedDownload=destination;else if(destination.target)saveTarget=destination.target;else saveToken=destination.token;}
   catch(e){saveAsError=e;}
-  if(!saveToken&&!hostedDownload&&!selectedFile&&saveAsError)throw saveAsError;
-  if(!saveToken&&!hostedDownload&&selectedFile){
+  if(!pnReady)await initPN();
+  if(!saveToken&&!saveTarget&&!hostedDownload&&!selectedFile&&saveAsError)throw saveAsError;
+  if(!saveToken&&!saveTarget&&!hostedDownload&&selectedFile){
    status.textContent='Select the folder containing your original workbook. Browser uploads do not include its folder path.';
    const folderResponse=await fetch('/api/browse-folder?purpose=config-save',{headers:authHeaders()});
    const folder=await folderResponse.json();
    if(!folderResponse.ok||folder.error)throw Error(folder.error||'Could not open the folder picker.');
-   if(folder.cancelled){status.textContent='Save cancelled. Your edits are still here.';return;}
+   if(folder.cancelled){status.textContent='Save canceled. Your edits are still here.';return;}
    outputDir=folder.path;
   }
   status.textContent='Saving the configuration workbook…';
   const pn=readPN();if(pn.errors.length)throw Error('Correct the Document PNs errors before saving the configuration workbook.');
   window.intakeUI?.syncAll?.();
   const modifications={...configDraftMods,_documentPNs:pn.settings};
-  let headers={...authHeaders(),'Content-Type':'application/json'},body=JSON.stringify({source,modifications,saveToken});
-  if(selectedFile){body=new FormData();body.append('workbook',selectedFile);body.append('source',source);if(outputDir)body.append('outputDir',outputDir);if(saveToken)body.append('saveToken',saveToken);body.append('modifications',JSON.stringify(modifications));headers=authHeaders();}
+  let headers={...authHeaders(),'Content-Type':'application/json'},body=JSON.stringify({source,modifications,saveToken,saveTarget});
+  if(selectedFile){body=new FormData();body.append('workbook',selectedFile);body.append('source',source);if(outputDir)body.append('outputDir',outputDir);if(saveToken)body.append('saveToken',saveToken);if(saveTarget)body.append('saveTarget',saveTarget);body.append('modifications',JSON.stringify(modifications));headers=authHeaders();}
   const response=await fetch('/api/save-config',{method:'POST',headers,body});
   const result=await response.json().catch(()=>{throw Error('The service returned an unreadable response. Restart ISAF and try again.');});
   if(!response.ok||result.error)throw Error(result.error||`Save failed (${response.status}).`);
@@ -2536,7 +2603,8 @@ $('saveConfigBtn').addEventListener('click', async () => {
   const parseResponse=await fetch('/api/parse',{method:'POST',headers:authHeaders(),body:parseBody});
   const savedData=await parseResponse.json().catch(()=>{throw Error('The workbook was saved, but ISAF could not read the saved copy. Select it again on Build.');});
   if(!parseResponse.ok||savedData.error)throw Error(savedData.error||'The workbook was saved, but ISAF could not read the saved copy. Select it again on Build.');
-  window.repoWorkbook.apply(savedFile,savedData);
+  // The saved workbook becomes the loaded one, so the next Save Configuration Workbook writes over it.
+  window.repoWorkbook.apply(savedFile,savedData,hostedDownload?.handle?{handle:hostedDownload.handle,name:savedFile.name}:result.target?{target:result.target,name:result.filename}:null);
   let repositoryNote='';
   try{await window.repoUI?.forConfiguration();}
   catch(repoError){repositoryNote=`\nRepository connection was not updated: ${repoError.message||'review the selected repository program.'}`;}
@@ -2544,7 +2612,7 @@ $('saveConfigBtn').addEventListener('click', async () => {
   if(hostedDownload){$('configSavedPath').classList.add('hidden');status.textContent=`Saved to your computer as ${savedFile.name} and loaded. The next Build will use this workbook. Keep this file: the hosted site does not keep a copy.${repositoryNote}`;}else{$('configSavedPathValue').textContent=result.output;$('configSavedPath').classList.remove('hidden');const missed=(result.total_modifications||0)-(result.applied||0);status.textContent=((missed>0?`${missed} of ${result.total_modifications} edits were not written to the workbook. Check those fields in the saved copy before building.`:'')+repositoryNote).trim();}
  }catch(err){await window.intakeUI?.discardEmptyDestination?.(hostedDownload);const lost=err instanceof TypeError&&/fetch/i.test(err.message||'');status.textContent=`Configuration save did not complete: ${lost?'ISAF could not reach the server. Check your connection and try again; if it keeps failing, choose the workbook again on the Build tab.':(err.message||'Check that ISAF is running and try again.')}`;}
  finally{$('saveConfigBtn').disabled=false;$('saveConfigBtn').textContent='Save Configuration Workbook';}
-});
+}
 
 
 // ── Build ──────────────────────────────────────────────────────────────────
@@ -2599,11 +2667,16 @@ $('build-btn').addEventListener('click', async () => {
   try {
     let totalDocs = 0, totalFails = 0, lastOutputDir = '', allLogs = [], buildDownloads = [];
     let previousDocs = reuseDocs;
+    // Folder documents sent with the build: the server then holds their content (in the register, or kept in the
+    // build's support record), so replacing them in the folder needs no _ISAF_backup copy (owner, 22 November 2026).
+    let folderSent = null, recordsKept = true;
     if (useFolder && selectedFile) {
       const found = (await window.workingFolder.documents()).filter(d => d.file.size <= 10*1024*1024);
-      const copies = (await Promise.all(found.map(d => memoryCopy(d.file).catch(() => null)))).filter(Boolean);
+      const pairs = (await Promise.all(found.map(async d => { const file = await memoryCopy(d.file).catch(() => null); return file && { path: d.path, file }; }))).filter(Boolean);
+      const copies = pairs.map(x => x.file);
       const seen = new Set(reuseDocs.map(f => f.name + ':' + f.size));
       previousDocs = [...reuseDocs, ...copies.filter(f => !seen.has(f.name + ':' + f.size))].slice(0, 300);
+      folderSent = new Set(pairs.filter(x => previousDocs.includes(x.file)).map(x => x.path));
       $('log').textContent += `Working folder "${window.workingFolder.name()}": ${copies.length} Word document${copies.length===1?'':'s'} read to reuse.\n`;
     }
     const refreshTotals = { documents: 0, flagged: 0, candidates: 0, unused: null, reasons: {} };
@@ -2662,11 +2735,12 @@ $('build-btn').addEventListener('click', async () => {
       const pdfProblem=(result.postprocess||[]).find(n=>/^PDF copies not created/.test(n));
       if(pdfProblem&&$('buildPdfNote')){$('buildPdfNote').textContent=pdfProblem;$('buildPdfNote').classList.remove('hidden');}
       if (result.log) allLogs.push(result.log);
+      if (!result.recordKept) recordsKept = false;
       if (result.refresh) { refreshTotals.documents += result.refresh.documents; refreshTotals.flagged += result.refresh.flagged; refreshTotals.candidates += result.refresh.candidates; const unused = new Set((result.refresh.unused || []).map(u => u.name)); refreshTotals.unused = refreshTotals.unused ? new Set([...refreshTotals.unused].filter(n => unused.has(n))) : unused; refreshTotals.reasons = Object.assign(refreshTotals.reasons, Object.fromEntries((result.refresh.unused || []).map(u => [u.name, u.reason]))); }
     }
     if (previousDocs.length) {
       const unused = [...(refreshTotals.unused || [])];
-      $('log').textContent += `\nReuse edited documents: ${refreshTotals.documents} refreshed, ${refreshTotals.flagged} values flagged for review${refreshTotals.candidates ? `, ${refreshTotals.candidates} saved as candidates to review in Program Documents` : ''}. Details: Refresh_Report.txt in the output.\n${unused.length ? `Not used in any phase (${unused.length}):\n${unused.map(n => `  ${n}: ${refreshTotals.reasons[n] || ''}`).join('\n')}\n` : ''}`;
+      $('log').textContent += `\nReuse edited documents: ${refreshTotals.documents} refreshed, ${refreshTotals.flagged} values flagged for review${refreshTotals.candidates ? `, ${refreshTotals.candidates} saved for review in Program Documents` : ''}. Flagged values carry a Word comment in the document.\n${unused.length ? `Not used in any phase (${unused.length}):\n${unused.map(n => `  ${n}: ${refreshTotals.reasons[n] || ''}`).join('\n')}\n` : ''}`;
     }
 
     const elapsed = ((Date.now() - startTime) / 1000).toFixed(1);
@@ -2704,7 +2778,7 @@ $('build-btn').addEventListener('click', async () => {
         // One ZIP per phase: each unpacks at the folder root, so later builds replace the same files.
         try{const saved={written:0,backedUp:0,superseded:0,failed:[],backup:''},backupStamp=window.workingFolder.stamp();
           for(const item of buildDownloads){const response=await fetch(item.url,{headers:authHeaders()});if(!response.ok){let m='The build could not be fetched.';try{m=(await response.json()).error||m;}catch{}throw Error(m);}
-            const r=await window.workingFolder.writeZip(await response.blob(),{backupStamp});saved.written+=r.written;saved.backedUp+=r.backedUp+r.superseded;saved.superseded+=r.superseded;saved.failed.push(...r.failed);saved.backup=r.backup||saved.backup;}
+            const r=await window.workingFolder.writeZip(await response.blob(),{backupStamp,kept:recordsKept?folderSent:null});saved.written+=r.written;saved.backedUp+=r.backedUp+r.superseded;saved.superseded+=r.superseded;saved.failed.push(...r.failed);saved.backup=r.backup||saved.backup;}
           note.textContent=`Saved ${saved.written} file${saved.written===1?'':'s'} into "${window.workingFolder.name()}"${saved.backedUp?`; ${saved.backedUp} previous version${saved.backedUp===1?'':'s'} kept in ${saved.backup}`:''}.${saved.failed.length?` ${saved.failed.length} could not be written (is a file open in Word?).`:''}`;
           $('log').textContent+=`\nWorking folder: ${note.textContent}\n${saved.failed.map(f=>`  Not written: ${f.path}: ${f.error}`).join('\n')}${saved.failed.length?'\n':''}`;}
         catch(error){note.textContent=`Could not save into the working folder: ${error.message} Select Download ZIP to save a copy instead.`;}
@@ -2856,10 +2930,13 @@ function refreshConfigCardTitle(el){
  if(!/\.(name|id)$/.test(path))return;
  const card=el.closest?.('.config-card');if(!card)return;
  const head=card.querySelector('.config-card-head h4');if(!head)return;
+ // Only the title span is rewritten. Rewriting the whole heading removed the collapse button and its
+ // arrow, so an edited card could no longer be collapsed (fixed 19 November 2026).
+ const title=head.querySelector('.config-card-title')||head;
  const val=k=>card.querySelector(`[data-path$=".${k}"]`)?.value?.trim()||'';
  const name=val('name'),id=val('id');
- head.textContent=name||id||head.dataset.fallback||'Item';
- if(name&&id){const tag=document.createElement('span');tag.className='config-card-id';tag.textContent=id;head.appendChild(tag);}
+ title.textContent=name||id||head.dataset.fallback||'Item';
+ if(name&&id){const tag=document.createElement('span');tag.className='config-card-id';tag.textContent=id;title.appendChild(tag);}
 }
 function closeMultiPicks(root=document){
  root.querySelectorAll('.multi-pick-menu:not([hidden])').forEach(m=>{m.hidden=true;
@@ -3100,5 +3177,6 @@ function enhanceConfigTable(){
 <script src="export-control.js"></script>
 <script src="program-intake.js"></script>
 <script src="hosted-admin.js"></script>
+<script src="accounts-ui.js"></script>
 </body>
 </html>

@@ -93,13 +93,43 @@ export function repositoryRoutes(store,requireAuth,configurationIO={}){
   res.attachment(safeName(`${d.pn}_${d.title.slice(0,45)}_Rev ${v.label}${path.extname(v.filename)}`));res.set('Cache-Control','no-store');res.send(await store.bytes(v.hash));
  }));
  router.post('/programs/:programId/baselines',authorize('baseline.create'),run(async(req,res)=>res.status(201).json(await store.baseline(program(req),body(req)))));
+ // Support records (owner, 22 November 2026): each build's record, source workbook and reports, and the copies of
+ // documents a build or an Import update replaced in the user's folder. Admins only (support.records): an Owner or
+ // Admin account in the Admin app, the organization administrator in a Customer app. MX Aero receives them only when
+ // the customer downloads a support bundle and sends it.
+ const recordFolder=r=>safeName(`${r.createdAt.slice(0,19).replace(/[:T]/g,'-')} ${r.title}`);
+ router.get('/programs/:programId/records',authorize('support.records'),run(async(req,res)=>res.json(await store.records(program(req)))));
+ router.get('/programs/:programId/records/:recordId/file',authorize('support.records'),run(async(req,res)=>{
+  const r=await store.record(program(req),req.params.recordId),f=r.files.find(x=>x.name===String(req.query.name||''));if(!f)throw new RepositoryError('File not found in this record.',404);
+  res.attachment(path.basename(f.name));res.set('Cache-Control','no-store');res.send(await store.bytes(f.hash));
+ }));
+ router.get('/programs/:programId/records/:recordId/download',authorize('support.records'),run(async(req,res)=>{
+  const r=await store.record(program(req),req.params.recordId);
+  const archive=archiver('zip',{zlib:{level:6}});archive.on('error',e=>res.destroy(e));res.attachment(recordFolder(r)+'.zip');res.set('Cache-Control','no-store');archive.pipe(res);
+  for(const f of r.files)archive.append(await store.bytes(f.hash),{name:f.name});archive.finalize();
+ }));
+ // Support bundle: every record of the program, its register activity log and a summary of its documents and
+ // versions, in one ZIP to send to MX Aero when asking for support.
+ router.get('/programs/:programId/support-bundle',authorize('support.records'),run(async(req,res)=>{
+  const p=await store.read(program(req)),records=await store.records(program(req));
+  const archive=archiver('zip',{zlib:{level:6}});archive.on('error',e=>res.destroy(e));res.attachment(safeName(`ISAF_Support_Bundle_${p.prefix||p.name}_${new Date().toISOString().slice(0,10)}`)+'.zip');res.set('Cache-Control','no-store');archive.pipe(res);
+  archive.append(JSON.stringify({program:{name:p.name,company:p.company,prefix:p.prefix,underDocumentControl:p.underDocumentControl},createdAt:new Date().toISOString(),documents:p.documents.map(d=>({pn:d.pn,title:d.title,workflow:d.workflow,head:d.head,released:d.released,versions:d.versions.map(v=>({id:v.id,label:v.label,status:v.status,createdAt:v.createdAt,actor:v.actor,comment:v.comment,source:v.source?.kind}))})),builds:p.builds.map(b=>({id:b.id,name:b.name,phase:b.phase,createdAt:b.createdAt,actor:b.actor,warnings:b.warnings})),baselines:p.baselines.map(b=>({id:b.id,name:b.name,createdAt:b.createdAt,actor:b.actor}))},null,2),{name:'Program_Register_Summary.json'});
+  archive.append(JSON.stringify(p.events,null,2),{name:'Register_Activity_Log.json'});
+  for(const r of records)for(const f of r.files)archive.append(await store.bytes(f.hash),{name:`Records/${recordFolder(r)}/${f.name}`});
+  archive.finalize();
+ }));
+
+
  router.get('/programs/:programId/:kind/:recordId/download',authorize('repository.read'),run(async(req,res)=>{
   if(!['builds','baselines'].includes(req.params.kind))throw new RepositoryError('Record not found.',404);
   const p=await store.read(program(req)),record=p[req.params.kind].find(x=>x.id===req.params.recordId);if(!record)throw new RepositoryError('Record not found.',404);
   const files=await Promise.all(record.entries.map(async e=>{const d=store.doc(p,e.documentId),v=store.version(d,e.versionId);return {name:safeName(`${d.pn}_${d.title.slice(0,45)}_Rev ${v.label}${path.extname(v.filename)}`),bytes:await store.bytes(v.hash)};}));
   const archive=archiver('zip',{zlib:{level:6}});archive.on('error',e=>res.destroy(e));res.attachment(safeName(record.name)+'.zip');res.set('Cache-Control','no-store');archive.pipe(res);
-  for(const f of files)archive.append(f.bytes,{name:f.name});archive.append(JSON.stringify(record,null,2),{name:'Snapshot_Record.json'});if(includeSourceWorkbook&&record.workbook)archive.append(await store.bytes(record.workbook.hash),{name:'Source_Workbook.xlsx'});archive.finalize();
+  // Documents only (owner, 22 November 2026): the build record and source workbook are in the support records.
+  for(const f of files)archive.append(f.bytes,{name:f.name});archive.finalize();
  }));
+
+
  router.use((err,req,res,next)=>{if(res.headersSent)return next(err);res.status(err.status|| (err.code==='LIMIT_FILE_SIZE'?413:500)).json({error:err.message||'Repository operation failed.'});});
  return router;
 }

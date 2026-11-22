@@ -2,7 +2,7 @@
  * Usage records (v5.3.28): who used a Customer app, when, and for which program.
  *
  * In a Customer app (createUsageRecorder):
- *  - "app-opened" and "build" events are recorded with the time, licence ID, company, user (the named user whose
+ *  - "app-opened" and "build" events are recorded with the time, license ID, company, user (the named user whose
  *    key unlocked the app), program (name, short name, document prefix, type), phases, document and failure
  *    counts, app version and hosting. Only metadata: never workbook or document contents.
  *  - Each event is appended to a monthly ledger (usage-YYYY-MM.jsonl). Installed apps keep it in
@@ -12,10 +12,10 @@
  *    wait in outbox.jsonl and are resent with the next event and every 10 minutes.
  *  - The customer can download the ledger (usage report) from the Administration tab for an offline install.
  *
- * In the Admin app (createUsageStore, collector routes in server.js): usage is kept per licence in
- * <admin data>/usage/<licence>.jsonl, de-duplicated by event id, from the collector (ingest or sync) or from an
- * imported usage report. The collector token is HMAC-SHA256(collector secret, licence ID): it only lets an app add
- * records for its own licence.
+ * In the Admin app (createUsageStore, collector routes in server.js): usage is kept per license in
+ * <admin data>/usage/<license>.jsonl, de-duplicated by event id, from the collector (ingest or sync) or from an
+ * imported usage report. The collector token is HMAC-SHA256(collector secret, license ID): it only lets an app add
+ * records for its own license.
  */
 import fs from "node:fs";
 import os from "node:os";
@@ -110,7 +110,7 @@ export function createUsageRecorder({ serviceDir, hosted, manifest = {}, version
   return { enabled, dir, collector: !!collector, record, report, flush };
 }
 
-/** Admin side: usage per licence, de-duplicated by event id. */
+/** Admin side: usage per license, de-duplicated by event id. */
 export function createUsageStore(dir) {
   const fileOf = license => path.join(dir, `${String(license || "unknown").replace(/[^A-Za-z0-9_-]/g, "_")}.jsonl`);
   function list(license) { return readLines(fileOf(license)).sort((a, b) => a.time.localeCompare(b.time)); }
@@ -153,7 +153,7 @@ export function summarizeUsage(events = []) {
 
 const csvCell = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 export function usageCsv(events = []) {
-  const head = ["Time (UTC)", "Event", "Company", "User", "Program name", "Program short name", "Document prefix", "Program type", "Phases", "Documents", "Failures", "Version", "Hosting", "Licence ID"];
+  const head = ["Time (UTC)", "Event", "Company", "User", "Program name", "Program short name", "Document prefix", "Program type", "Phases", "Documents", "Failures", "Version", "Hosting", "License ID"];
   const rows = events.map(e => [e.time.replace("T", " ").slice(0, 19), e.event, e.company, e.user, e.program?.name, e.program?.short_name, e.program?.doc_prefix, e.program?.type, (e.phases || []).join(" "), e.documents, e.failures, e.version, e.hosting, e.license_id]);
   return [head, ...rows].map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }

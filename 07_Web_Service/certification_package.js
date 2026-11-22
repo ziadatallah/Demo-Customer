@@ -8,7 +8,7 @@ const fail=(message,status=400)=>{throw new RepositoryError(message,status);};
 const clean=(v,max=4000)=>String(v??'').trim().slice(0,max);
 const required=(v,label)=>{const s=clean(v);if(!s)fail(label+' is required.');return s;};
 const hash=x=>digest(Buffer.from(JSON.stringify(x)));
-const checked=(p,body)=>{required(body.actor,'Program Focal');if(body.expectedRevision!==p.revision)fail('The program changed. Refresh the checklist before saving.',409);};
+const checked=(p,body)=>{required(body.actor,'User name');if(body.expectedRevision!==p.revision)fail('The program changed. Refresh the checklist before saving.',409);};
 const now=()=>new Date().toISOString();
 const copy=x=>structuredClone(x);
 function profileRows(p){

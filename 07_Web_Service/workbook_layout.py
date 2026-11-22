@@ -167,7 +167,7 @@ def ensure_article_characteristics(wb):
          'Optional, transmitting articles only: frequency band, maximum power and emission designator. '
          'Leave blank where the article does not transmit.'),
         ('T', 'sys.pressure_loads', 'Pressure And Loads',
-         'Optional, pressurised or load-bearing articles only: working and ultimate values with units.'),
+         'Optional, pressurized or load-bearing articles only: working and ultimate values with units.'),
         ('U', 'sys.measuring_accuracy', 'Measuring Accuracy',
          'Optional, measuring or indicating articles only: limits of accuracy over the operating range.'),
     )

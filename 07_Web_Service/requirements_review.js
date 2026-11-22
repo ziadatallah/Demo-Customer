@@ -24,7 +24,7 @@ export const LEVELS = {
   hwt: { label: "Hardware verification cases", one: "hardware verification case", rank: 3, parents: ["hw"] },
   llt: { label: "Software low-level tests (LLTs)", one: "low-level test", rank: 4, parents: ["llr"] },
   // Kept so that requirements imported before the test levels existed still review exactly as
-  // they did. It accepts any parent, which is the behaviour this release replaces.
+  // they did. It accepts any parent, which is the behavior this release replaces.
   test: { label: "Verification cases (level not stated)", one: "verification case", rank: 5, parents: ["hlr", "llr", "hw", "system"] },
 };
 export const TEST_LEVELS = ["syst", "hlt", "hwt", "llt", "test"];

@@ -22,7 +22,7 @@ const CONFIG_FIELD_HELP = {
   "do160_revision": "Environmental qualification standard issue used in environmental documentation; the current generator supports G.",
   "cert_regime": "Certification regime used to choose the permitted civil or military document families. Edition restrictions apply.",
   "no_end_user": "Set to Yes where the article is certified with no end user: a product you are taking through TSO approval before it is sold to anyone. Set to Yes, the End User and Contract Number read \"Not applicable\" on every generated document. Left blank, they read as unanswered, so a reviewer can tell the two apart.",
-  "purchaser_name": "The End User: the organisation this article is supplied to, and the one named as purchaser on supplied forms such as the DDP and the DO-160 Environmental Qualification Form. This is NOT your own company - that is Company Name. If you build an article for an airframer or a Tier 1 integrator, they are the End User and you are the Company. Leave blank where the article is not supplied to a named organisation.",
+  "purchaser_name": "The End User: the organization this article is supplied to, and the one named as purchaser on supplied forms such as the DDP and the DO-160 Environmental Qualification Form. This is NOT your own company - that is Company Name. If you build an article for an airframer or a Tier 1 integrator, they are the End User and you are the Company. Leave blank where the article is not supplied to a named organization.",
   "purchaser_address": "The End User's address as it should appear on supplied documents. Leave blank where there is no named End User.",
   "contract_number": "The contract or purchase order this work is performed under, as the purchaser refers to it. It appears on document title blocks. Leave blank where the work is not against a named contract.",
   "security_assurance_level": "The security assurance level claimed for this program, where one applies (for example a DO-326A/ED-202A airworthiness security level). Leave blank where no security level is claimed.",
@@ -51,7 +51,7 @@ const CONFIG_FIELD_HELP = {
   "unit_dimensions": "Overall dimensions with units, for example 190 x 124 x 64 mm. Leave blank where it does not apply \u2014 the declaration prints \u201cNot applicable\u201d rather than an unanswered placeholder.",
   "time_rating": "How the article is rated for operating time: continuous, intermittent, or a duty cycle such as 10 min on / 20 min off. This applies to nearly every article, so it should rarely be left blank.",
   "radio_transmitter": "For a transmitting article only: frequency band, maximum transmitting power and emission designator. Leave blank where it does not apply \u2014 the declaration prints \u201cNot applicable\u201d rather than an unanswered placeholder.",
-  "pressure_loads": "For a pressurised or load-bearing article only: working and ultimate values, with units. Leave blank where it does not apply \u2014 the declaration prints \u201cNot applicable\u201d rather than an unanswered placeholder.",
+  "pressure_loads": "For a pressurized or load-bearing article only: working and ultimate values, with units. Leave blank where it does not apply \u2014 the declaration prints \u201cNot applicable\u201d rather than an unanswered placeholder.",
   "measuring_accuracy": "For a measuring or indicating article only: limits of accuracy over the declared operating range. Leave blank where it does not apply \u2014 the declaration prints \u201cNot applicable\u201d rather than an unanswered placeholder.",
   "unit_type": "What this row is: a SYSTEM, or an LRU inside one. Leave blank on a program with a single level \u2014 a blank row behaves exactly as it did before this field existed. An ARP4754 system that contains several line-replaceable units sets SYSTEM on the parent row and LRU on each unit.",
   "parent_unit": "The System that contains this row, chosen from the System rows on this same tab. An LRU names its System. A System may name the System it is part of, or leave this blank (not applicable). An LRU can never be a parent. Leave blank where the program has only one level. Software and hardware items do not use this \u2014 they name their units in Parent System on their own tab.",
@@ -216,7 +216,7 @@ function approvalPathFits(type,path){const list=CONFIG_APPROVAL_PATHS_BY_TYPE[St
 // Customer app: with a licensed Cert Basis Type, only approval paths with that basis (or no fixed basis) can be chosen.
 function approvalPathLicensed(path){const lic=typeof licensedValues!=='undefined'&&licensedValues?.['program.cert_basis_type'];const basis=CONFIG_APPROVAL_BASIS[path];return !lic||!path||!basis||basis===lic;}
 function approvalBasisValue(){return CONFIG_APPROVAL_BASIS[configData?.intake?.approval_path]||'';}
-// Customer app: a Cert Basis Type set by the licence is never overwritten from the approval path (the server
+// Customer app: a Cert Basis Type set by the license is never overwritten from the approval path (the server
 // re-applies the licensed value on every save, so overwriting it here left a permanent unsaved change).
 function licensedCertBasis(){return typeof licensedValues!=='undefined'&&licensedValues?.['program.cert_basis_type']||'';}
 function syncApprovalBasis(){
