@@ -32,6 +32,8 @@
   ],
   "version": "6.0.2",
   "build_engine_version": "6.0.2",
+  "watermark_documents": true,
+  "watermark_text": "DEMO",
   "customer_name": "Demo Customer",
   "license_id": "MXA-ISAF-2026-0006",
   "starter_workbook": "04_Demos/Starter/inputs/ISAF_Demo_Customer_Starter_Configuration.xlsx",
