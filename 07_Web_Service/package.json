@@ -1,6 +1,6 @@
 {
   "name": "isaf-web-service",
-  "version": "6.0.2",
+  "version": "6.0.3",
   "description": "ISAF Document Generation Web Service",
   "type": "module",
   "main": "server.js",

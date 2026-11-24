@@ -615,7 +615,7 @@
 /* Responsive application shell; wide tables scroll within their own panel. */
 header {gap:1rem;}
 body.role-user #tab-create-demo,body.role-user #tab-customers,body.role-user #tab-administration,body.role-user #buildOutputOptions,
-body.role-user #topMenuArchitecture,body.role-user #topMenuReleaseNotes{display:none!important}
+body.role-user #topMenuArchitecture,body.role-user #topMenuReleaseNotes,body.role-user #topMenuCustomerApps,body.role-user #topMenuManageUsers{display:none!important}
 header h1 {min-width:0;overflow-wrap:anywhere;}
 header .version {flex-shrink:0;}
 header .version-block {flex-shrink:0;}
@@ -667,7 +667,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 <header id="mainHeader">
   <h1 id="headerTitle">ISAF (Integrated Standards Assurance Framework) — &lt;Company&gt;</h1>
   <span class="version-block">
-    <span class="version" id="appVersion">v6.0.2</span>
+    <span class="version" id="appVersion">v6.0.3</span>
     <!-- The clock that dates generated documents. Read-only on purpose: it reflects
          program.time_zone, so if it disagrees with the wall clock the documents are
          already going to be dated wrong, and the fix is the field, not this display. -->
@@ -760,6 +760,9 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
              stripped from Customer and Demo packages in scripts/make_edition.py. -->
         <a role="menuitem" href="help/document-architecture.html" target="_blank" rel="noopener" id="topMenuArchitecture" class="hidden">Document Architecture</a>
         <a role="menuitem" href="help/release-notes.html" target="_blank" rel="noopener" id="topMenuReleaseNotes" class="hidden">Release Notes</a>
+        <a role="menuitem" href="help/customer-apps-guide.html" target="_blank" rel="noopener" id="topMenuCustomerApps" class="hidden">Customer Apps Guide</a>
+        <!-- Customer apps with login accounts: shown to Admin accounts only (accounts-ui.js). -->
+        <a role="menuitem" href="help/managing-users.html" target="_blank" rel="noopener" id="topMenuManageUsers" class="hidden">Managing Users (Admins)</a>
         <button type="button" role="menuitem" id="topMenuUpdates">Check for Updates…</button>
         <button type="button" role="menuitem" id="topMenuAbout">About</button>
       </div>
@@ -860,8 +863,12 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
   <div class="tab-panel hidden" id="panel-administration" aria-labelledby="tab-administration">
     <section id="usageReportBox" class="build-section hidden" aria-labelledby="usageReportTitle" style="margin-bottom:1rem;">
       <span class="build-section-title" id="usageReportTitle">Usage report</span>
-      <p class="hint">Your ISAF license records who opened the app and which programs were built (date, user, program name, phases and document counts; never workbook or document contents). If this computer cannot reach the internet, download the report and send it to MX Aero when asked.</p>
+      <p class="hint">Your ISAF license records who opened the app, which programs were built (date, user, program name, phases and document counts; never workbook or document contents) and, with login accounts, the accounts created, disabled or enabled and the seats in use. If this computer cannot reach the internet, download the report and send it to MX Aero when asked.</p>
       <button type="button" class="secondary" id="usageReportBtn">Download usage report</button> <span class="hint" id="usageReportStatus" role="status"></span>
+    </section>
+    <section id="accountsBox" class="build-section hidden" aria-labelledby="accountsBoxTitle" style="margin-bottom:1rem;">
+      <span class="build-section-title" id="accountsBoxTitle">Login accounts</span>
+      <div id="accountsBoxBody"></div>
     </section>
     <div id="hostedAdminHost"></div>
   </div>
@@ -1233,6 +1240,7 @@ if (!isAdminEdition) {$('tab-create-demo').classList.add('hidden');$('tab-custom
 // Customer app never shows it even for the instant before the edition resolves below.
 if (isAdminEdition) $('topMenuArchitecture').classList.remove('hidden');
 if (isAdminEdition) $('topMenuReleaseNotes').classList.remove('hidden');
+if (isAdminEdition) $('topMenuCustomerApps').classList.remove('hidden');
 window.isafEditionReady=(async () => {
   let h={edition:document.body.dataset.edition||'full'};
   try {
@@ -1283,6 +1291,7 @@ window.isafEditionReady=(async () => {
     $('buildOutputOptions').classList.toggle('hidden',!isAdminEdition);$('buildPdfRow').classList.toggle('hidden',!!h.hosted);
     $('topMenuArchitecture').classList.toggle('hidden',!isAdminEdition);
     $('topMenuReleaseNotes').classList.toggle('hidden',!isAdminEdition);
+    $('topMenuCustomerApps').classList.toggle('hidden',!isAdminEdition);
     // PDF copies are converted by LibreOffice after the build. Say so here rather than letting the
     // user wait out a whole build to find the option could not run.
     {
@@ -1322,7 +1331,8 @@ function updateHeaderCustomer(name) {
 // without accounts yet counts as Admin; Customer apps have no Admin-level accounts until customer accounts arrive.
 const roleView={edition:'full',version:''};
 const ROLE_BANNER={full:['#1F3A5F','#0E1E33'],customer:['#1A7A3A','#0D4F24'],demo:['#673AB7','#673AB7']};
-function roleIsAdmin(){const a=window.isafAccount;if(roleView.edition==='full')return !a||a.role!=='user';return !!a&&a.role==='customer_admin';}
+// Customer apps (owner, 22 November 2026): the Customer Admin (account role "owner") gets the darker banner and "Admin".
+function roleIsAdmin(){const a=window.isafAccount;if(roleView.edition==='full')return !a||a.role!=='user';return !!a&&a.role!=='user';}
 function applyRoleView(){
   const admin=roleIsAdmin(),colors=ROLE_BANNER[roleView.edition]||ROLE_BANNER.full;
   $('mainHeader').style.background=admin?colors[1]:colors[0];
@@ -1879,11 +1889,12 @@ $('accessKeyInput').addEventListener('keydown',e=>{if(e.key==='Enter')$('accessK
   // Admin app accounts (v6.0.0, accounts-ui.js): the signed-in person replaces the company on the badge, in
   // User Information and as the name recorded with register actions.
   const accountRows=()=>{const a=window.isafAccount;if(!a||!person.rows.length)return;
-    person.rows[0][1]=a.name;person.rows[2][1]=({owner:'Owner',admin:'Admin',user:'User'})[a.role]||'User';person.rows[3][1]=`ISAF account (${a.username})`;
-    person.foot='Your ISAF account. Change your password from this menu; an Owner manages accounts under Accounts.';};
+    person.rows[0][1]=a.name;person.rows[2][1]=roleLabel(a.role);person.rows[3][1]=`ISAF account (${a.username})`;
+    person.foot=window.isafAccountsCustomer?'Your ISAF account. Change your password from this menu; an Admin manages accounts under Accounts.':'Your ISAF account. Change your password from this menu; an Owner manages accounts under Accounts.';};
+  const roleLabel=r=>window.isafAccounts?.roleName?.(r)||({owner:'Owner',admin:'Admin',user:'User'})[r]||'User';
   window.isafApplyAccount=a=>{if(!a)return;window.isafUserName=a.name;
     $('topCustomerName').textContent=a.name;$('topAvatar').textContent=a.name.split(/[^A-Za-z0-9]+/).filter(Boolean).slice(0,2).map(w=>w[0].toUpperCase()).join('')||'U';
-    $('topCustomer').title=`${a.name} (${a.username}) · account`;$('topUserLevel').textContent=`User Level: ${({owner:'Owner',admin:'Admin',user:'User'})[a.role]||'User'}`;
+    $('topCustomer').title=`${a.name} (${a.username}) · account`;$('topUserLevel').textContent=`User Level: ${roleLabel(a.role)}`;
     const pw=$('topUserPassword');pw.disabled=false;pw.removeAttribute('aria-disabled');pw.removeAttribute('title');pw.textContent='Change Password…';
     $('topUserAccounts').classList.toggle('hidden',a.role!=='owner');
     $('topUserLogout').classList.remove('hidden');$('topUserLogoutSep').classList.remove('hidden');signInWord='sign in again';accountRows();window.isafApplyRoleView?.();};

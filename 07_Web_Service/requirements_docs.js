@@ -32,9 +32,12 @@ const list = (ids, max = 12) => ids.length ? ids.slice(0, max).join(', ') + (ids
 
 /** Documents that receive imported content, by ISAF document code. */
 export const TARGETS = {
-  HLR: { level: 'hlr', blocks: [['records', /REQUIREMENT RECORDS/i], ['derived', /DERIVATION VERIFICATION/i]] },
-  LLR: { level: 'llr', blocks: [['records', /DETAILED BEHAVIOR AND INTERFACES/i], ['derived', /VERIFICATION FEEDBACK/i]] },
-  HRD: { level: 'hw', blocks: [['records', /FUNCTIONAL PERFORMANCE AND INTERFACE REQUIREMENTS/i], ['derived', /SAFETY LIFECYCLE AND DERIVED/i]] },
+  // HLR and LLR masters rewritten 22 November 2026 (DO-178C 11.9 / 11.10 structure); the older headings are kept
+  // so documents generated before then still take an import.
+  HLR: { level: 'hlr', blocks: [['records', /FUNCTIONAL AND OPERATIONAL REQUIREMENTS|REQUIREMENT RECORDS/i], ['derived', /^\s*\d+\s+DERIVED REQUIREMENTS|DERIVATION VERIFICATION/i]] },
+  LLR: { level: 'llr', blocks: [['records', /DETAILED BEHAVIOR/i], ['derived', /DERIVED LOW-LEVEL REQUIREMENTS|VERIFICATION FEEDBACK/i]] },
+  // HRD master rewritten 22 November 2026 (DO-254 10.3.1); the older headings are kept.
+  HRD: { level: 'hw', blocks: [['records', /^\s*\d+\.\d+\s+Functional Requirements\s*$|FUNCTIONAL PERFORMANCE AND INTERFACE REQUIREMENTS/i], ['derived', /^\s*\d+\s+DERIVED HARDWARE REQUIREMENTS|SAFETY LIFECYCLE AND DERIVED/i]] },
   'REQ-Sys': { level: 'system', blocks: [['records', /Controlled requirement record/i], ['down', /TRACE AND REVIEW/i]] },
   Trace: { level: 'hlr', blocks: [['trace', /BIDIRECTIONAL RELATIONSHIPS/i], ['gaps', /GAP ANALYSIS/i]] },
   // v5.3.37 split one 'test' level into five. `level` stays the label and parent basis; `levels`

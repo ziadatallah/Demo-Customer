@@ -30,8 +30,8 @@
     "a regime present on disk but not listed here is refused by the engine.",
     "Both conditions must hold for a regime to be usable."
   ],
-  "version": "6.0.2",
-  "build_engine_version": "6.0.2",
+  "version": "6.0.3",
+  "build_engine_version": "6.0.3",
   "watermark_documents": true,
   "watermark_text": "DEMO",
   "customer_name": "Demo Customer",
@@ -70,5 +70,8 @@
     "files",
     "jama",
     "polarion"
-  ]
+  ],
+  "seat_public_key": "MCowBQYDK2VwAyEArKhvO7YLOud3ePx9A3SDfRN3gh1Xcj93AuLDlqrSAlg=",
+  "license_type": "Company-wide",
+  "seats": "5"
 }

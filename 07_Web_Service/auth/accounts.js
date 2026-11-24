@@ -7,9 +7,16 @@
 //
 // Roles: "owner" (manages accounts; at least one must stay active), "admin" (everything else in the Admin app) and
 // "user" (program work only: no customers, demos, administration or accounts; owner, 21 November 2026).
+//
+// Customer apps (owner, 22 November 2026) use the same store with `seats`: the first account (the Customer Admin,
+// role "owner", shown as "Admin") needs an Admin seat code from MX Aero, and active accounts may not exceed the
+// seats of the codes entered (auth/seats.js). Disabling an account frees its seat for another person. Customer apps
+// have only the "owner" (Admin) and "user" roles, and `singleSession`: signing in ends that login's other sessions,
+// so one login cannot be used on two computers at once. `onEvent` receives account changes for the usage records.
 import crypto from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
+import {readSeatCode} from "./seats.js";
 
 export const ROLES = Object.freeze(["owner", "admin", "user"]);
 export const MIN_PASSWORD = 8; // owner, 19 November 2026
@@ -71,16 +78,20 @@ export function temporaryPassword() {
   return Array.from(bytes, b => alphabet[b % alphabet.length]).join("");
 }
 
-export function createAccountStore({file, eventsFile, clock = () => Date.now()} = {}) {
+export function createAccountStore({file, eventsFile, clock = () => Date.now(), seats = null, singleSession = false, onEvent = null} = {}) {
   if (!file) throw new Error("createAccountStore needs a file");
   const sessions = new Map(); // sha256(token) -> {accountId, created, seen}
+  const replaced = new Map(); // sha256(token) -> time: sessions ended because the login signed in elsewhere
+  const roles = seats ? ["owner", "user"] : ROLES;
+  const roleHelp = seats ? "Choose the Admin or User role." : "Choose the Owner, Admin or User role.";
+  const manager = seats ? "your ISAF administrator" : "the ISAF owner";
 
   function load() {
     try {
       const data = JSON.parse(fs.readFileSync(file, "utf8"));
-      return {version: 1, accounts: Array.isArray(data.accounts) ? data.accounts : []};
+      return {version: 1, accounts: Array.isArray(data.accounts) ? data.accounts : [], seatCodes: Array.isArray(data.seatCodes) ? data.seatCodes : []};
     } catch (error) {
-      if (error.code === "ENOENT") return {version: 1, accounts: []};
+      if (error.code === "ENOENT") return {version: 1, accounts: [], seatCodes: []};
       throw new AccountError("The account file could not be read. Contact the ISAF owner.", 500);
     }
   }
@@ -96,6 +107,25 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
       fs.mkdirSync(path.dirname(eventsFile), {recursive: true});
       fs.appendFileSync(eventsFile, JSON.stringify({at: now(), event, ...detail}) + "\n", {mode: 0o600});
     } catch { /* the account change itself has been saved; the event log is best effort */ }
+    try { onEvent?.(event, detail); } catch { /* usage records are best effort too */ }
+  }
+  // Seats (Customer apps): the total of the seat codes entered, and the active accounts that use them.
+  const activeCount = data => data.accounts.filter(a => !a.disabled).length;
+  const seatTotal = data => data.seatCodes.reduce((n, c) => n + (Number(c.seats) || 0), 0);
+  function seatView(data) {
+    return {total: seatTotal(data), used: activeCount(data), codes: data.seatCodes.map(c => ({id: c.id, seats: c.seats, admin: !!c.admin, issuedAt: c.issuedAt || "", addedAt: c.addedAt, addedBy: c.addedBy || ""}))};
+  }
+  function needSeat(data) {
+    if (!seats) return;
+    const total = seatTotal(data);
+    if (activeCount(data) >= total) throw new AccountError(`All ${total} seat${total === 1 ? " is" : "s are"} in use. Disable an account to free its seat, or add a seat code from MX Aero.`, 409);
+  }
+  function takeSeatCode(data, code, actorName) {
+    const seat = readSeatCode(code, seats);
+    if (data.seatCodes.some(c => c.id === seat.id)) throw new AccountError("This seat code has already been entered.", 409);
+    const entry = {id: seat.id, seats: seat.seats, admin: seat.admin, issuedAt: seat.issuedAt, addedAt: now(), addedBy: actorName};
+    data.seatCodes.push(entry);
+    return entry;
   }
   const publicView = a => ({id: a.id, username: a.username, name: a.name, email: a.email || "", role: a.role,
     disabled: !!a.disabled, mustChange: !!a.mustChange, createdAt: a.createdAt, createdBy: a.createdBy || "",
@@ -112,7 +142,7 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
     if (!/^[a-z0-9][a-z0-9._-]{2,39}$/.test(user)) throw new AccountError("Usernames are 3 to 40 characters: letters, digits, dots, dashes or underscores, starting with a letter or digit.");
     if (data.accounts.some(a => a.username === user)) throw new AccountError("This username is already taken.", 409);
     if (!cleanText(name)) throw new AccountError("Enter the person's full name.");
-    if (!ROLES.includes(role)) throw new AccountError("Choose the Owner, Admin or User role.");
+    if (!roles.includes(role)) throw new AccountError(roleHelp);
     return user;
   }
   function newAccount({username, name, email, role, password, mustChange, createdBy}) {
@@ -121,6 +151,10 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
       createdAt: now(), createdBy: createdBy || "", updatedAt: now(), lastSignInAt: null, failed: 0, lockedUntil: null};
   }
   function startSession(account) {
+    if (singleSession) {
+      for (const [key, s] of sessions) if (s.accountId === account.id) { sessions.delete(key); replaced.set(key, clock()); }
+      if (replaced.size > 5000) replaced.clear();
+    }
     const token = crypto.randomBytes(32).toString("base64url");
     sessions.set(hashToken(token), {accountId: account.id, created: clock(), seen: clock()});
     return token;
@@ -129,20 +163,40 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
   return {
     hasAccounts: () => load().accounts.length > 0,
     list: () => load().accounts.map(publicView),
+    usesSeats: () => !!seats,
+    seats: () => seatView(load()),
 
-    // First run only: the Owner account. Signs the new Owner in.
-    setup({username, name, email, password}) {
+    // First run only: the Owner account (in a Customer app the Customer Admin, which needs an Admin seat code from
+    // MX Aero). Signs the new account in.
+    setup({username, name, email, password, seatCode}) {
       const data = load();
-      if (data.accounts.length) throw new AccountError("The Owner account already exists. Sign in instead.", 409);
+      if (data.accounts.length) throw new AccountError(seats ? "The Admin account already exists. Sign in instead." : "The Owner account already exists. Sign in instead.", 409);
       const user = validateNew(data, {username, name, role: "owner"});
       const problem = passwordProblem(password, {username: user, name});
       if (problem) throw new AccountError(problem);
+      let seat = null;
+      if (seats) {
+        seat = readSeatCode(seatCode, seats);
+        if (!seat.admin) throw new AccountError("The first account needs an Admin seat code from MX Aero. This code adds seats but cannot create the Admin account.", 403);
+      }
       const account = newAccount({username: user, name, email, role: "owner", password, mustChange: false, createdBy: "first setup"});
       account.lastSignInAt = now();
+      if (seat) data.seatCodes.push({id: seat.id, seats: seat.seats, admin: true, issuedAt: seat.issuedAt, addedAt: now(), addedBy: user});
       data.accounts.push(account); save(data);
-      record("owner-created", {username: user});
+      if (seat) record("seats-added", {username: user, name: account.name, by: user, seats: seat.seats, total: seatTotal(data), used: activeCount(data), code: seat.id});
+      record(seats ? "admin-created" : "owner-created", {username: user, name: account.name, role: "owner", by: user, ...(seats ? {total: seatTotal(data), used: activeCount(data)} : {})});
       return {token: startSession(account), account: publicView(account)};
     },
+    // Customer app: a seat code from MX Aero adds seats.
+    addSeatCode(actor, code) {
+      if (!seats) throw new AccountError("Seat codes are used only in Customer apps.", 404);
+      const data = load(), entry = takeSeatCode(data, code, actor.username);
+      save(data);
+      record("seats-added", {username: actor.username, name: actor.name, by: actor.username, seats: entry.seats, total: seatTotal(data), used: activeCount(data), code: entry.id});
+      return seatView(data);
+    },
+    // True when this token's session ended because its login signed in on another computer (singleSession).
+    replacedSession: token => !!token && replaced.has(hashToken(token)),
 
     signIn({username, password, ip = ""}) {
       const data = load(), user = cleanUsername(username);
@@ -152,7 +206,7 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
       if (account.lockedUntil && Date.parse(account.lockedUntil) > clock()) {
         const minutes = Math.ceil((Date.parse(account.lockedUntil) - clock()) / 60000);
         record("sign-in-refused", {username: user, ip, reason: "locked"});
-        throw new AccountError(`Too many wrong passwords. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}, or ask the Owner to reset your password.`, 429);
+        throw new AccountError(`Too many wrong passwords. Try again in ${minutes} minute${minutes === 1 ? "" : "s"}, or ask ${seats ? "your ISAF administrator" : "the Owner"} to reset your password.`, 429);
       }
       if (!verifyPassword(password, account.passwordHash)) {
         account.failed = (account.failed || 0) + 1;
@@ -160,7 +214,7 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
         save(data); record("sign-in-failed", {username: user, ip, reason: "password"});
         throw fail();
       }
-      if (account.disabled) { record("sign-in-refused", {username: user, ip, reason: "disabled"}); throw new AccountError("This account is disabled. Contact the ISAF owner.", 403); }
+      if (account.disabled) { record("sign-in-refused", {username: user, ip, reason: "disabled"}); throw new AccountError(`This account is disabled. Contact ${manager}.`, 403); }
       account.failed = 0; account.lockedUntil = null; account.lastSignInAt = now(); save(data);
       record("signed-in", {username: user, ip});
       return {token: startSession(account), account: publicView(account)};
@@ -194,10 +248,11 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
     // Owner actions. `actor` is the Owner's public account view.
     create(actor, {username, name, email, role}) {
       const data = load(), user = validateNew(data, {username, name, role});
+      needSeat(data);
       const password = temporaryPassword();
       const account = newAccount({username: user, name, email, role, password, mustChange: true, createdBy: actor.username});
       data.accounts.push(account); save(data);
-      record("account-created", {username: user, role, by: actor.username});
+      record("account-created", {username: user, name: account.name, role, by: actor.username, total: seats ? seatTotal(data) : undefined, used: seats ? activeCount(data) : undefined});
       return {account: publicView(account), temporaryPassword: password};
     },
     update(actor, id, changes = {}) {
@@ -206,17 +261,17 @@ export function createAccountStore({file, eventsFile, clock = () => Date.now()} 
       if ("name" in changes) { if (!cleanText(changes.name)) throw new AccountError("Enter the person's full name."); account.name = cleanText(changes.name); }
       if ("email" in changes) account.email = cleanText(changes.email, 200);
       if ("role" in changes && changes.role !== account.role) {
-        if (!ROLES.includes(changes.role)) throw new AccountError("Choose the Owner, Admin or User role.");
-        if (account.role === "owner" && activeOwners(data).length === 1 && !account.disabled) throw new AccountError("At least one active Owner is required. Make another account Owner first.", 409);
-        account.role = changes.role; record("role-changed", {username: account.username, role: account.role, by: actor.username});
+        if (!roles.includes(changes.role)) throw new AccountError(roleHelp);
+        if (account.role === "owner" && activeOwners(data).length === 1 && !account.disabled) throw new AccountError(seats ? "At least one active Admin is required. Make another account Admin first." : "At least one active Owner is required. Make another account Owner first.", 409);
+        account.role = changes.role; record("role-changed", {username: account.username, name: account.name, role: account.role, by: actor.username});
       }
       if ("disabled" in changes && !!changes.disabled !== !!account.disabled) {
         if (changes.disabled) {
           if (account.id === actor.id) throw new AccountError("You cannot disable your own account.", 409);
-          if (account.role === "owner" && activeOwners(data).length === 1) throw new AccountError("At least one active Owner is required.", 409);
+          if (account.role === "owner" && activeOwners(data).length === 1) throw new AccountError(seats ? "At least one active Admin is required." : "At least one active Owner is required.", 409);
           account.disabled = true; endSessions(account.id);
-        } else account.disabled = false;
-        record(account.disabled ? "account-disabled" : "account-enabled", {username: account.username, by: actor.username});
+        } else { needSeat(data); account.disabled = false; }
+        record(account.disabled ? "account-disabled" : "account-enabled", {username: account.username, name: account.name, role: account.role, by: actor.username, total: seats ? seatTotal(data) : undefined, used: seats ? activeCount(data) : undefined});
       }
       if (changes.resetPassword) {
         temporary = temporaryPassword();

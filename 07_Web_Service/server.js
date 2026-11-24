@@ -22,6 +22,7 @@ import {createReleaseRegister,createUpdateClient} from "./updates.js";
 import {DEFAULT_MAX_ITEMS} from "./jama.js";
 import {createConnectionStore,TOOLS} from "./tool_connections.js";
 import {customerDataDir} from "./customers.js";
+import {seatSigner as createSeatSigner} from "./auth/seats.js";
 import {createAccountStore, sessionToken} from "./auth/accounts.js";
 import {accountRoutes} from "./auth/account_routes.js";
 import {CustomerRegister,CUSTOMER_OPTIONS,REQUIREMENTS_IMPORT,AVAILABLE_IMPORT_IDS,FILE_IMPORT_IDS,releaseVersions,deliveryRegisterFile,deliveryRow,licenseChanged,starterModifications,appAccessKeys,licensedPhaseIds,licensedProgramTypes,CUSTOMER_DEFAULTS} from "./customers.js";
@@ -159,7 +160,7 @@ const upload = multer({
 
 // Static files (upload page)
 // Admin-only help pages are part of the signed-in Admin app: when sign-in is enforced (v6.0.0) they need a session.
-const ADMIN_ONLY_HELP = new Set(["/help/document-architecture.html", "/help/release-notes.html", "/help/new-customer-setup.html", "/help/usage-tracking-setup.html"]);
+const ADMIN_ONLY_HELP = new Set(["/help/document-architecture.html", "/help/release-notes.html", "/help/new-customer-setup.html", "/help/usage-tracking-setup.html", "/help/customer-apps-guide.html"]);
 app.use((req, res, next) => {
   if (!ADMIN_ONLY_HELP.has(req.path) || !accountsRequired()) return next();
   const account = accountStore.session(sessionToken(req));
@@ -177,7 +178,9 @@ const repository = await createRepositoryProviderAsync({
 function accessClient(req){const ip=String(req.headers["x-forwarded-for"]||req.ip||req.socket?.remoteAddress||"").split(",")[0].trim()||"unknown";const ua=String(req.headers["user-agent"]||"").replace(/\s+/g," ").slice(0,120);return {ip,ua};}
 function accessLog(event,req){const {ip,ua}=accessClient(req),m=editionManifest();console.log(`[ISAF access] ${new Date().toISOString().replace("T"," ").slice(0,19)} UTC | ${event} | app: ${m.customer_name||m.edition||"ISAF"} v${m.version||""}${req?.auth?.user?.name?` | user: ${req.auth.user.name}`:""} | address: ${ip} | browser: ${ua}`);}
 // Usage records of a Customer app: who used it, when, and for which program (usage.js).
-const usageRecorder=createUsageRecorder({serviceDir:__dirname,hosted:HOSTED_SERVICE,manifest:editionManifest(),version:editionManifest().version||""});
+// A hosted app given a persistent data folder (ISAF_DATA_DIR) keeps its usage ledger there instead of a temporary folder.
+const DATA_DIR_SET=Boolean(process.env.ISAF_DATA_DIR||process.env.ISAF_ADMIN_DATA_DIR);
+const usageRecorder=createUsageRecorder({serviceDir:__dirname,hosted:HOSTED_SERVICE,manifest:editionManifest(),version:editionManifest().version||"",dir:HOSTED_SERVICE&&DATA_DIR_SET&&!process.env.ISAF_USAGE_DIR?path.join(customerDataDir(),"usage"):undefined});
 const recordBuildUsage=(req,result,phase)=>{try{usageRecorder.record("build",req.auth,{program:result?.program,phases:[String(phase||"all")],documents:result?.docCount,failures:result?.failCount});}catch(error){console.warn("Usage record failed:",error.message);}};
 // App updates of a Customer app (updates.js): the app asks the MX Aero update service whether a newer ISAF
 // version is offered, each user accepts, postpones or skips it, and a critical update stops builds once its
@@ -193,16 +196,30 @@ const rejectedKeyLog=new Map();
 function logRejectedKey(req){const {ip}=accessClient(req),now=Date.now();if(now-(rejectedKeyLog.get(ip)||0)<60000)return;rejectedKeyLog.set(ip,now);if(rejectedKeyLog.size>500)rejectedKeyLog.clear();accessLog("Wrong access key entered",req);}
 // Admin app user accounts (v6.0.0). Kept beside the customer register (ISAF_ADMIN_DATA_DIR on a hosted Admin's
 // persistent disk). Sign-in is enforced once an account exists, and from the start on a hosted Admin.
-const accountStore = createAccountStore({file: path.join(customerDataDir(), "ISAF_Accounts.json"), eventsFile: path.join(customerDataDir(), "ISAF_Account_Events.jsonl")});
-const accountsEnabled = () => appEdition() === "full" && AUTH_MODE === "api-key";
-const accountsRequired = () => accountsEnabled() && (HOSTED_SERVICE || accountStore.hasAccounts());
+// Customer app accounts (owner, 22 November 2026): a customer-specific app with MX Aero's seat public key and a
+// license ID. The first account (the Customer Admin) needs an Admin seat code; active accounts are limited to the
+// seats of the codes entered; one session per login. Sign-in is enforced once the first account exists, and then
+// people sign in instead of using personal access keys. A hosted Customer app uses accounts only when it has a
+// persistent data folder (ISAF_DATA_DIR), so accounts are not lost when the host restarts; until then it keeps the
+// personal access keys. Account changes go into the usage records (MX Aero sees seat use).
+const CUSTOMER_ACCOUNTS = appEdition() === "customer" && AUTH_MODE === "api-key" && /^[A-Za-z0-9+/=]{40,}$/.test(String(editionManifest().seat_public_key || "")) && Boolean(String(editionManifest().license_id || "").trim()) && (!HOSTED_SERVICE || DATA_DIR_SET);
+const ACCOUNT_USAGE_EVENTS = new Set(["admin-created", "account-created", "account-disabled", "account-enabled", "role-changed", "seats-added"]);
+const accountStore = createAccountStore({file: path.join(customerDataDir(), "ISAF_Accounts.json"), eventsFile: path.join(customerDataDir(), "ISAF_Account_Events.jsonl"),
+  ...(CUSTOMER_ACCOUNTS ? {
+    seats: {publicKey: String(editionManifest().seat_public_key), licenseId: String(editionManifest().license_id).trim()}, singleSession: true,
+    onEvent: (event, d) => { if (ACCOUNT_USAGE_EVENTS.has(event)) usageRecorder.record(event, {user: {id: "account:" + (d.by || ""), name: d.by || ""}}, {account: {username: d.username, name: d.name, role: d.role}, seats: {total: d.total, used: d.used, added: d.seats}}); },
+  } : {})});
+const accountsEnabled = () => (appEdition() === "full" && AUTH_MODE === "api-key") || CUSTOMER_ACCOUNTS;
+const accountsRequired = () => accountsEnabled() && ((appEdition() === "full" && HOSTED_SERVICE) || accountStore.hasAccounts());
 const ACCOUNT_SETUP_CODE = String(process.env.ISAF_SETUP_CODE || crypto.randomBytes(4).toString("hex").toUpperCase().replace(/^(.{4})/, "$1-"));
 const authentication = createAuthentication({
   accounts: accountsEnabled() ? accountStore : null,
   accountsRequired,
   // A User account works on programs only (owner, 21 November 2026): no customers, publishing, app updates, usage
   // administration, demos or the Administration tab.
-  accountAdminOnly: req => /^\/api\/(admin\/|create-demo|publish-demo|demo-register)/.test(String(req.originalUrl || req.url || "")),
+  // In a Customer app a User does not download the usage report either (the Administration tab is the Admin's).
+  accountAdminOnly: req => /^\/api\/(admin\/|create-demo|publish-demo|demo-register|usage\/report)/.test(String(req.originalUrl || req.url || "")),
+  personalKeysAllowed: () => !(CUSTOMER_ACCOUNTS && accountStore.hasAccounts()),
   mode: AUTH_MODE,
   apiKey: API_KEY,
   apiKeyHash: API_KEY_HASH,
@@ -216,16 +233,17 @@ const authentication = createAuthentication({
 const requireAuth = authentication.requireAuth;
 const authorize = authentication.authorize;
 app.use("/api/account", accountRoutes({store: accountStore, enabled: accountsEnabled, required: accountsRequired, setupCode: ACCOUNT_SETUP_CODE}));
-if (accountsEnabled() && !accountStore.hasAccounts()) console.log(`ISAF accounts: no account yet. Create the Owner account in the app${HOSTED_SERVICE ? ` with setup code ${ACCOUNT_SETUP_CODE}` : " (on this computer no setup code is needed; from another computer use setup code " + ACCOUNT_SETUP_CODE + ")"}.`);
+if (CUSTOMER_ACCOUNTS && !accountStore.hasAccounts()) console.log("ISAF accounts: no account yet. Create the Admin account in the app with an Admin seat code from MX Aero.");
+else if (accountsEnabled() && !accountStore.hasAccounts()) console.log(`ISAF accounts: no account yet. Create the Owner account in the app${HOSTED_SERVICE ? ` with setup code ${ACCOUNT_SETUP_CODE}` : " (on this computer no setup code is needed; from another computer use setup code " + ACCOUNT_SETUP_CODE + ")"}.`);
 const buildJobs = createBuildJobStore(repository, {
   root: path.join(process.env.ISAF_REPOSITORY_DIR || path.join(__dirname,"repository"), "build-jobs"),
   organizationId: process.env.ISAF_ORGANIZATION_ID,
 });
 const connectors=createConnectorService({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository")});
-const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"6.0.2",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
+const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"6.0.3",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
 
 app.get("/api/session",requireAuth,(req,res)=>res.json({
-  edition:appEdition(), version:"6.0.2", authentication:authentication.mode,
+  edition:appEdition(), version:"6.0.3", authentication:authentication.mode,
   user:{id:req.auth.id||null,subject:req.auth.subject,displayName:req.auth.displayName,email:req.auth.email||null,role:req.auth.role},
   organizationId:req.auth.organizationId||process.env.ISAF_ORGANIZATION_ID||null,
   capabilities:{teamAdministration:authentication.mode==="oidc"&&hasPermission(req.auth.role,"organization.manage"),durableBuilds:!!repository?.metadata?.withTenant,integrationAdministration:hasPermission(req.auth.role,"integration.manage"),hosted:HOSTED_SERVICE},
@@ -376,7 +394,7 @@ app.post("/api/jobs", requireAuth, authorize("build.run"), requireUpToDate, uplo
     const job=await buildJobs.submit({
       organizationId:req.auth.organizationId||null,programId,requestedBy:req.auth.id||null,
       actor:requestActor(req,req.body.actor),phase:String(req.body.phase||"all").toLowerCase(),
-      engineVersion:"6.0.2",filename:req.file.originalname,
+      engineVersion:"6.0.3",filename:req.file.originalname,
       // The imported requirements are resolved here rather than in the worker: a Postgres-backed
       // repository has no program folder to read a link from, and the job must build with the
       // requirements as they were when it was submitted. They are part of the idempotency key
@@ -993,7 +1011,7 @@ app.get("/api/health", (_req, res) => {
   // pdfAvailable lets the Build tab say LibreOffice is missing BEFORE a build rather than after
   // one: the conversion runs on the exported folder, so without this the user waits out a full
   // build (1312 documents on an aircraft program) to be told the box they ticked could not run.
-  res.json({ status: "ok", version: "6.0.2", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
+  res.json({ status: "ok", version: "6.0.3", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||(Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length)&&!(CUSTOMER_ACCOUNTS&&accountStore.hasAccounts())), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
 });
 
 app.get("/api/demo-register", requireAuth, authorize("demo.manage"), async(_req,res)=>{
@@ -1275,6 +1293,24 @@ app.post("/api/admin/customers/:id/access-key",requireAuth,authorize("demo.manag
     res.json({ok:true,access_key_set:record.access_key_set,key:entered?undefined:key});
   }catch(error){res.status(error.status||500).json({error:error.message});}
 });
+// Seat codes for a customer's login accounts (owner, 22 November 2026). Signed with MX Aero's key, kept only in
+// the Admin data folder; the codes issued may not add up to more than the customer's Seats. The first code a
+// customer needs is an Admin seat code (it creates the Customer Admin account and counts as seats too).
+const seatSigner=createSeatSigner(customerDataDir());
+const issuedSeats=c=>(c.seat_codes||[]).reduce((n,x)=>n+(Number(x.seats)||0),0);
+app.post("/api/admin/customers/:id/seat-codes",requireAuth,authorize("demo.manage"),(req,res)=>{
+  if(!adminOnly(res))return;
+  try{
+    const customer=customerRegister.read().find(c=>c.id===req.params.id);
+    if(!customer)return res.status(404).json({error:"Customer not found."});
+    const seats=Number.parseInt(req.body?.seats,10)||1,limit=Number.parseInt(customer.seats,10);
+    if(!(limit>=1))return res.status(400).json({error:"Set the customer's Seats first (the seats bought, or the company-wide maximum)."});
+    if(issuedSeats(customer)+seats>limit)return res.status(409).json({error:`This would issue ${issuedSeats(customer)+seats} seats; the customer has ${limit}. Raise Seats first if they bought more.`});
+    const {code,payload}=seatSigner.issue({licenseId:customer.license_id,company:customer.company,seats,admin:req.body?.admin===true});
+    const record=customerRegister.addSeatCode(customer.id,{code,payload,note:req.body?.note,issuedBy:req.auth?.displayName||""});
+    res.status(201).json({code,seat_codes:record.seat_codes,issued:issuedSeats(record),seats:limit});
+  }catch(error){res.status(error.status||500).json({error:error.message});}
+});
 // Generate the Customer Edition zip from this Admin version and record the deployment.
 // Licensed-scope enforcement (signed license file, licensed templates only) is a later phase.
 const CUSTOMER_GITHUB_CONFIG=path.resolve(__dirname,"..","Customer_GitHub_Deploy.json");
@@ -1290,7 +1326,7 @@ async function buildCustomerArchive(customer,{watermark,text}){
     if(customer.deployment_model==="Hosted by MX Aero")builderArgs.push("--hosted-trial");
     if(customer.access_key_sha256)builderArgs.push("--access-key-sha256",customer.access_key_sha256);
     // Named users and the usage collector (see usage.js). The collector token lets the app add usage records for this license only.
-    fs.writeFileSync(path.join(starterDir,"app_settings.json"),JSON.stringify({access_keys:appAccessKeys(customer),usage:usageAppSettings(customer),updates:updateAppSettings(customer),tools:toolsAppSettings(customer)}));builderArgs.push("--app-settings-file",path.join(starterDir,"app_settings.json"));
+    fs.writeFileSync(path.join(starterDir,"app_settings.json"),JSON.stringify({access_keys:appAccessKeys(customer),usage:usageAppSettings(customer),updates:updateAppSettings(customer),tools:toolsAppSettings(customer),...(customer.license_id?{seat_public_key:seatSigner.publicKey(),license_type:customer.license_type||"",seats:customer.seats||""}:{})}));builderArgs.push("--app-settings-file",path.join(starterDir,"app_settings.json"));
     fs.writeFileSync(path.join(starterDir,"licensed_values.json"),JSON.stringify(starterModifications(customer)));
     if(licensedProgramTypes(customer).length)builderArgs.push("--licensed-program-types",licensedProgramTypes(customer).join(","));
     if(watermark)builderArgs.push("--watermark-documents","--watermark-text",text);
@@ -1597,7 +1633,7 @@ const REVIEW_PHASE_DOCS = {
     "Peer_Review_SRS", "Peer_Review_SDS", "Peer_Review_SCS",
     "Peer_Review_SMS", "Peer_Review_General_Planning",
     // HW plan/standards peer reviews
-    "PR_PHAC", "PR_HDP", "PR_HVVP", "PR_HCMP", "PR_HPAP",
+    "PR_PHAC", "PR_HDP", "PR_HVP", "PR_HCMP", "PR_HPAP",
     "PR_HRS", "PR_HDS", "PR_HVV",
     // System plan peer reviews
     "PR_PSCP", "PR_SEMP", "PR_SPAC", "PR_SysVP", "PR_SysValP",
@@ -1626,7 +1662,7 @@ const REVIEW_PHASE_DOCS = {
   cdr: [
     // Verification peer reviews
     "Peer_Review_SVCP", "Peer_Review_SVR", "Peer_Review_STM",
-    "Peer_Review_PDI", "PR_HVR",
+    "Peer_Review_PDI", "PR_HTR",
     "Test_Procedure_Review", "Test_Results_Review", "Traceability_Review",
     // Transition checklists: test readiness gates
     "SW_TRR",

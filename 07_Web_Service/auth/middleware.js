@@ -18,6 +18,7 @@ export function createAuthentication({
   accounts = null, // Admin app user accounts (auth/accounts.js, v6.0.0)
   accountsRequired = () => false, // true once sign-in with an account is enforced (Admin app with accounts, or hosted)
   accountAdminOnly = () => false, // routes a "user" account may not call (customers, demos, administration)
+  personalKeysAllowed = () => true, // false once a Customer app has accounts: people sign in; named personal keys stop working (owner, 22 November 2026)
   env = process.env,
 } = {}) {
   const selected = String(mode || "api-key").trim().toLowerCase();
@@ -42,8 +43,14 @@ export function createAuthentication({
           return next();
         }
         const mustSignIn = accountsRequired();
-        const userKeys = (accessKeys || []).filter(k => /^[0-9a-f]{64}$/i.test(k?.sha256 || ""));
-        if (mustSignIn && !req.headers["x-api-key"] && !req.query.key) return res.status(401).json({error: "Sign in to ISAF.", signIn: true});
+        // Once a Customer app has accounts, people sign in with them; the named personal keys are no longer accepted.
+        // The company key (or ISAF_API_KEY) stays for tool and integration access.
+        const userKeys = personalKeysAllowed() ? (accessKeys || []).filter(k => /^[0-9a-f]{64}$/i.test(k?.sha256 || "")) : [];
+        if (mustSignIn && !req.headers["x-api-key"] && !req.query.key) {
+          // One session per login (Customer apps): say why when this session ended because the login signed in elsewhere.
+          if (accounts?.replacedSession?.(sessionToken(req))) return res.status(401).json({error: "You were signed out because your account signed in on another computer.", signIn: true, signedInElsewhere: true});
+          return res.status(401).json({error: "Sign in to ISAF.", signIn: true});
+        }
         if (!apiKey && !apiKeyHash && !userKeys.length) {
           if (mustSignIn) return res.status(401).json({error: "Sign in to ISAF.", signIn: true});
           req.auth = {mode: "development", subject: "local-development", role: "organization_admin", displayName: "Local user"};

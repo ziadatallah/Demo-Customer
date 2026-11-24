@@ -1,6 +1,13 @@
 // Admin app user accounts (v6.0.0): first setup of the Owner account, sign-in, the temporary-password change,
 // Account → Change Password and Account → Accounts (Owner only). The server side is auth/accounts.js and
-// auth/account_routes.js. In Customer and Demo apps /api/account/status answers {enabled:false} and nothing here runs.
+// auth/account_routes.js. In Demo apps, and Customer apps without MX Aero's seat key, /api/account/status answers
+// {enabled:false} and nothing here runs.
+//
+// Customer apps with login accounts (owner, 22 November 2026; status.seatCodeRequired): setting up accounts is
+// optional until done, from Administration → Login accounts, and needs the Admin seat code from MX Aero. The first
+// account is the Customer Admin (role "owner", shown as "Admin"); the Accounts window shows the seats in use and
+// takes more seat codes. One session per login: a sign-in elsewhere signs this computer out, and the sign-in
+// screen says so.
 (() => {
   const $ = id => document.getElementById(id);
   const esc = v => String(v ?? '').replace(/[&<>"']/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'}[c]));
@@ -12,6 +19,9 @@
   }
   const ROLE = {owner: 'Owner', admin: 'Admin', user: 'User'};
   let status = null;
+  const customer = () => !!status?.seatCodeRequired;
+  const roleName = r => customer() ? (r === 'user' ? 'User' : 'Admin') : ROLE[r] || 'User';
+  const appName = () => customer() ? 'ISAF' : 'ISAF Admin';
 
   const style = document.createElement('style');
   style.textContent = `
@@ -44,15 +54,16 @@
   document.head.appendChild(style);
 
   // Full-screen gate (setup, sign-in, temporary password): nothing else in the app can be used until it is done.
-  function gate(title, sub, fields, submitLabel, onSubmit, note = '') {
+  function gate(title, sub, fields, submitLabel, onSubmit, note = '', cancellable = false) {
     document.getElementById('acctGate')?.remove();
     const g = document.createElement('div');
     g.id = 'acctGate'; g.className = 'acct-gate'; g.setAttribute('role', 'dialog'); g.setAttribute('aria-modal', 'true'); g.setAttribute('aria-labelledby', 'acctGateTitle');
     g.innerHTML = `<div class="acct-card"><h2 id="acctGateTitle">${esc(title)}</h2><p class="acct-sub">${sub}</p>
-      <form class="acct-form" novalidate>${fields}<p class="acct-error" role="alert"></p><button type="submit">${esc(submitLabel)}</button></form>
+      <form class="acct-form" novalidate>${fields}<p class="acct-error" role="alert"></p><button type="submit">${esc(submitLabel)}</button>${cancellable ? ' <button type="button" class="secondary acct-cancel">Cancel</button>' : ''}</form>
       ${note ? `<p class="acct-note">${note}</p>` : ''}</div>`;
     document.body.appendChild(g);
     const form = g.querySelector('form'), error = g.querySelector('.acct-error'), button = form.querySelector('button[type=submit]');
+    g.querySelector('.acct-cancel')?.addEventListener('click', () => g.remove());
     form.addEventListener('submit', async e => {
       e.preventDefault(); error.textContent = ''; button.disabled = true;
       try { await onSubmit(Object.fromEntries(new FormData(form)), error); }
@@ -68,6 +79,19 @@
   function samePasswords(data) { if (data.password !== data.confirm) throw Error('The two passwords do not match.'); delete data.confirm; }
 
   function showSetup() {
+    if (customer()) {
+      gate('Set up login accounts',
+        'Create the first <b>Admin</b> account of this ISAF app. You need the <b>Admin seat code</b> from MX Aero. After this, everyone signs in with their own username and password; the Admin adds accounts within the seats MX Aero has issued, and personal access keys stop working.',
+        field('seatCode', 'Admin seat code from MX Aero', 'text', 'autocomplete="off" spellcheck="false" required', 'Paste the whole code; it starts with ISAF-SEAT.') +
+        field('username', 'Username', 'text', 'autocomplete="username" required', 'Letters, digits, dots or dashes, for example jsmith.') +
+        field('name', 'Full name', 'text', 'autocomplete="name" required') +
+        field('email', 'Email (optional)', 'email', 'autocomplete="email"') +
+        field('password', 'Password', 'password', 'autocomplete="new-password" required', passwordHint()) +
+        field('confirm', 'Confirm password', 'password', 'autocomplete="new-password" required'),
+        'Create Admin account',
+        async data => { samePasswords(data); await api('/api/account/setup', {method: 'POST', body: data}); location.reload(); }, '', true);
+      return;
+    }
     gate('Create the Owner account',
       'This ISAF Admin has no accounts yet. The first account is the <b>Owner</b>: the Owner signs in to the Admin app and creates the accounts of other Admins.',
       field('username', 'Username', 'text', 'autocomplete="username" required', 'Letters, digits, dots or dashes, for example ziad.') +
@@ -81,12 +105,13 @@
   }
 
   function showSignIn() {
-    gate('Sign in to ISAF Admin', 'Enter your ISAF username and password.',
+    const elsewhere = status.signedInElsewhere ? '<b>You were signed out because your account signed in on another computer.</b> One login can be used on one computer at a time. ' : '';
+    gate(`Sign in to ${appName()}`, elsewhere + 'Enter your ISAF username and password.',
       field('username', 'Username', 'text', 'autocomplete="username" required') +
       field('password', 'Password', 'password', 'autocomplete="current-password" required'),
       'Sign in',
       async data => { await api('/api/account/signin', {method: 'POST', body: data}); location.reload(); },
-      'Forgot your password? Ask an Owner to reset it.');
+      customer() ? 'Forgot your password? Ask your ISAF Admin to reset it.' : 'Forgot your password? Ask an Owner to reset it.');
   }
 
   function showMustChange() {
@@ -127,13 +152,17 @@
 
   // Account → Accounts (Owner): add Admins and Owners, reset passwords, disable accounts, change roles.
   async function manageAccounts() {
+    const roleChoices = customer() ? ['user', 'owner'] : ['user', 'admin', 'owner'];
+    const intro = customer()
+      ? 'Admins manage accounts and seats; Users work on programs. Each active account uses one seat; disabling an account frees its seat for someone else. One login can be signed in on one computer at a time. A new account gets a temporary password that the person changes at first sign-in. Account changes are recorded in the usage report. Instructions: Help → Managing Users.'
+      : 'Owners manage accounts; Admins use everything else in the Admin app; Users work on programs only (no customers, demos or administration). A new account gets a temporary password that the person changes at first sign-in.';
     const d = dialog('acctManageDialog', 'Accounts',
-      `<p class="acct-muted" style="margin:0 0 .6rem">Owners manage accounts; Admins use everything else in the Admin app; Users work on programs only (no customers, demos or administration). A new account gets a temporary password that the person changes at first sign-in.</p>
+      `<p class="acct-muted" style="margin:0 0 .6rem">${intro}</p>${customer() ? '<div id="acctSeats"></div>' : ''}
        <form class="acct-form acct-add" novalidate>
         ${field('username', 'Username', 'text', 'autocomplete="off" required')}
         ${field('name', 'Full name', 'text', 'autocomplete="off" required')}
         ${field('email', 'Email (optional)', 'email', 'autocomplete="off"')}
-        <label>Role<select name="role"><option value="user">User</option><option value="admin">Admin</option><option value="owner">Owner</option></select></label>
+        <label>Role<select name="role">${roleChoices.map(r => `<option value="${r}">${roleName(r)}</option>`).join('')}</select></label>
         <button type="submit">Add account</button></form>
        <p class="acct-error" role="alert"></p><div id="acctTemp"></div><div id="acctList"><p class="acct-muted">Loading…</p></div>`);
     const error = d.querySelector('.acct-error');
@@ -141,13 +170,26 @@
       d.querySelector('#acctTemp').innerHTML = `<div class="acct-temp">Temporary password for <b>${esc(username)}</b>: <code>${esc(password)}</code><br>
         Give it to the person; they choose their own password at first sign-in. It is not shown again.</div>`;
     };
+    async function renderSeats() {
+      if (!customer()) return;
+      const seats = await api('/api/account/seats'), host = d.querySelector('#acctSeats');
+      host.innerHTML = `<p style="margin:.2rem 0 .4rem"><b>Seats in use: ${seats.used} of ${seats.total}</b>${seats.used >= seats.total ? ' — all seats are in use. Disable an account, or add a seat code from MX Aero.' : ''}</p>
+        <details><summary>Seat codes entered (${seats.codes.length})</summary><table class="acct-table"><thead><tr><th>Seats</th><th>Kind</th><th>Issued by MX Aero</th><th>Entered</th><th>By</th></tr></thead><tbody>${seats.codes.map(c => `<tr><td>${c.seats}</td><td>${c.admin ? 'Admin seat code' : 'Seat code'}</td><td>${esc(c.issuedAt)}</td><td>${esc(new Date(c.addedAt).toLocaleDateString())}</td><td>${esc(c.addedBy)}</td></tr>`).join('')}</tbody></table></details>
+        <form class="acct-form acct-seat" novalidate style="display:flex;gap:.6rem;align-items:flex-end;margin:.5rem 0 .8rem"><label style="flex:1;margin:0">Add a seat code from MX Aero<input name="code" autocomplete="off" spellcheck="false" placeholder="ISAF-SEAT.…"></label><button type="submit" style="height:2.4rem;margin:0">Add seat code</button></form>`;
+      host.querySelector('form').onsubmit = async e => {
+        e.preventDefault(); error.textContent = '';
+        try { await api('/api/account/seats', {method: 'POST', body: {code: new FormData(e.target).get('code')}}); await renderSeats(); }
+        catch (err) { error.textContent = err.message; }
+      };
+    }
     async function render() {
+      renderSeats().catch(err => { error.textContent = err.message; });
       const list = await api('/api/account/users');
       const me = status.user.id;
       const host = d.querySelector('#acctList');
       host.innerHTML = `<table class="acct-table"><thead><tr><th>Username</th><th>Full name</th><th>Email</th><th>Role</th><th>Status</th><th>Last sign-in</th><th>Actions</th></tr></thead><tbody>${list.map(a => `
         <tr data-id="${esc(a.id)}"><td>${esc(a.username)}${a.id === me ? ' <span class="acct-muted">(you)</span>' : ''}</td><td>${esc(a.name)}</td><td>${esc(a.email)}</td>
-        <td><select data-act="role" aria-label="Role of ${esc(a.username)}">${['user', 'admin', 'owner'].map(r => `<option value="${r}"${a.role === r ? ' selected' : ''}>${ROLE[r]}</option>`).join('')}</select></td>
+        <td><select data-act="role" aria-label="Role of ${esc(a.username)}">${roleChoices.map(r => `<option value="${r}"${a.role === r ? ' selected' : ''}>${roleName(r)}</option>`).join('')}</select></td>
         <td>${a.disabled ? 'Disabled' : a.locked ? 'Locked (wrong passwords)' : a.mustChange ? 'Temporary password' : 'Active'}</td>
         <td>${a.lastSignInAt ? esc(new Date(a.lastSignInAt).toLocaleString()) : '—'}</td>
         <td><button type="button" class="secondary" data-act="reset">Reset password</button>${a.id === me ? '' : `<button type="button" class="secondary" data-act="${a.disabled ? 'enable' : 'disable'}">${a.disabled ? 'Enable' : 'Disable'}</button>`}</td></tr>`).join('')}</tbody></table>`;
@@ -187,18 +229,52 @@
 
   async function signOut() { try { await api('/api/account/signout', {method: 'POST'}); } catch {} location.reload(); }
 
-  window.isafAccounts = {changePassword, manageAccounts, signOut, status: () => status};
+  // Customer apps: Administration → Login accounts (set up, or seats and Manage accounts for an Admin).
+  function renderAdminBox() {
+    // Help → Managing Users (Admins): only for the Customer Admin (and whoever sets up the accounts).
+    $('topMenuManageUsers')?.classList.toggle('hidden', !(customer() && (status.setupNeeded || (status.user && status.user.role !== 'user'))));
+    const box = $('accountsBox'), host = $('accountsBoxBody');
+    if (!box || !host || !customer()) return;
+    box.classList.remove('hidden');
+    if (status.setupNeeded) {
+      host.innerHTML = '<p class="hint">This app can use login accounts: each person signs in with their own username and password, and MX Aero issues the seats. To start, ask MX Aero for an <b>Admin seat code</b>, then create the first Admin account. Until then the app works as it does now. Instructions: <a href="help/managing-users.html" target="_blank" rel="noopener">Managing Users</a>.</p><button type="button" class="secondary" id="accountsSetupBtn">Set up login accounts</button>';
+      $('accountsSetupBtn').onclick = showSetup;
+    } else if (status.user && status.user.role !== 'user') {
+      host.innerHTML = '<p class="hint">People sign in with their own login. Admins add accounts within the seats issued by MX Aero; disabling an account frees its seat. Instructions: <a href="help/managing-users.html" target="_blank" rel="noopener">Managing Users</a>.</p><button type="button" class="secondary" id="accountsManageBtn">Manage accounts and seats</button>';
+      $('accountsManageBtn').onclick = manageAccounts;
+    } else box.classList.add('hidden');
+  }
+
+  window.isafAccounts = {changePassword, manageAccounts, signOut, status: () => status, customer, roleName};
 
   (async () => {
     try { status = await api('/api/account/status'); } catch { return; }
     if (!status.enabled) return;
+    window.isafAccountsCustomer = customer();
+    // A request refused because the session ended (signed in on another computer, timed out, disabled) brings up
+    // the sign-in screen at once instead of leaving an error in the page.
+    const plainFetch = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const response = await plainFetch(...args);
+      if (response.status === 401 && !document.getElementById('acctGate') && !String(args[0]?.url || args[0]).includes('/api/account/')) {
+        response.clone().json().then(async body => {
+          if (!body?.signIn) return;
+          try { status = await api('/api/account/status'); } catch {}
+          if (status?.required && !status.signedIn) showSignIn();
+        }).catch(() => {});
+      }
+      return response;
+    };
     if (status.signedIn && status.user) {
       window.isafAccount = status.user;
       window.isafApplyAccount?.(status.user);
+      renderAdminBox();
       if (status.user.mustChange) showMustChange();
       return;
     }
-    if (status.setupNeeded) showSetup();
+    renderAdminBox();
+    // A Customer app keeps working without accounts until its Admin sets them up (Administration → Login accounts).
+    if (status.setupNeeded) { if (!customer()) showSetup(); }
     else if (status.required) showSignIn();
   })();
 })();

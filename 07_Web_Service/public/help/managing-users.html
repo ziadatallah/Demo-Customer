@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Managing Users (for ISAF Admins)</title>
+<style>
+  body {font-family: -apple-system, "Segoe UI", Arial, sans-serif; max-width: 860px; margin: 0 auto; padding: 1.5rem 1.25rem 3rem; color: #25364a; line-height: 1.55; background: #fff;}
+  h1 {color: #1A7A3A; font-size: 1.55rem; margin: 0 0 .3rem;}
+  h2 {color: #1A7A3A; font-size: 1.15rem; margin: 1.8rem 0 .5rem; padding-bottom: .25rem; border-bottom: 1px solid #dde3ea;}
+  code {background: #eef1f5; padding: .05rem .35rem; border-radius: 4px; font-size: .9em; word-break: break-all;}
+  ol, ul {padding-left: 1.4rem;} li {margin: .3rem 0;}
+  .ui {font-weight: 600;}
+  .note {background: #fff8e1; border: 1px solid #e3c766; border-radius: 8px; padding: .7rem .9rem; margin: .8rem 0;}
+  .muted {color: #5a6b7e; font-size: .9rem;}
+  table {border-collapse: collapse; width: 100%; margin: .5rem 0; font-size: .93rem;}
+  th, td {border: 1px solid #dde3ea; padding: .4rem .55rem; text-align: left; vertical-align: top;}
+  th {background: #1A7A3A; color: #fff;}
+  .print {float: right; font-size: .85rem; padding: .3rem .7rem; border: 1px solid #aeb9c7; border-radius: 6px; background: #fff; cursor: pointer;}
+  @media print {.print {display: none;}}
+</style>
+  <link rel="stylesheet" href="../ui-scale.css">
+</head>
+<body>
+<button class="print" onclick="window.print()">Print</button>
+<h1>Managing Users (for ISAF Admins)</h1>
+<p class="muted">For your company's ISAF Admin: how to set up login accounts, add and manage the people who use ISAF, and use the seats in your license. Everyone else only needs the User Guide.</p>
+
+<h2>1. How login accounts work</h2>
+<ul>
+  <li>Each person signs in with their own <b>username and password</b>. A login is personal: it may not be shared.</li>
+  <li>Your license gives you a number of <b>seats</b>. A seat is one active account. MX Aero issues your seats as <b>seat codes</b>, which you enter in the app; the app checks them itself, without an internet connection.</li>
+  <li>There are two roles. <b>Admin</b>: manages accounts and seats and sees the Administration tab; the banner is darker and shows "Admin" before the version. <b>User</b>: works on programs.</li>
+  <li>A login can be signed in on <b>one computer at a time</b>. Signing in on another computer signs the first one out.</li>
+  <li>The app records every account created, disabled or enabled, every role change and every seat code entered, with the date and the seats in use. This history is part of the usage report your license sends to MX Aero.</li>
+</ul>
+
+<h2>2. Set up login accounts (once)</h2>
+<ol>
+  <li>Ask MX Aero for your <b>Admin seat code</b>. It is a long text that starts with <code>ISAF-SEAT.</code></li>
+  <li>Open the app and go to <span class="ui">Administration</span> → <span class="ui">Login accounts</span> → <span class="ui">Set up login accounts</span>.</li>
+  <li>Paste the whole Admin seat code, choose your username, enter your full name and a password (at least 8 characters), and select <span class="ui">Create Admin account</span>.</li>
+  <li>You are signed in as the Admin. From now on everyone signs in with their own account, and the access keys people used before stop working.</li>
+</ol>
+<div class="note"><b>Before you start</b>, make sure the people who use ISAF will get their accounts soon after: once the first account exists, nobody can use the app with an access key any more.</div>
+
+<h2>3. Add a person</h2>
+<ol>
+  <li>Open <span class="ui">Administration</span> → <span class="ui">Manage accounts and seats</span> (or your account menu, top right → <span class="ui">Accounts</span>).</li>
+  <li>The top of the window shows <b>Seats in use: X of Y</b>. You can add a person while a seat is free.</li>
+  <li>Enter a <b>username</b> (3 to 40 letters, digits, dots, dashes or underscores, for example <code>jsmith</code>), the person's <b>full name</b>, optionally their <b>email</b>, and the <b>role</b> (User or Admin). Select <span class="ui">Add account</span>.</li>
+  <li>The app shows a <b>temporary password</b> once. Give it to the person privately. At their first sign-in they must choose their own password.</li>
+</ol>
+
+<h2>4. Day-to-day management</h2>
+<table>
+  <tr><th>To</th><th>Do this in the Accounts window</th></tr>
+  <tr><td>Reset a forgotten password</td><td><span class="ui">Reset password</span> on the person's row. A new temporary password is shown once; the old one stops working and the person is signed out. This also clears a lock after five wrong passwords.</td></tr>
+  <tr><td>Remove someone who left</td><td><span class="ui">Disable</span>. They are signed out at once and cannot sign in. Their seat becomes free.</td></tr>
+  <tr><td>Let them back in</td><td><span class="ui">Enable</span>, if a seat is free.</td></tr>
+  <tr><td>Make someone an Admin, or a User again</td><td>Change the <span class="ui">Role</span> on their row. At least one active Admin must remain.</td></tr>
+  <tr><td>Change your own password</td><td>Your account menu → <span class="ui">Change Password…</span></td></tr>
+</table>
+<div class="note"><b>Keep a second Admin.</b> If the only Admin forgets their password and cannot sign in, nobody can reset it. Give a second trusted person the Admin role.</div>
+
+<h2>5. Seats</h2>
+<ul>
+  <li><b>All seats in use?</b> Disable an account that is no longer needed, or ask MX Aero for more seats.</li>
+  <li><b>New seats from MX Aero</b> arrive as a seat code. In the Accounts window, paste it under <span class="ui">Add a seat code from MX Aero</span> and select <span class="ui">Add seat code</span>. The seat count goes up at once. Each code can be entered once.</li>
+  <li><b>Reassigning a seat</b>: your license allows a seat to be given to another person when its holder leaves the company or changes role, or at most once every 30 days. Rotating seats or sharing logins so that more people use ISAF than your seats allow is not permitted.</li>
+  <li><span class="ui">Seat codes entered</span> in the Accounts window lists every code, its seats and who entered it.</li>
+</ul>
+
+<h2>6. If something goes wrong</h2>
+<table>
+  <tr><th>Message</th><th>What to do</th></tr>
+  <tr><td>"This is not an ISAF seat code" or "This seat code is not valid"</td><td>Copy the whole code again, from <code>ISAF-SEAT.</code> to the end, without spaces or line breaks.</td></tr>
+  <tr><td>"The first account needs an Admin seat code"</td><td>The code you entered adds seats but cannot create the Admin account. Ask MX Aero for the Admin seat code.</td></tr>
+  <tr><td>"This seat code is for another ISAF license"</td><td>The code belongs to another license. Ask MX Aero for a code for yours.</td></tr>
+  <tr><td>"This seat code has already been entered"</td><td>It is counted already; nothing to do.</td></tr>
+  <tr><td>"All N seats are in use"</td><td>Disable an account, or add a seat code from MX Aero.</td></tr>
+  <tr><td>"You were signed out because your account signed in on another computer"</td><td>The same login was used elsewhere. If that was not the person, reset their password.</td></tr>
+  <tr><td>"Too many wrong passwords"</td><td>Wait 15 minutes, or reset the person's password.</td></tr>
+</table>
+<p>Need help? Contact your ISAF representative at MX Aero LLC.</p>
+<script src="help-search.js" defer></script>
+</body>
+</html>

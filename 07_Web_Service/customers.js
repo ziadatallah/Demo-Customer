@@ -56,7 +56,8 @@ const clean = (v, max = 2000) => String(v ?? "").replace(/[\u0000-\u0008\u000b\u
 
 export function customerDataDir(environment = process.env) {
   // fileURLToPath decodes the URL, so folder names with spaces (for example "Cert Documents") resolve correctly.
-  return environment.ISAF_ADMIN_DATA_DIR || path.dirname(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."));
+  // ISAF_DATA_DIR (or ISAF_ADMIN_DATA_DIR) points a hosted app at its persistent disk (owner, 22 November 2026).
+  return environment.ISAF_DATA_DIR || environment.ISAF_ADMIN_DATA_DIR || path.dirname(path.resolve(path.dirname(fileURLToPath(import.meta.url)), ".."));
 }
 export function customerDataFile(environment = process.env) { return path.join(customerDataDir(environment), "ISAF_Customer_Register.json"); }
 export function deliveryRegisterFile(environment = process.env) { return path.join(customerDataDir(environment), "ISAF_Customer_Delivery_Register.xlsx"); }
@@ -222,6 +223,16 @@ export class CustomerRegister {
     record.users = users; record.updatedAt = new Date().toISOString();
     this.write(customers);
     return { record, user };
+  }
+  // Seat codes issued for a customer's login accounts (owner, 22 November 2026; auth/seats.js). The codes issued
+  // may not add up to more than the customer's Seats (per-user seats bought, or the company-wide maximum).
+  addSeatCode(id, { code, payload, note = "", issuedBy = "" }) {
+    const customers = this.read(), record = customers.find(c => c.id === id);
+    if (!record) throw Object.assign(new Error("Customer not found."), { status: 404 });
+    record.seat_codes = [...(record.seat_codes || []), { id: payload.id, seats: payload.seats, admin: payload.admin, issued: payload.iat, note: clean(note, 200), issued_by: clean(issuedBy, 120), code }];
+    record.updatedAt = new Date().toISOString();
+    this.write(customers);
+    return record;
   }
   removeUser(id, userId) {
     const customers = this.read(), record = customers.find(c => c.id === id);

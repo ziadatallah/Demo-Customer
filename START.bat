@@ -3,13 +3,13 @@ findstr /C:"edition" "%~dp0EDITION.json" | findstr /C:"demo" >nul 2>&1
 if not errorlevel 1 (
     title Demo ISAF
     echo.
-    echo   Demo ISAF v6.0.2
+    echo   Demo ISAF v6.0.3
     echo   SOI 1 Demonstration App
     echo.
 ) else (
     title ISAF (Integrated Standards Assurance Framework)
     echo.
-    echo   ISAF (Integrated Standards Assurance Framework) v6.0.2
+    echo   ISAF (Integrated Standards Assurance Framework) v6.0.3
     echo   Certification Document Generation Engine
     echo.
 )

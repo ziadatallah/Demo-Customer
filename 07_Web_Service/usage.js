@@ -12,6 +12,11 @@
  *    wait in outbox.jsonl and are resent with the next event and every 10 minutes.
  *  - The customer can download the ledger (usage report) from the Administration tab for an offline install.
  *
+ * Account history (owner, 22 November 2026): a Customer app with accounts also records "admin-created",
+ * "account-created", "account-disabled", "account-enabled", "role-changed" and "seats-added", with the account's
+ * username, name and role, who made the change ("user") and the seats in use and in total, so MX Aero can see how
+ * seats are used and reassigned.
+ *
  * In the Admin app (createUsageStore, collector routes in server.js): usage is kept per license in
  * <admin data>/usage/<license>.jsonl, de-duplicated by event id, from the collector (ingest or sync) or from an
  * imported usage report. The collector token is HMAC-SHA256(collector secret, license ID): it only lets an app add
@@ -22,7 +27,8 @@ import os from "node:os";
 import path from "node:path";
 import crypto from "node:crypto";
 
-export const USAGE_EVENTS = ["app-opened", "build"];
+export const ACCOUNT_EVENTS = ["admin-created", "account-created", "account-disabled", "account-enabled", "role-changed", "seats-added"];
+export const USAGE_EVENTS = ["app-opened", "build", ...ACCOUNT_EVENTS];
 const text = (v, max = 200) => String(v ?? "").replace(/[\u0000-\u001f]/g, " ").trim().slice(0, max);
 const int = v => Math.max(0, Math.min(1e7, Number.parseInt(v, 10) || 0));
 
@@ -40,6 +46,11 @@ export function cleanEvent(e = {}) {
   const time = Number.isNaN(Date.parse(e.time)) ? null : new Date(e.time).toISOString();
   if (!event || !time) return null;
   const p = e.program && typeof e.program === "object" ? e.program : {};
+  const a = e.account && typeof e.account === "object" ? e.account : null, st = e.seats && typeof e.seats === "object" ? e.seats : null;
+  const accountPart = ACCOUNT_EVENTS.includes(event) ? {
+    account: {username: text(a?.username, 40), name: text(a?.name, 120), role: a?.role === "owner" ? "Admin" : a?.role === "user" ? "User" : text(a?.role, 20)},
+    seats: {total: int(st?.total), used: int(st?.used), added: int(st?.added)},
+  } : {};
   return {
     id: /^[0-9a-f-]{36}$/.test(String(e.id || "")) ? e.id : crypto.randomUUID(),
     time, event,
@@ -49,6 +60,7 @@ export function cleanEvent(e = {}) {
     phases: (Array.isArray(e.phases) ? e.phases : []).map(x => text(x, 20)).filter(Boolean).slice(0, 20),
     documents: int(e.documents), failures: int(e.failures),
     version: text(e.version, 20), hosting: e.hosting === "hosted" ? "hosted" : "installed", edition: text(e.edition, 20),
+    ...accountPart,
   };
 }
 
@@ -90,6 +102,7 @@ export function createUsageRecorder({ serviceDir, hosted, manifest = {}, version
       user: auth?.user?.name || (auth?.user?.id === "company-key" ? "(company key)" : ""), user_id: auth?.user?.id || "",
       program: details.program || {}, phases: details.phases || [], documents: details.documents, failures: details.failures,
       version, hosting: hosted ? "hosted" : "installed", edition: manifest.edition || "",
+      account: details.account, seats: details.seats,
     });
     if (!event) return null;
     try {
@@ -97,7 +110,7 @@ export function createUsageRecorder({ serviceDir, hosted, manifest = {}, version
       fs.appendFileSync(monthFile(dir), JSON.stringify(event) + "\n");
       if (collector) fs.appendFileSync(outbox, JSON.stringify(event) + "\n");
     } catch (error) { log(`[ISAF usage] could not write the usage log: ${error.message}`); }
-    log(`[ISAF usage] ${event.time.replace("T", " ").slice(0, 19)} UTC | ${event.event} | ${event.company} | user: ${event.user || "-"} | program: ${event.program.name || "-"}${event.phases.length ? " | phases: " + event.phases.join(",") : ""}${event.event === "build" ? ` | documents: ${event.documents}` : ""}`);
+    log(`[ISAF usage] ${event.time.replace("T", " ").slice(0, 19)} UTC | ${event.event} | ${event.company} | user: ${event.user || "-"}${event.account ? ` | account: ${event.account.name} (${event.account.username}) | seats: ${event.seats.used}/${event.seats.total}` : ` | program: ${event.program.name || "-"}`}${event.phases.length ? " | phases: " + event.phases.join(",") : ""}${event.event === "build" ? ` | documents: ${event.documents}` : ""}`);
     if (collector) flush();
     return event;
   }
@@ -132,13 +145,14 @@ export function createUsageStore(dir) {
   return { dir, list, add };
 }
 
-/** Summary for the Admin Usage view: programs and users with first/last use. */
+/** Summary for the Admin Usage view: programs and users with first/last use, and the account history. */
 export function summarizeUsage(events = []) {
-  const programs = new Map(), users = new Map();
+  const programs = new Map(), users = new Map(), accounts = [];
   for (const e of events) {
+    if (ACCOUNT_EVENTS.includes(e.event)) { accounts.push({ time: e.time, event: e.event, account: e.account?.name || "", username: e.account?.username || "", role: e.account?.role || "", by: e.user || "", used: e.seats?.used || 0, total: e.seats?.total || 0, added: e.seats?.added || 0 }); continue; }
     const who = e.user || "(unknown user)";
     const u = users.get(who) || { user: who, first: e.time, last: e.time, opens: 0, builds: 0, programs: new Set() };
-    u.last = e.time > u.last ? e.time : u.last; if (e.event === "app-opened") u.opens++; else u.builds++;
+    u.last = e.time > u.last ? e.time : u.last; if (e.event === "app-opened") u.opens++; else if (e.event === "build") u.builds++;
     if (e.event === "build") {
       const name = e.program?.name || "(program name not set)", key = `${name}|${e.program?.doc_prefix || ""}`;
       const p = programs.get(key) || { name, doc_prefix: e.program?.doc_prefix || "", type: e.program?.type || "", first: e.time, last: e.time, builds: 0, documents: 0, phases: new Set(), users: new Set() };
@@ -148,12 +162,12 @@ export function summarizeUsage(events = []) {
     users.set(who, u);
   }
   const list = m => [...m.values()].map(x => ({ ...x, ...(x.phases ? { phases: [...x.phases] } : {}), ...(x.users ? { users: [...x.users] } : {}), ...(x.programs ? { programs: [...x.programs] } : {}) }));
-  return { programs: list(programs).sort((a, b) => b.last.localeCompare(a.last)), users: list(users).sort((a, b) => b.last.localeCompare(a.last)) };
+  return { programs: list(programs).sort((a, b) => b.last.localeCompare(a.last)), users: list(users).sort((a, b) => b.last.localeCompare(a.last)), accounts: accounts.sort((a, b) => b.time.localeCompare(a.time)) };
 }
 
 const csvCell = v => { const s = String(v ?? ""); return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s; };
 export function usageCsv(events = []) {
-  const head = ["Time (UTC)", "Event", "Company", "User", "Program name", "Program short name", "Document prefix", "Program type", "Phases", "Documents", "Failures", "Version", "Hosting", "License ID"];
-  const rows = events.map(e => [e.time.replace("T", " ").slice(0, 19), e.event, e.company, e.user, e.program?.name, e.program?.short_name, e.program?.doc_prefix, e.program?.type, (e.phases || []).join(" "), e.documents, e.failures, e.version, e.hosting, e.license_id]);
+  const head = ["Time (UTC)", "Event", "Company", "User", "Program name", "Program short name", "Document prefix", "Program type", "Phases", "Documents", "Failures", "Version", "Hosting", "License ID", "Account", "Account username", "Account role", "Seats used", "Seats total"];
+  const rows = events.map(e => [e.time.replace("T", " ").slice(0, 19), e.event, e.company, e.user, e.program?.name, e.program?.short_name, e.program?.doc_prefix, e.program?.type, (e.phases || []).join(" "), e.documents, e.failures, e.version, e.hosting, e.license_id, e.account?.name, e.account?.username, e.account?.role, e.account ? e.seats?.used : "", e.account ? e.seats?.total : ""]);
   return [head, ...rows].map(r => r.map(csvCell).join(",")).join("\r\n") + "\r\n";
 }
