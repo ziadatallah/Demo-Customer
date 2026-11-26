@@ -240,10 +240,10 @@ const buildJobs = createBuildJobStore(repository, {
   organizationId: process.env.ISAF_ORGANIZATION_ID,
 });
 const connectors=createConnectorService({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository")});
-const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"6.0.3",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
+const operations=createOperationsCenter({root:process.env.ISAF_REPOSITORY_DIR||path.join(__dirname,"repository"),environment:process.env,version:"6.0.7",edition:appEdition(),metadata:repository.metadata,organizationId:process.env.ISAF_ORGANIZATION_ID});
 
 app.get("/api/session",requireAuth,(req,res)=>res.json({
-  edition:appEdition(), version:"6.0.3", authentication:authentication.mode,
+  edition:appEdition(), version:"6.0.7", authentication:authentication.mode,
   user:{id:req.auth.id||null,subject:req.auth.subject,displayName:req.auth.displayName,email:req.auth.email||null,role:req.auth.role},
   organizationId:req.auth.organizationId||process.env.ISAF_ORGANIZATION_ID||null,
   capabilities:{teamAdministration:authentication.mode==="oidc"&&hasPermission(req.auth.role,"organization.manage"),durableBuilds:!!repository?.metadata?.withTenant,integrationAdministration:hasPermission(req.auth.role,"integration.manage"),hosted:HOSTED_SERVICE},
@@ -394,7 +394,7 @@ app.post("/api/jobs", requireAuth, authorize("build.run"), requireUpToDate, uplo
     const job=await buildJobs.submit({
       organizationId:req.auth.organizationId||null,programId,requestedBy:req.auth.id||null,
       actor:requestActor(req,req.body.actor),phase:String(req.body.phase||"all").toLowerCase(),
-      engineVersion:"6.0.3",filename:req.file.originalname,
+      engineVersion:"6.0.7",filename:req.file.originalname,
       // The imported requirements are resolved here rather than in the worker: a Postgres-backed
       // repository has no program folder to read a link from, and the job must build with the
       // requirements as they were when it was submitted. They are part of the idempotency key
@@ -1011,7 +1011,7 @@ app.get("/api/health", (_req, res) => {
   // pdfAvailable lets the Build tab say LibreOffice is missing BEFORE a build rather than after
   // one: the conversion runs on the exported folder, so without this the user waits out a full
   // build (1312 documents on an aircraft program) to be told the box they ticked could not run.
-  res.json({ status: "ok", version: "6.0.3", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||(Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length)&&!(CUSTOMER_ACCOUNTS&&accountStore.hasAccounts())), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
+  res.json({ status: "ok", version: "6.0.7", edition, hosted:HOSTED_SERVICE, pdfAvailable: !HOSTED_SERVICE && Boolean(findSoffice()), authMode: authentication.mode, authRequired:authentication.mode==="oidc"||(Boolean(API_KEY||API_KEY_HASH||ACCESS_KEYS.length)&&!(CUSTOMER_ACCOUNTS&&accountStore.hasAccounts())), ...(edition==="demo"?{demoProfile:clientDemoProfile()}: {}), ...(edition==="customer"?customerEditionInfo():{}) });
 });
 
 app.get("/api/demo-register", requireAuth, authorize("demo.manage"), async(_req,res)=>{

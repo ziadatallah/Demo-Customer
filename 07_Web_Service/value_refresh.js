@@ -15,7 +15,10 @@
  *    not flagged again;
  *  - the stored values and identity updated to the fresh document's, so the next refresh compares against
  *    what ISAF generated this time.
- * Everything outside the tagged values (the customer's own text, tables and formatting) is left as it is.
+ * Everything else in the body (the customer's own text, tables and formatting) is left as it is. Headers
+ * and footers are ISAF's and are taken from the new document (owner, 24 November 2026).
+ * A document the customer has not edited (body fingerprint unchanged, no value typed over) is replaced by
+ * the new document whole, so template changes reach it.
  * New content that exists only in the fresh document (for example rows for a newly added software item)
  * cannot be inserted into the customer's structure; its keys are listed in the report.
  *
@@ -28,6 +31,7 @@ const TAG_PREFIX = 'ISAF.V:';
 const VAR_PREFIX = 'ISAF_V_';
 const FORMAT_VAR = 'ISAF_VALUES_FORMAT';
 const IDENTITY_VAR = 'ISAF_DOC_IDENTITY';
+const FINGERPRINT_VAR = 'ISAF_DOC_FINGERPRINT';
 const COMMENT_AUTHOR = 'ISAF refresh';
 const PARTS = /^word\/(document|header\d*|footer\d*|footnotes|endnotes)\.xml$/;
 // Generated blocks: block-level controls the engine writes (stored as "#block:<tag>", see value_tags.js).
@@ -62,14 +66,15 @@ export function runText(xml) {
 }
 
 function readVars(settingsXml) {
-  const values = {}; let identity = null, format = null;
+  const values = {}; let identity = null, format = null, fingerprint = null;
   for (const m of String(settingsXml || '').matchAll(/<w:docVar w:name="([^"]*)" w:val="([^"]*)"\s*\/>/g)) {
     const name = m[1], val = xmlUnesc(m[2]);
     if (name === FORMAT_VAR) format = val;
+    else if (name === FINGERPRINT_VAR) fingerprint = val;
     else if (name === IDENTITY_VAR) { try { identity = JSON.parse(val); } catch {} }
     else if (name.startsWith(VAR_PREFIX)) { try { const { k, v } = JSON.parse(val); if (typeof k === 'string') values[k] = String(v ?? ''); } catch {} }
   }
-  return { values, identity, format };
+  return { values, identity, format, fingerprint };
 }
 
 function openZip(bytes) {
@@ -150,8 +155,169 @@ const isafVarsXml = (values, identity) => [`<w:docVar w:name="${FORMAT_VAR}" w:v
   .concat(Object.entries(values).map(([k, v]) => `<w:docVar w:name="${varName(k)}" w:val="${xmlEsc(JSON.stringify({ k, v }))}"/>`)).join('');
 
 /**
+ * Fingerprint of a generated body: its text outside value controls, generated blocks and Word fields.
+ * Must match bodyFingerprint() in 03_Build_Engine/src/render_template/value_tags.js, which stores it as
+ * ISAF_DOC_FINGERPRINT when a document is built.
+ */
+export function bodyFingerprint(documentXml) {
+  let xml = String(documentXml || ""), prev;
+  const inner = /<w:sdt\b[^>]*>((?:(?!<w:sdt\b)[\s\S])*?)<\/w:sdt>/g;
+  do {
+    prev = xml;
+    xml = xml.replace(inner, (sdt, body) => {
+      const m = body.match(/<w:sdtPr>(?:(?!<\/w:sdtPr>)[\s\S])*?<w:tag w:val="([^"]*)"/);
+      const tag = m ? m[1] : "";
+      return tag.startsWith("ISAF.V:") || tag === "ISAF.DocumentReferences" ? "" : sdt;
+    });
+  } while (xml !== prev);
+  xml = xml.replace(/<w:fldSimple\b[^>]*>[\s\S]*?<\/w:fldSimple>/g, "");
+  let depth = 0, text = "";
+  for (const m of xml.matchAll(/<w:fldChar\b[^>]*w:fldCharType="(begin|end)"[^>]*\/>|<w:t(?:\s[^>]*)?>([^<]*)<\/w:t>/g)) {
+    if (m[1] === "begin") depth++;
+    else if (m[1] === "end") depth = Math.max(0, depth - 1);
+    else if (!depth) text += m[2];
+  }
+  text = text.replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&#x([0-9a-f]+);/gi, (_, h) => String.fromCodePoint(parseInt(h, 16))).replace(/&#(\d+);/g, (_, d) => String.fromCodePoint(Number(d))).replace(/&amp;/g, "&").replace(/\s+/g, " ").trim();
+  let h1 = 0x811c9dc5, h2 = 0x01000193;
+  for (let i = 0; i < text.length; i++) { const c = text.charCodeAt(i); h1 = Math.imul(h1 ^ c, 16777619) >>> 0; h2 = Math.imul(h2 ^ c, 2246822519) >>> 0; }
+  return `1:${text.length.toString(36)}:${h1.toString(36)}:${h2.toString(36)}`;
+}
+
+/**
+ * Texts each value key shows in a document. A key whose controls show different texts in the generated
+ * document cannot be refreshed control by control, because the stored value is the first control's
+ * text only, so such a key cannot be compared or refreshed control by control: the abbreviation rows
+ * (every row is tagged abbr / definition) and the occasional value written in two layouts.
+ */
+function valueTexts(zip) {
+  const texts = new Map();
+  for (const name of Object.keys(zip.files)) {
+    if (!PARTS.test(name)) continue;
+    for (const m of zip.file(name).asText().matchAll(INNER_SDT)) {
+      const tag = sdtTag(m[1]);
+      if (!tag?.startsWith(TAG_PREFIX)) continue;
+      const k = tag.slice(TAG_PREFIX.length);
+      if (!texts.has(k)) texts.set(k, new Set());
+      texts.get(k).add(runText(/<w:sdtContent>([\s\S]*)<\/w:sdtContent>/.exec(m[1])?.[1] ?? ''));
+    }
+  }
+  return texts;
+}
+
+/** The table holding a value control tagged key, as [start, end) in xml, or null. */
+function tableWith(xml, key) {
+  const at = xml.indexOf(`<w:tag w:val="${TAG_PREFIX}${key}"/>`);
+  if (at < 0) return null;
+  const start = Math.max(xml.lastIndexOf('<w:tbl>', at), xml.lastIndexOf('<w:tbl ', at));
+  const end = xml.indexOf('</w:tbl>', at);
+  if (start < 0 || end < 0 || xml.slice(start + 6, at).includes('<w:tbl>')) return null;
+  return [start, end + '</w:tbl>'.length];
+}
+
+/**
+ * The LIST OF ABBREVIATIONS table is ISAF's (abbr and definition are managed keys): it is replaced whole by
+ * the newly generated table, which lists the abbreviations the current document uses. Before 24 November 2026
+ * the refresh wrote the first abbreviation into every row (all rows share the keys abbr and definition).
+ */
+function replaceAbbreviationTable(zip, freshZip) {
+  const xml = zip.file('word/document.xml').asText(), freshXml = freshZip.file('word/document.xml').asText();
+  const a = tableWith(xml, 'abbr'), b = tableWith(freshXml, 'abbr');
+  if (!a || !b) return false;
+  zip.file('word/document.xml', xml.slice(0, a[0]) + freshXml.slice(b[0], b[1]) + xml.slice(a[1]));
+  return true;
+}
+
+/**
+ * A document built before fingerprints (ISAF 6.0.4 and earlier) that no editor has saved since: ISAF writes
+ * the same created and modified times and an ISAF (or unnamed) last author; Word, LibreOffice and Google Docs
+ * update both on save.
+ */
+function neverSaved(zip) {
+  const core = zip.file('docProps/core.xml')?.asText() || '';
+  const created = /<dcterms:created\b[^>]*>([^<]*)</.exec(core)?.[1], modified = /<dcterms:modified\b[^>]*>([^<]*)</.exec(core)?.[1];
+  const by = (/<cp:lastModifiedBy>([^<]*)</.exec(core)?.[1] ?? '').trim();
+  return !!created && created === modified && ['ISAF', 'Un-named', ''].includes(by);
+}
+
+/** Take the body fingerprint again after a build step that adds generated content (imported requirements). */
+export function restampFingerprint(bytes) {
+  const zip = openZip(bytes), settings = zip.file('word/settings.xml')?.asText() || '';
+  const re = new RegExp(`<w:docVar w:name="${FINGERPRINT_VAR}" w:val="[^"]*"\\s*/>`);
+  if (!re.test(settings)) return bytes;
+  zip.file('word/settings.xml', settings.replace(re, `<w:docVar w:name="${FINGERPRINT_VAR}" w:val="${bodyFingerprint(zip.file('word/document.xml').asText())}"/>`));
+  return zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' });
+}
+
+/** Keys of value controls and generated blocks whose text the customer changed (neither the stored nor the new value). */
+function changedValues(zip, oldValues, newValues, freshTexts) {
+  const changed = [];
+  for (const name of Object.keys(zip.files)) {
+    if (!PARTS.test(name)) continue;
+    for (const m of zip.file(name).asText().matchAll(INNER_SDT)) {
+      const tag = sdtTag(m[1]);
+      if (!tag) continue;
+      const k = BLOCK_TAGS.includes(tag) ? BLOCK_KEY_PREFIX + tag : tag.startsWith(TAG_PREFIX) ? tag.slice(TAG_PREFIX.length) : null;
+      if (k === null) continue;
+      const current = runText(/<w:sdtContent>([\s\S]*)<\/w:sdtContent>/.exec(m[1])?.[1] ?? '');
+      if (freshTexts.get(k)?.has(current) || current === oldValues[k] || current === newValues[k] || MANAGED_KEYS.has(leafKey(k)) || isPrompt(current)) continue;
+      changed.push(k);
+    }
+  }
+  return changed;
+}
+
+const relsOf = part => part.replace(/^(.*\/)([^/]+)$/, '$1_rels/$2.rels');
+const relList = xml => [...String(xml || '').matchAll(/<Relationship\b[^>]*\/?>/g)].map(m => ({ xml: m[0], id: /\bId="([^"]*)"/.exec(m[0])?.[1], type: /\bType="([^"]*)"/.exec(m[0])?.[1] || '', target: /\bTarget="([^"]*)"/.exec(m[0])?.[1], external: /TargetMode="External"/.test(m[0]) }));
+
+/**
+ * Headers and footers are ISAF's (owner, 24 November 2026): an edited document takes them from the newly
+ * generated document, so export control, distribution statement and approval header follow the current
+ * templates and configuration. Matched by relationship id and type; the part's own relationships (for
+ * example a logo) and their media are copied with it. Returns the number of parts replaced.
+ */
+function replaceHeadersFooters(zip, freshZip) {
+  const editedRels = relList(zip.file('word/_rels/document.xml.rels')?.asText());
+  const freshRels = new Map(relList(freshZip.file('word/_rels/document.xml.rels')?.asText()).map(r => [r.id, r]));
+  let types = zip.file('[Content_Types].xml')?.asText() || '';
+  let replaced = 0, n = 0;
+  for (const r of editedRels) {
+    if (!/\/(header|footer)$/.test(r.type) || r.external) continue;
+    const f = freshRels.get(r.id);
+    if (!f || f.type !== r.type || f.external) continue;
+    const editedPart = 'word/' + r.target.replace(/^\.?\//, ''), freshPart = 'word/' + f.target.replace(/^\.?\//, '');
+    const freshFile = freshZip.file(freshPart);
+    if (!freshFile || !zip.file(editedPart)) continue;
+    zip.file(editedPart, freshFile.asText());
+    const freshPartRels = freshZip.file(relsOf(freshPart));
+    if (freshPartRels) {
+      let relsXml = freshPartRels.asText();
+      for (const pr of relList(relsXml)) {
+        if (pr.external || !pr.target) continue;
+        const src = freshZip.file('word/' + pr.target.replace(/^\.?\//, ''));
+        if (!src) continue;
+        const ext = (pr.target.match(/\.([A-Za-z0-9]+)$/) || [])[1] || 'bin';
+        let target;
+        do target = `media/isaf_hf_${++n}.${ext}`; while (zip.file('word/' + target));
+        zip.file('word/' + target, src.asUint8Array());
+        relsXml = relsXml.replace(pr.xml, pr.xml.replace(/\bTarget="[^"]*"/, `Target="${target}"`));
+        if (!new RegExp(`<Default Extension="${ext}"`, 'i').test(types)) {
+          const ct = (freshZip.file('[Content_Types].xml')?.asText().match(new RegExp(`<Default Extension="${ext}" ContentType="[^"]*"\\/>`, 'i')) || [])[0];
+          if (ct) types = types.replace(/<Types\b[^>]*>/, m => m + ct);
+        }
+      }
+      zip.file(relsOf(editedPart), relsXml);
+    } else if (zip.file(relsOf(editedPart))) zip.remove(relsOf(editedPart));
+    replaced++;
+  }
+  if (types) zip.file('[Content_Types].xml', types);
+  return replaced;
+}
+
+/**
  * Refresh an edited ISAF document. edited, fresh: .docx bytes. Returns { bytes, report }.
- * report: { identity, updated, unchanged, kept[], conflicts[], filled[], removed[], notInDocument[] }.
+ * report: { identity, updated, unchanged, kept[], conflicts[], filled[], removed[], notInDocument[], replaced, headersFooters }.
+ * replaced: true when the document was unedited and the new document is returned whole.
+ * headersFooters: number of header and footer parts taken from the new document (edited documents).
  * Throws when either document has no ISAF value tags.
  */
 export function refreshDocx(edited, fresh, { comments = true, date = new Date().toISOString().replace(/\.\d+Z$/, 'Z') } = {}) {
@@ -164,6 +330,21 @@ export function refreshDocx(edited, fresh, { comments = true, date = new Date().
   const oldValues = before.values, newValues = after.values;
   const report = { identity: after.identity, previousIdentity: before.identity, updated: 0, unchanged: 0, kept: [], conflicts: [], filled: [], removed: [], notInDocument: [] };
   const seen = new Set(), flagged = [];
+
+  // Unedited document: its body still matches what ISAF generated (stored fingerprint; for a document built
+  // before fingerprints, never saved by an editor or identical to the new body) and no value was typed over. It is replaced by the new document whole, so template changes reach it.
+  const freshTexts = valueTexts(freshZip);
+  const editedDoc = zip.file('word/document.xml')?.asText() || '';
+  const editedPrint = bodyFingerprint(editedDoc);
+  // Imported requirement tables that the new document does not carry are kept (refresh, not replacement).
+  const importsOnlyHere = editedDoc.includes('w:val="ISAF.Import:') && !freshZip.file('word/document.xml')?.asText().includes('w:val="ISAF.Import:');
+  const unedited = !importsOnlyHere && (before.fingerprint ? editedPrint === before.fingerprint : neverSaved(zip) || editedPrint === bodyFingerprint(freshZip.file('word/document.xml')?.asText()))
+    && !changedValues(zip, oldValues, newValues, freshTexts).length;
+  if (unedited) return { bytes: Buffer.from(fresh), report: { ...report, replaced: true } };
+  report.replaced = false;
+  report.headersFooters = replaceHeadersFooters(zip, freshZip);
+  replaceAbbreviationTable(zip, freshZip);
+  const varied = new Set([...freshTexts].filter(([, t]) => t.size > 1).map(([k]) => k));
 
   // Newly generated blocks, to replace unedited blocks whole.
   const freshBlocks = new Map();
@@ -206,6 +387,7 @@ export function refreshDocx(edited, fresh, { comments = true, date = new Date().
         return sdt.replace(inner, () => `${sdtPr}${rest}<w:sdtContent>${textRuns(open, rPr, text)}</w:sdtContent>`);
       };
       if (!hasNew) { report.removed.push({ key: k, text: current }); return sdt; }
+      if (varied.has(k)) { report.unchanged++; return sdt; }
       if (current === neu) { report.unchanged++; return sdt; }
       if (MANAGED_KEYS.has(leafKey(k))) { report.updated++; return replace(neu); }
       if (hasOld && current === old) { report.updated++; return replace(neu); }
@@ -256,7 +438,8 @@ export function refreshDocx(edited, fresh, { comments = true, date = new Date().
   // Store what ISAF generated this time (keeping values of controls that no longer exist in the configuration).
   const stored = { ...newValues };
   for (const r of report.removed) if (Object.hasOwn(oldValues, r.key)) stored[r.key] = oldValues[r.key];
-  zip.file('word/settings.xml', replaceIsafVars(editedSettings, isafVarsXml(stored, after.identity)));
+  const printXml = after.fingerprint ? `<w:docVar w:name="${FINGERPRINT_VAR}" w:val="${xmlEsc(after.fingerprint)}"/>` : '';
+  zip.file('word/settings.xml', replaceIsafVars(editedSettings, printXml + isafVarsXml(stored, after.identity)));
   for (const name of Object.keys(zip.files)) if (zip.files[name].dir) delete zip.files[name];
   return { bytes: zip.generate({ type: 'nodebuffer', compression: 'DEFLATE' }), report };
 }
@@ -303,13 +486,14 @@ const short = (s, n = 70) => { const t = String(s ?? '').replace(/\s+/g, ' '); r
  * entries: [{ pn, name, how, label, candidate, reused, summary: { updated, kept, flagged, notPlaced }, flagged: [{ key, text, generated }], notPlaced: [key] }].
  */
 export function refreshReportText(entries, unmatched = []) {
-  const lines = ['ISAF document refresh report', '', 'Your edited documents were refreshed with the current configuration. Values you had not changed were', 'updated. Values you had changed were kept; where the configuration value also changed, the value is', 'flagged with a Word comment from "ISAF refresh" and listed below. Text outside the configuration values', 'is not changed.', ''];
+  const lines = ['ISAF document refresh report', '', 'Your edited documents were refreshed with the current configuration. Values you had not changed were', 'updated. Values you had changed were kept; where the configuration value also changed, the value is', 'flagged with a Word comment from "ISAF refresh" and listed below. Other text in the body is not changed;', 'headers and footers are taken from the current template. Documents you had not edited are replaced', 'with the newly generated document.', ''];
   for (const e of entries) {
     const s = e.summary || {};
     lines.push(`${e.pn}  ${e.label ? 'Rev ' + e.label + '  ' : ''}(from ${e.name}${e.how ? ', matched by ' + e.how : ''})`);
     if (e.reused) lines.push('  Already refreshed from this document with this configuration; the earlier refreshed version is used.');
     if (e.candidate) lines.push('  Saved for review (Pending review): accept or reject it in Program Documents.');
-    lines.push(`  ${s.updated || 0} values updated, ${s.kept || 0} of your changes kept, ${s.flagged || 0} flagged.`);
+    if (s.replaced) { lines.push('  Not edited since ISAF generated it: replaced with the newly generated document.', ''); continue; }
+    lines.push(`  ${s.updated || 0} values updated, ${s.kept || 0} of your changes kept, ${s.flagged || 0} flagged.${s.headersFooters ? ' Header and footer taken from the current template.' : ''}`);
     for (const c of e.flagged || []) lines.push(`  FLAGGED ${c.key}: your text "${short(c.text)}"; configuration now "${short(c.generated)}"`);
     if (s.notPlaced) lines.push(`  ${s.notPlaced} new values have no place in your document (for example rows for a new item). Compare with a new template draft: ${(e.notPlaced || []).join(', ')}${s.notPlaced > (e.notPlaced || []).length ? ', …' : ''}`);
     lines.push('');

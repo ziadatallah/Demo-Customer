@@ -1,6 +1,6 @@
 {
   "name": "isaf-build-engine",
-  "version": "6.0.3",
+  "version": "6.0.7",
   "description": "ISAF Build Engine v3.4.0: workbook + templates -> certification document set. Adds template-driven document generation via docxtemplater.",
   "main": "src/build.js",
   "type": "module",

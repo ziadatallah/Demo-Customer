@@ -6,7 +6,7 @@ import {execFile} from 'node:child_process';
 import {promisify} from 'node:util';
 import {readBuildResult} from './build_result.js';
 import {digest,RepositoryError,safeName} from './repository_store.js';
-import {matchPrevious,refreshReportText} from './value_refresh.js';
+import {matchPrevious,refreshReportText,restampFingerprint} from './value_refresh.js';
 import {applyImport as applyRequirements,importReportText} from './requirements_docs.js';
 const exec=promisify(execFile);
 const stable=value=>Array.isArray(value)?value.map(stable):value&&typeof value==='object'?Object.fromEntries(Object.keys(value).filter(k=>k!=='_fieldComments').sort().map(k=>[k,stable(value[k])])):value;
@@ -23,6 +23,12 @@ const ENGINE_HEAP_MB=process.env.ISAF_ENGINE_MAX_HEAP_MB!==undefined?Number(proc
 const ENGINE_NODE_OPTIONS=ENGINE_HEAP_MB>0?[`--max-old-space-size=${ENGINE_HEAP_MB}`]:[];
 // A lock older than the longest possible build is left over from an interrupted build.
 const STALE_LOCK_MS=Math.max(10*60*1000,BUILD_TIMEOUT_MS+5*60*1000);
+// Documents per phase folder of the build output (first folder of each path), in program order, for the build
+// log of a full build (owner, 25 November 2026). Folders outside the phase list follow in name order.
+const PHASE_FOLDER_ORDER=['CoDR','SRR','PDR','SOI-1','CDR','SOI-2','SOI-3','TRR','SOI-4','TIA'];
+function phaseCounts(entries){const counts=new Map();for(const e of entries||[]){const top=String(e.relPath||'').split(/[\\/]/);const folder=top.length>1?top[0]:'';counts.set(folder,(counts.get(folder)||0)+1);}
+  const rank=f=>{const i=PHASE_FOLDER_ORDER.indexOf(f);return i<0?PHASE_FOLDER_ORDER.length:i;};
+  return [...counts].sort((a,b)=>rank(a[0])-rank(b[0])||a[0].localeCompare(b[0])).map(([folder,count])=>({folder,count}));}
 export function acquireBuildLock(lock,now=Date.now()){
  for(let attempt=0;attempt<2;attempt++){
   try{fs.mkdirSync(lock);fs.writeFileSync(path.join(lock,'owner.json'),JSON.stringify({pid:process.pid,startedAt:new Date(now).toISOString()}));return;}
@@ -72,7 +78,9 @@ export function writeRequirementsIntoBuild(artifacts,review){
   const out=applyRequirements(a.bytes,review);
   // importReportText expects one entry per document: {name, changed, report}.
   summary.results.push({name:a.filename||a.title,changed:out.changed,report:out.report});
-  if(out.changed){a.bytes=out.bytes;summary.documents++;summary.blocks+=out.report.blocks?.length||0;summary.rows+=out.report.rows||0;}
+  // The imported tables are part of the generated document: its body fingerprint is taken again, so the copy
+  // in a working folder still counts as unedited at the next build (value_refresh.js).
+  if(out.changed){a.bytes=restampFingerprint(out.bytes);summary.documents++;summary.blocks+=out.report.blocks?.length||0;summary.rows+=out.report.rows||0;}
   else summary.skipped++;
  }
  return summary;
@@ -144,6 +152,6 @@ export async function runRepositoryBuild({store,workbookPath,logoPath,phaseId,ou
   fs.rmSync(work,{recursive:true,force:true});
   const reusedCount=snapshot.entries.filter(e=>e.reused).length;const generatedCount=snapshot.entries.length-reusedCount;
   const refreshed=snapshot.refresh||[];
-  return {program:{name:data.program?.name||'',short_name:data.program?.short_name||'',doc_prefix:data.program?.doc_prefix||'',type:data.program?.type||''},refresh:{documents:refreshed.length,flagged:refreshed.reduce((n,r)=>n+(r.summary?.flagged||0),0),candidates:refreshed.filter(r=>r.candidate).length,supplied:previous?.length||0,unused:reuse.unmatched},programId:p.id,buildId:snapshot.id,buildName:snapshot.name,outputDir:outDir,docCount:snapshot.entries.length,generatedCount,reusedCount,failCount:0,elapsed:((Date.now()-started)/1000).toFixed(1),phase:phaseId,warnings:recordWarning?[...(snapshot.warnings||[]),recordWarning]:snapshot.warnings,recordKept:!recordWarning,requirements:requirementsSummary&&{documents:requirementsSummary.documents,blocks:requirementsSummary.blocks,rows:requirementsSummary.rows,skipped:requirementsSummary.skipped,imported:requirementsSummary.imported,sources:requirements?.meta?.sources||[]},log:`Repository snapshot: ${snapshot.name}\n${generatedCount} new versions; ${reusedCount} reused versions.\n${requirementsSummary?`${requirementsSummary.imported} imported requirements written into ${requirementsSummary.documents} documents (Requirements_Report.txt).\n`:''}${refreshed.length?`${refreshed.length} edited documents refreshed with the configuration (Refresh_Report.txt).\n`:''}${snapshot.warnings.join('\n')}`};
+  return {program:{name:data.program?.name||'',short_name:data.program?.short_name||'',doc_prefix:data.program?.doc_prefix||'',type:data.program?.type||''},refresh:{documents:refreshed.length,flagged:refreshed.reduce((n,r)=>n+(r.summary?.flagged||0),0),candidates:refreshed.filter(r=>r.candidate).length,supplied:previous?.length||0,unused:reuse.unmatched},programId:p.id,buildId:snapshot.id,buildName:snapshot.name,outputDir:outDir,docCount:snapshot.entries.length,phaseCounts:phaseCounts(snapshot.entries),generatedCount,reusedCount,failCount:0,elapsed:((Date.now()-started)/1000).toFixed(1),phase:phaseId,warnings:recordWarning?[...(snapshot.warnings||[]),recordWarning]:snapshot.warnings,recordKept:!recordWarning,requirements:requirementsSummary&&{documents:requirementsSummary.documents,blocks:requirementsSummary.blocks,rows:requirementsSummary.rows,skipped:requirementsSummary.skipped,imported:requirementsSummary.imported,sources:requirements?.meta?.sources||[]},log:`Repository snapshot: ${snapshot.name}\n${generatedCount} new versions; ${reusedCount} reused versions.\n${requirementsSummary?`${requirementsSummary.imported} imported requirements written into ${requirementsSummary.documents} documents (Requirements_Report.txt).\n`:''}${refreshed.length?`${refreshed.length} edited documents refreshed with the configuration (Refresh_Report.txt).\n`:''}${snapshot.warnings.join('\n')}`};
  }finally{fs.rmSync(lock,{recursive:true,force:true});}
 }

@@ -1,6 +1,6 @@
 ISAF — Certification Document Generation Engine
 ================================================
-Version 6.0.3
+Version 6.0.7
 
 ISAF generates a structured set of certification document templates from a
 populated configuration workbook. Each document is placed in the milestone

@@ -667,7 +667,7 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 <header id="mainHeader">
   <h1 id="headerTitle">ISAF (Integrated Standards Assurance Framework) — &lt;Company&gt;</h1>
   <span class="version-block">
-    <span class="version" id="appVersion">v6.0.3</span>
+    <span class="version" id="appVersion">v6.0.7</span>
     <!-- The clock that dates generated documents. Read-only on purpose: it reflects
          program.time_zone, so if it disagrees with the wall clock the documents are
          already going to be dated wrong, and the fix is the field, not this display. -->
@@ -967,7 +967,8 @@ input:not([type="checkbox"]):not([type="radio"]),select,textarea{border-color:#A
 
     <div class="button-row">
       <button id="build-btn" disabled>Build</button>
-      <span id="buildBusyIndicator" class="build-busy hidden" role="status" aria-live="polite"><span class="build-busy-spinner" aria-hidden="true"></span>Documents being generated…<span class="build-busy-bar" aria-hidden="true"></span><span id="buildBusyTime" class="build-busy-time"></span></span><button type="button" id="buildStopBtn" class="secondary hidden" style="margin-left:.75rem">Stop build</button>
+      <span id="buildBusyIndicator" class="build-busy hidden" role="status" aria-live="polite"><span class="build-busy-spinner" aria-hidden="true"></span><span id="buildBusyText">Documents being generated…</span><span class="build-busy-bar" aria-hidden="true"></span><span id="buildBusyTime" class="build-busy-time"></span></span><button type="button" id="buildStopBtn" class="secondary hidden" style="margin-left:.75rem">Stop build</button>
+      <span id="buildStartNote" class="hint hidden" role="status" aria-live="polite"></span>
     </div>
     <div id="configCheckStatus" class="config-check-status hidden" role="status" aria-live="polite"></div>
   </div>
@@ -2640,12 +2641,23 @@ async function waitForDurableBuild(jobId){
   }
   throw Error('The build is still running. Open Administration → Build activity to continue monitoring it.');
 }
+// Every reason Build does not start is shown next to the button: a click must never do nothing (owner report,
+// 24 November 2026: Build did nothing with a working folder in use).
+function buildStartNote(text){const n=$('buildStartNote');if(!n)return;n.textContent=text||'';n.classList.toggle('hidden',!text);}
 $('build-btn').addEventListener('click', async () => {
+  buildStartNote('');
   // Working folder: ask for access now, while the click still counts as the user's action.
   const useFolder=!!(window.workingFolder?.handle&&$('wfUse')?.checked&&!$('wfUseRow')?.classList.contains('hidden'));
-  if(useFolder&&!(await window.workingFolder.ready())){alert('ISAF needs your permission to use the working folder. Select Build again and allow access, or clear "Read edited documents from this folder and save the build into it".');return;}
+  if(useFolder){
+    buildStartNote(`Asking for permission to use the working folder "${window.workingFolder.name?.()||''}". If the browser shows a prompt near the address bar, allow it.`);
+    let allowed=false;
+    try{allowed=await window.workingFolder.ready();}
+    catch(e){buildStartNote(`Build could not use the working folder: ${String(e?.message||e).replace(/\.$/,'')}. Choose the folder again (Choose another folder…), or clear "Read edited documents from this folder and save the build into it".`);return;}
+    if(!allowed){buildStartNote('');alert('ISAF needs your permission to use the working folder. Select Build again and allow access, or clear "Read edited documents from this folder and save the build into it".');return;}
+    buildStartNote('');
+  }
   if(Object.keys(configDraftMods).length){switchMainTab('config');alert('Select Save Configuration Workbook before generating documents. ISAF will load the saved copy automatically.');return;}
-  if (!selectedFile && !selectedDemoPath) return;
+  if (!selectedFile && !selectedDemoPath){buildStartNote('Load a configuration workbook first (Program Intake → Load Existing Config, or File → Open).');return;}
   // Proactive checks: do not start a build while the build engine would reject the configuration.
   if(window.configCheck&&configData){const check=await window.configCheck.ensure();if(check?.blockers?.length){const box=$('configCheckStatus');box?.scrollIntoView({block:'center',behavior:'smooth'});box?.classList.add('issue-flash');setTimeout(()=>box?.classList.remove('issue-flash'),1600);return;}}
   if(isHostedService&&selectedFile&&String(configData?.program?.logo_path||'').trim()&&!selectedLogoFile){
@@ -2661,7 +2673,7 @@ $('build-btn').addEventListener('click', async () => {
   $('log').textContent = 'Starting build…\n';
   $('summary').classList.add('hidden');
   $('build-btn').disabled = true;
-  $('buildBusyIndicator').classList.remove('hidden');document.body.setAttribute('aria-busy','true');
+  $('buildBusyText').textContent='Documents being generated…';$('buildBusyIndicator').classList.remove('hidden');document.body.setAttribute('aria-busy','true');
   buildStopRequested=false;currentBuildJobId=null;const stopBtn=$('buildStopBtn');stopBtn.disabled=false;stopBtn.textContent='Stop build';stopBtn.classList.remove('hidden');
   const busyStart=Date.now();$('buildBusyTime').textContent='0:00';
   const busyTimer=setInterval(()=>{const t=Math.floor((Date.now()-busyStart)/1000);$('buildBusyTime').textContent=`${Math.floor(t/60)}:${String(t%60).padStart(2,'0')}`;},1000);
@@ -2740,7 +2752,9 @@ $('build-btn').addEventListener('click', async () => {
       totalDocs += result.docCount; totalFails += result.failCount; lastOutputDir = result.outputDir;
       if(result.downloadUrl)buildDownloads.push({url:result.downloadUrl,filename:result.downloadFilename||'ISAF_Build.zip',phase});
       const breakdown=Number.isInteger(result.generatedCount)&&Number.isInteger(result.reusedCount)?` (${result.generatedCount} generated/updated, ${result.reusedCount} unchanged)` : '';
-      $('log').textContent += `${result.docCount} documents in this build${breakdown}, ${result.failCount} failures (${result.elapsed}s)\n${result.downloadUrl?'ZIP package ready for download.':'Output: '+result.outputDir}\n${(result.postprocess||[]).map(n=>n+'\n').join('')}`;
+      // A full build lists its documents per phase folder (owner, 25 November 2026).
+      const byPhase=phase==='all'&&Array.isArray(result.phaseCounts)&&result.phaseCounts.length>1?`Documents per phase:\n${result.phaseCounts.map(c=>`  ${(c.folder||'(top folder)').padEnd(18)} ${String(c.count).padStart(4)}`).join('\n')}\n`:'';
+      $('log').textContent += `${result.docCount} documents in this build${breakdown}, ${result.failCount} failures (${result.elapsed}s)\n${byPhase}${result.downloadUrl?'ZIP package ready for download.':'Output: '+result.outputDir}\n${(result.postprocess||[]).map(n=>n+'\n').join('')}`;
       // A postprocess failure was only ever a line in the log, so a build that silently produced
       // no PDFs looked like nothing had happened. Put the reason where the option was ticked.
       const pdfProblem=(result.postprocess||[]).find(n=>/^PDF copies not created/.test(n));
@@ -2785,14 +2799,26 @@ $('build-btn').addEventListener('click', async () => {
       const keep=document.createElement('p');keep.className='hint';keep.style.cssText='flex-basis:100%;margin:.2rem 0 0;';keep.textContent='Finished builds are kept on this site for up to 60 minutes, and are cleared if the site restarts. Keep the downloaded ZIP.';actions.appendChild(keep);
       $('summary').appendChild(actions);
       if(useFolder){
-        note.textContent=`Saving into "${window.workingFolder.name()}"…`;keep.textContent='The working folder has the new documents. Download ZIP gives you a copy as well.';
+        // Generation is finished; the documents are now written into the working folder, which can take a minute.
+        // The progress line and status say so, and Stop build is hidden: it cannot stop the save (owner,
+        // 25 November 2026: the progress line still said "Documents being generated" after the build was done).
+        const folderName=window.workingFolder.name();
+        $('buildStopBtn').classList.add('hidden');$('status-badge').className='status-badge running';$('status-badge').textContent='Saving to folder';
+        $('buildBusyText').textContent=`Saving into "${folderName}"…`;$('log').textContent+=`\nSaving the documents into the working folder "${folderName}"…\n`;
+        let savedSoFar=0;const progress=(done,total)=>{$('buildBusyText').textContent=`Saving into "${folderName}": ${savedSoFar+done} of ${savedSoFar+total} files`;};
+        note.textContent=`Saving into "${folderName}"…`;keep.textContent='The working folder has the new documents. Download ZIP gives you a copy as well.';
         // One ZIP per phase: each unpacks at the folder root, so later builds replace the same files.
-        try{const saved={written:0,backedUp:0,superseded:0,failed:[],backup:''},backupStamp=window.workingFolder.stamp();
+        try{const saved={written:0,backedUp:0,superseded:0,failed:[],backup:'',paths:[],prefixes:[]},backupStamp=window.workingFolder.stamp();
           for(const item of buildDownloads){const response=await fetch(item.url,{headers:authHeaders()});if(!response.ok){let m='The build could not be fetched.';try{m=(await response.json()).error||m;}catch{}throw Error(m);}
-            const r=await window.workingFolder.writeZip(await response.blob(),{backupStamp,kept:recordsKept?folderSent:null});saved.written+=r.written;saved.backedUp+=r.backedUp+r.superseded;saved.superseded+=r.superseded;saved.failed.push(...r.failed);saved.backup=r.backup||saved.backup;}
+            const r=await window.workingFolder.writeZip(await response.blob(),{backupStamp,kept:recordsKept?folderSent:null,onProgress:progress});savedSoFar+=r.paths?.length||0;saved.written+=r.written;saved.backedUp+=r.backedUp+r.superseded;saved.superseded+=r.superseded;saved.failed.push(...r.failed);saved.backup=r.backup||saved.backup;saved.paths.push(...(r.paths||[]));saved.prefixes.push(...(r.prefixes||[]));}
           note.textContent=`Saved ${saved.written} file${saved.written===1?'':'s'} into "${window.workingFolder.name()}"${saved.backedUp?`; ${saved.backedUp} previous version${saved.backedUp===1?'':'s'} kept in ${saved.backup}`:''}.${saved.failed.length?` ${saved.failed.length} could not be written (is a file open in Word?).`:''}`;
-          $('log').textContent+=`\nWorking folder: ${note.textContent}\n${saved.failed.map(f=>`  Not written: ${f.path}: ${f.error}`).join('\n')}${saved.failed.length?'\n':''}`;}
+          $('log').textContent+=`\nWorking folder: ${note.textContent}\n${saved.failed.map(f=>`  Not written: ${f.path}: ${f.error}`).join('\n')}${saved.failed.length?'\n':''}`;
+          // Old ISAF documents of this program that this build did not produce (for example a renamed document
+          // type): listed, with a button to move them out of the way (owner, 24 November 2026).
+          $('buildBusyText').textContent=`Checking "${folderName}" for older documents…`;
+          try{const old=await window.workingFolder.leftovers(saved.paths,[...new Set(saved.prefixes)]);if(old.length)showFolderLeftovers(old);}catch(error){$('log').textContent+=`Working folder: old documents could not be listed: ${error.message}\n`;}}
         catch(error){note.textContent=`Could not save into the working folder: ${error.message} Select Download ZIP to save a copy instead.`;}
+        $('status-badge').className='status-badge succeeded';$('status-badge').textContent='Succeeded';
       }
     }else{
       const displayPath = phasesToBuild.length === 1 ? lastOutputDir : lastOutputDir.replace(/_[^_]+$/, '') + '  (+ ' + (phasesToBuild.length - 1) + ' more folder' + (phasesToBuild.length > 2 ? 's' : '') + ')';
@@ -2809,6 +2835,24 @@ $('build-btn').addEventListener('click', async () => {
     clearInterval(busyTimer);$('buildBusyIndicator').classList.add('hidden');document.body.removeAttribute('aria-busy');
   }
 });
+// Old documents in the working folder that the last build did not produce: list them and offer to move them to
+// _ISAF_superseded/<date-time>/ (nothing is deleted).
+function showFolderLeftovers(old){
+  const box=document.createElement('div');box.className='build-result-actions folder-leftovers';box.setAttribute('role','region');box.setAttribute('aria-label','Old documents in the working folder');box.style.cssText='margin-top:.8rem;padding:.6rem .8rem;border:1px solid var(--border);border-radius:6px;';
+  const head=document.createElement('p');head.style.margin='0 0 .4rem';head.textContent=`${old.length} older ISAF document${old.length===1?'':'s'} of this program ${old.length===1?'is':'are'} in the working folder but ${old.length===1?'was':'were'} not produced by this build (for example a document type that was renamed or removed):`;
+  const list=document.createElement('ul');list.style.cssText='margin:0 0 .5rem;max-height:12rem;overflow:auto;font-size:.85rem;';
+  for(const f of old){const li=document.createElement('li');li.textContent=f.path;list.appendChild(li);}
+  const move=document.createElement('button');move.type='button';move.className='secondary';move.textContent=`Move ${old.length===1?'it':'them'} to _ISAF_superseded`;
+  const status=document.createElement('span');status.className='hint';status.setAttribute('role','status');status.setAttribute('aria-live','polite');status.style.marginLeft='.6rem';
+  move.addEventListener('click',async()=>{move.disabled=true;status.textContent='Moving…';
+    try{if(!await window.workingFolder.ready())throw Error('Access to the working folder was not allowed.');
+      const r=await window.workingFolder.moveAside(old.map(f=>f.path));
+      status.textContent=`Moved ${r.moved} file${r.moved===1?'':'s'} to ${r.folder} in "${window.workingFolder.name()}".${r.failed.length?` ${r.failed.length} could not be moved (is a file open in Word?).`:''}`;
+      $('log').textContent+=`Working folder: ${status.textContent}\n${r.failed.map(f=>`  Not moved: ${f.path}: ${f.error}`).join('\n')}${r.failed.length?'\n':''}`;
+      if(r.failed.length)move.disabled=false;}
+    catch(error){status.textContent=`Could not move the files: ${error.message}`;move.disabled=false;}});
+  box.append(head,list,move,status);$('summary').appendChild(box);
+}
 $('buildStopBtn').addEventListener('click',()=>{
   buildStopRequested=true;const b=$('buildStopBtn');b.disabled=true;b.textContent='Stopping…';
   if(currentBuildJobId)fetch('/api/build-jobs/'+encodeURIComponent(currentBuildJobId)+'/cancel',{method:'POST',headers:authHeaders()}).catch(()=>{});

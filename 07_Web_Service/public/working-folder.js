@@ -9,6 +9,9 @@
    The chosen folder is remembered in this browser (IndexedDB). */
 (() => {
   const BACKUP = '_ISAF_backup';
+  // Old ISAF documents that a build no longer produces (for example a renamed document type), moved here when
+  // the user chooses to (owner, 24 November 2026). Builds do not read documents from it.
+  const SUPERSEDED = '_ISAF_superseded';
   const supported = () => typeof window.showDirectoryPicker === 'function';
   let handle = null, listeners = [];
   const emit = () => { for (const fn of listeners) { try { fn(handle); } catch {} } };
@@ -39,7 +42,7 @@
     async function walk(dir, prefix) {
       for await (const [name, entry] of dir.entries()) {
         if (out.length >= max) return;
-        if (entry.kind === 'directory') { if (name !== BACKUP && !name.startsWith('.')) await walk(entry, prefix + name + '/'); }
+        if (entry.kind === 'directory') { if (name !== BACKUP && name !== SUPERSEDED && !name.startsWith('.')) await walk(entry, prefix + name + '/'); }
         else if (/\.docx$/i.test(name) && !name.startsWith('~$')) out.push({ path: prefix + name, file: await entry.getFile() });
       }
     }
@@ -97,14 +100,15 @@
   /** Write files [{path, data}] into the folder. kept: the paths whose current file the ISAF server holds (a Set),
       or true when it holds all of them; any other existing file is copied to _ISAF_backup/<stamp>/ first. */
   const serverHolds = (kept, path) => kept === true || !!kept?.has?.(parts(path).join('/'));
-  async function writeFiles(files, { backupStamp = stamp(), kept = null } = {}) {
-    let written = 0, backedUp = 0; const failed = [];
+  async function writeFiles(files, { backupStamp = stamp(), kept = null, onProgress = null } = {}) {
+    let written = 0, backedUp = 0, done = 0; const failed = [];
     for (const f of files) {
       try {
         const old = await existing(f.path);
         if (old && !serverHolds(kept, f.path)) { await put(`${BACKUP}/${backupStamp}/${parts(f.path).join('/')}`, await old.getFile()); backedUp++; }
         await put(f.path, f.data); written++;
       } catch (e) { failed.push({ path: f.path, error: e.message }); }
+      try { onProgress?.(++done, files.length); } catch {}
     }
     return { written, backedUp, failed, backup: backedUp ? `${BACKUP}/${backupStamp}` : '' };
   }
@@ -112,7 +116,7 @@
   /** Unpack a ZIP (a build) into the folder. A Word document that replaces an older file of the same document
       number under another name (a new revision or draft) moves the older file to the backup, so the folder
       holds one current file per document. */
-  async function writeZip(blob, { backupStamp = stamp(), kept = null } = {}) {
+  async function writeZip(blob, { backupStamp = stamp(), kept = null, onProgress = null } = {}) {
     const entries = await zipEntries(blob), files = [];
     for (const e of entries) files.push({ path: e.name, data: await zipRead(blob, e) });
     const incoming = new Map();
@@ -125,14 +129,37 @@
         try { if (!serverHolds(kept, d.path)) { await put(`${BACKUP}/${backupStamp}/${d.path}`, d.file); superseded++; } await remove(d.path); } catch {}
       }
     }
-    const result = await writeFiles(files, { backupStamp, kept });
+    const result = await writeFiles(files, { backupStamp, kept, onProgress });
     result.superseded = superseded; result.backup = (result.backedUp || superseded) ? `${BACKUP}/${backupStamp}` : '';
+    result.paths = files.map(f => parts(f.path).join('/'));
+    result.prefixes = [...new Set([...incoming.keys()].map(k => k.split('|')[0].split('-')[0]).filter(Boolean))];
     return result;
+  }
+  /** ISAF documents of the same program (document number prefix) in the folders a build wrote into that the
+      build did not produce: [{path, pn, doc}]. paths: every file the build wrote; prefixes: its PN prefixes. */
+  async function leftovers(paths, prefixes) {
+    const produced = new Set(paths), roots = new Set(paths.map(p => p.includes('/') ? p.split('/')[0] + '/' : ''));
+    const out = [];
+    for (const d of await documents()) {
+      if (produced.has(d.path) || !roots.has(d.path.includes('/') ? d.path.split('/')[0] + '/' : '')) continue;
+      const id = await identity(d.file);
+      if (id?.pn && prefixes.includes(String(id.pn).split('-')[0])) out.push({ path: d.path, pn: id.pn, doc: id.doc || '' });
+    }
+    return out.sort((a, b) => a.path.localeCompare(b.path));
+  }
+  /** Move files into _ISAF_superseded/<stamp>/ (same relative paths). Returns {moved, failed, folder}. */
+  async function moveAside(paths, { at = stamp() } = {}) {
+    let moved = 0; const failed = [], folder = `${SUPERSEDED}/${at}`;
+    for (const path of paths) {
+      try { const fh = await existing(path); if (!fh) continue; await put(`${folder}/${parts(path).join('/')}`, await fh.getFile()); await remove(path); moved++; }
+      catch (e) { failed.push({ path, error: e.message }); }
+    }
+    return { moved, failed, folder };
   }
 
   if (typeof indexedDB !== 'undefined') restore().then(h => { if (h && !handle) { handle = h; emit(); } });
   window.workingFolder = {
-    supported, choose, forget, ready, documents, identity, writeFiles, writeZip, zipEntries, zipRead, stamp,
+    supported, choose, forget, ready, documents, identity, writeFiles, writeZip, leftovers, moveAside, zipEntries, zipRead, stamp,
     get handle() { return handle; }, name: () => handle?.name || '',
     _use: h => { handle = h; emit(); }, // tests
     onChange: fn => { listeners.push(fn); fn(handle); },
